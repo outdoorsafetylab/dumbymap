@@ -1,0 +1,61 @@
+{
+  "name": "dumbymap",
+  "description": "Generate interactive maps from Semantic HTML",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/dumbymap.mjs",
+  "style": "dist/css/dummby.css",
+  "files": [
+    "dist/*",
+    "src/"
+  ],
+  "keywords": [
+    "markdown",
+    "semantic-html",
+    "maplibre",
+    "openlayers",
+    "leaflet"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "watch": "npx rollup -c -w",
+    "build": "npx rollup -c",
+    "build-css": "ln -sf `pwd`/src/css `pwd`/dist/css",
+    "build-renderers": "ln -sf `pwd`/node_modules/mapclay/dist/renderers `pwd`/dist/renderers",
+    "server": "live-server --port=8080 --ignore='**/src/**js' --wait=2000 --no-browser --cors",
+    "dev": "mkdir -p dist; npm run build-css; npm run build-renderers; npm run build; npm run server",
+    "lint": "npx eslint src"
+  },
+  "devDependencies": {
+    "@eslint/compat": "^1.1.1",
+    "@eslint/js": "^9.10.0",
+    "@rollup/plugin-alias": "^5.1.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^9.10.0",
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^7.1.0",
+    "globals": "^15.9.0",
+    "rollup": "^4.21.2"
+  },
+  "dependencies": {
+    "leader-line": "^1.0.7",
+    "mapclay": "^0.5.4",
+    "markdown-it": "^14.1.0",
+    "markdown-it-anchor": "^9.1.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-front-matter": "^0.2.4",
+    "markdown-it-toc-done-right": "^4.2.0",
+    "plain-draggable": "^2.5.14",
+    "tiny-markdown-editor": "^0.1.23"
+  },
+  "author": "Hsiehg Chin Fan <pham@topo.tw>",
+  "homepage": "https://outdoorsafetylab.org/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/outdoorsafetylab/dumbymap"
+  }
+}

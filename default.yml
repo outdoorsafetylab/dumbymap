@@ -1,0 +1,57 @@
+aliases:
+  use:
+    leaflet:
+      value: ./renderers/leaflet.mjs,
+      description: Leaflet is the leading open-source JavaScript library for mobile-friendly interactive maps. It has all the mapping features most developers ever need.
+    maplibre:
+      value: ./renderers/maplibre.mjs,
+      description: MapLibre GL JS is a TypeScript library that uses WebGL to render interactive maps from vector tiles in a browser. The customization of the map comply with the MapLibre Style Spec.
+    openlayers:
+      value: ./renderers/openlayers.mjs,
+      description: OpenLayers makes it easy to put a dynamic map in any web page. It can display map tiles, vector data and markers loaded from any source. OpenLayers has been developed to further the use of geographic information of all kinds.
+  XYZ:
+    OSM Carto: http://b.tile.openstreetmap.org/{z}/{x}/{y}.png
+    OpenCycleMap: https://a.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=a5dd6a2f1c934394bce6b0fb077203eb
+    Rudymap: https://tile.happyman.idv.tw/map/moi_osm/{z}/{x}/{y}.png
+    Happyman gpx: https://tile.happyman.idv.tw/map/gpxtrack/{z}/{x}/{y}.png
+    Happyman moi: https://tile.happyman.idv.tw/map/moi_osm/{z}/{x}/{y}.png
+    NLSC aeril: http://wmts.nlsc.gov.tw/wmts/PHOTO2/default/GoogleMapsCompatible/{z}/{y}/{x}
+    NLSC topo: http://wmts.nlsc.gov.tw/wmts/PHOTO_MIX/default/GoogleMapsCompatible/{z}/{y}/{x}
+    TAIWAN_ ERRAIN:   https://osmhacktw.github.io/terrain-rgb/tiles/{z}/{x}/{y}.png
+  WMTS:
+    SINICA: https://gis.sinica.edu.tw/tileserver/wmts
+    NLSC: https://wmts.nlsc.gov.tw/wmts
+    WMTS TAIWAN_TERRAIN: https://osmhacktw.github.io/terrain-rgb/wmts.xml
+  center:
+    Tokyo: [ 139.6917, 35.6895 ]
+    Delhi: [ 77.1025, 28.7041 ]
+    Shanghai: [ 121.4737, 31.2304 ]
+    Sao Paulo: [ -46.6333, -23.5505 ]
+    Mumbai: [ 72.8777, 19.0760 ]
+    Mexico City: [ -99.1332, 19.4326 ]
+    Beijing: [ 116.4074, 39.9042 ]
+    Osaka: [ 135.5022, 34.6937 ]
+    Cairo: [ 31.2357, 30.0444 ]
+    New York City: [ -74.0059, 40.7128 ]
+    Dhaka: [ 90.4125, 23.8103 ]
+    Karachi: [ 67.0011, 24.8607 ]
+    Buenos Aires: [ -58.3816, -34.6037 ]
+    Istanbul: [ 28.9784, 41.0082 ]
+    Kolkata: [ 88.3639, 22.5726 ]
+    Manila: [ 120.9842, 14.5995 ]
+    Lagos: [ 3.3792, 6.5244 ]
+    Rio de Janeiro: [ -43.1729, -22.9068 ]
+    Tianjin: [ 117.1767, 39.0842 ]
+  zoom:
+    Whole world: 0
+    Subcontinental area: 2
+    Large African country: 5
+    Large European country: 6
+    Wide area, large metropolitan area: 9
+    Metropolitan area: 10
+    City: 11
+    Town, or city district: 12
+    Village, or suburb: 13
+    Street: 16
+    Block, park, addresses: 17
+    A mid-sized building: 20
