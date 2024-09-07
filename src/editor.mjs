@@ -8,7 +8,7 @@ const HtmlContainer = document.querySelector(".result-html")
 const mdeElement = document.querySelector("#tinymde")
 
 // Add Editor
-const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: maplibre\n```\n'
+const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
 const lastContent = localStorage.getItem('editorContent')
 const tinyEditor = new TinyMDE.Editor({
   element: 'tinymde',
@@ -158,7 +158,7 @@ const getLineWithRenderer = (element) => {
   return null
 }
 // }}}
-// FUNCTION: Add suggestions for current selection {{{
+// FUNCTION: Return suggestions for valid options {{{
 const getSuggestionsForOptions = (optionTyped, validOptions) => {
   let suggestOptions = []
 
@@ -177,7 +177,8 @@ const getSuggestionsForOptions = (optionTyped, validOptions) => {
       replace: `${o.valueOf()}: `,
     }))
 }
-
+// }}}
+// FUNCTION: Return suggestion for example of option value {{{
 const getSuggestionFromMapOption = (option) => {
   if (!option.example) return null
 
@@ -190,7 +191,8 @@ const getSuggestionFromMapOption = (option) => {
     replace: `${option.valueOf()}: ${option.example ?? ""}`,
   })
 }
-
+// }}}
+// FUNCTION: Return suggestions from aliases {{{
 const getSuggestionsFromAliases = (option) => Object.entries(aliasesForMapOptions[option.valueOf()] ?? {})
   ?.map(record => {
     const [alias, value] = record
@@ -201,8 +203,8 @@ const getSuggestionsFromAliases = (option) => Object.entries(aliasesForMapOption
     })
   })
   ?? []
-
-// Add HTML element for List of suggestions
+// }}}
+// FUNCTION: Add HTML element for List of suggestions {{{
 const addSuggestions = (currentLine, selection) => {
   const text = currentLine.textContent
   const markInputIsInvalid = (ele) => (ele ?? currentLine).classList.add('invalid-input')
@@ -327,7 +329,7 @@ const addSuggestions = (currentLine, selection) => {
   suggestionsEle.style.maxWidth = `calc(${window.innerWidth}px - ${rect.right}px - 2rem)`;
 }
 // }}}
-// Event: suggests for current selection {{{
+// EVENT: suggests for current selection {{{
 tinyEditor.addEventListener('selection', selection => {
   // To trigger click event on suggestions list, don't set suggestion list invisible
   if (suggestionsEle.querySelector('.container__suggestion.focus:hover') !== null) {
@@ -356,7 +358,7 @@ tinyEditor.addEventListener('selection', selection => {
   if (insideCodeblockForMap(element)) addSuggestions(element, selection)
 });
 // }}}
-// Key events for suggestions {{{
+// EVENT: keydown for suggestions {{{
 mdeElement.addEventListener('keydown', (e) => {
   // Only the following keys are used
   const keyForSuggestions = ['Tab', 'Enter', 'Escape'].includes(e.key)
