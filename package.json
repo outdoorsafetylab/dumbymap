@@ -45,7 +45,7 @@
     "leader-line": "^1.0.7",
     "mapclay": "^0.6.1",
     "markdown-it": "^14.1.0",
-    "markdown-it-anchor": "^9.1.0",
+    "markdown-it-anchor": "^9.2.0",
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-front-matter": "^0.2.4",
     "markdown-it-toc-done-right": "^4.2.0",
@@ -53,7 +53,7 @@
     "tiny-markdown-editor": "^0.1.23"
   },
   "author": "Hsiehg Chin Fan <pham@topo.tw>",
-  "homepage": "https://outdoorsafetylab.org/",
+  "homepage": "https://outdoorsafetylab.github.io/dumbymap",
   "repository": {
     "type": "git",
     "url": "https://github.com/outdoorsafetylab/dumbymap"
