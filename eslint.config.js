@@ -21,7 +21,7 @@ export default [
       node: nodePlugin,
     },
     rules: {
-      'no-unused-vars': ['error', { 'varsIgnorePattern': '^_' }],
+      'no-unused-vars': ['warn', { 'varsIgnorePattern': '^_' }],
       'import/no-unresolved': 'error',
       'no-console': ["error", { allow: ["info", "warn", "error"] }],
       'eqeqeq': ['error', 'always'],

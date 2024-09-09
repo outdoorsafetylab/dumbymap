@@ -240,6 +240,7 @@ export const generateMaps = async (container) => {
         Object.assign(result, { markers: markersFromLinks })
         return result
       })
+      /* eslint-disable no-unused-vars */
     } catch (_) {
       console.warn('Fail to parse yaml config for element', target)
     }

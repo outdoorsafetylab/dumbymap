@@ -215,7 +215,7 @@ const getSuggestionsFromAliases = (option) => Object.entries(aliasesForMapOption
 // }}}
 const handleTypingInCodeBlock = (currentLine, selection) => {
   const text = currentLine.textContent
-  if (text.match(/^\s\+$/) && text.length % 2 != 0) {
+  if (text.match(/^\s\+$/) && text.length % 2 !== 0) {
     // TODO Completion for even number of spaces
   } else if (text.match(/^-/)){
     // TODO Completion for YAML doc separator
