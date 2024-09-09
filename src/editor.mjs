@@ -7,12 +7,22 @@ import { defaultAliasesForRenderer, parseConfigsFromYaml } from 'mapclay'
 const HtmlContainer = document.querySelector(".result-html")
 const mdeElement = document.querySelector("#tinymde")
 
+const getContentFromHash = () => {
+  const hashValue = location.hash.substring(1);
+  window.location.hash = ''
+  return hashValue.startsWith('text=')
+    ? decodeURIComponent(hashValue.substring(5))
+    : null
+}
+
 // Add Editor
-const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
+const contentFromHash = getContentFromHash()
 const lastContent = localStorage.getItem('editorContent')
+const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
+
 const tinyEditor = new TinyMDE.Editor({
   element: 'tinymde',
-  content: lastContent ? lastContent : defaultContent
+  content: contentFromHash ?? lastContent ?? defaultContent
 });
 mdeElement.querySelectorAll('span').forEach(e => e.setAttribute('spellcheck', 'false'))
 
@@ -38,8 +48,7 @@ const debugCommand = {
   title: 'show debug message',
   innerHTML: `<div style="font-size: 16px; line-height: 1.1;">🤔</div>`,
   action: () => {
-    // FIXME
-    alert(tinyEditor.getContent())
+    window.location.hash = '#text=' + encodeURIComponent(tinyEditor.getContent())
   },
   hotkey: 'Ctrl-i'
 }
