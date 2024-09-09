@@ -213,6 +213,16 @@ const getSuggestionsFromAliases = (option) => Object.entries(aliasesForMapOption
   })
   ?? []
 // }}}
+const handleTypingInCodeBlock = (currentLine, selection) => {
+  const text = currentLine.textContent
+  if (text.match(/^\s\+$/) && text.length % 2 != 0) {
+    // TODO Completion for even number of spaces
+  } else if (text.match(/^-/)){
+    // TODO Completion for YAML doc separator
+  } else {
+    addSuggestions(currentLine, selection)
+  }
+}
 // FUNCTION: Add HTML element for List of suggestions {{{
 const addSuggestions = (currentLine, selection) => {
   const text = currentLine.textContent
@@ -362,7 +372,9 @@ tinyEditor.addEventListener('selection', selection => {
   }
 
   // Show suggestions for map code block
-  if (insideCodeblockForMap(element)) addSuggestions(element, selection)
+  if (insideCodeblockForMap(element)) {
+    handleTypingInCodeBlock(element, selection)
+  }
 });
 // }}}
 // EVENT: keydown for suggestions {{{
