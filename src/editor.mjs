@@ -7,16 +7,16 @@ import { defaultAliasesForRenderer, parseConfigsFromYaml } from 'mapclay'
 const HtmlContainer = document.querySelector(".result-html")
 const mdeElement = document.querySelector("#tinymde")
 
-const getContentFromHash = () => {
+const getContentFromHash = (cleanHash = false) => {
   const hashValue = location.hash.substring(1);
-  window.location.hash = ''
+  if (cleanHash) window.location.hash = ''
   return hashValue.startsWith('text=')
     ? decodeURIComponent(hashValue.substring(5))
     : null
 }
 
 // Add Editor
-const contentFromHash = getContentFromHash()
+const contentFromHash = getContentFromHash(true)
 const lastContent = localStorage.getItem('editorContent')
 const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
 
@@ -25,6 +25,11 @@ const tinyEditor = new TinyMDE.Editor({
   content: contentFromHash ?? lastContent ?? defaultContent
 });
 mdeElement.querySelectorAll('span').forEach(e => e.setAttribute('spellcheck', 'false'))
+
+onhashchange = () => {
+  const contentFromHash = getContentFromHash()
+  if (contentFromHash) tinyEditor.setContent(contentFromHash)
+}
 
 // Add command bar for editor
 // Use this command to render maps and geoLinks
