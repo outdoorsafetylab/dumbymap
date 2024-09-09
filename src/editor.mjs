@@ -348,22 +348,23 @@ const addSuggestions = (currentLine, selection) => {
 // }}}
 // EVENT: suggests for current selection {{{
 tinyEditor.addEventListener('selection', selection => {
+  // Check selection is inside editor contents
+  const node = selection?.anchor?.node
+  if (!node) return
+
+  // FIXME Better way to prevent spellcheck across editor
+  // Get HTML element for current selection
+  const element = node instanceof HTMLElement
+    ? node
+    : node.parentNode
+  element.setAttribute('spellcheck', 'false')
+
   // To trigger click event on suggestions list, don't set suggestion list invisible
   if (suggestionsEle.querySelector('.container__suggestion.focus:hover') !== null) {
     return
   } else {
     suggestionsEle.style.display = 'none';
   }
-
-  // Check selection is inside editor contents
-  const node = selection?.anchor?.node
-  if (!node) return
-
-  // Get HTML element for current selection
-  const element = node instanceof HTMLElement
-    ? node
-    : node.parentNode
-  element.setAttribute('spellcheck', 'false')
 
   // Do not show suggestion by attribute
   if (suggestionsEle.getAttribute('data-keep-close') === 'true') {
