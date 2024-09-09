@@ -318,7 +318,7 @@ export const generateMaps = async (container) => {
       if (focusArea.contains(mapPlaceholder)) {
         const mapContainer = container.querySelector('.map-container.focus') ?? container.querySelector('.map-container')
         mapPlaceholder.innerHTML = `<div>Placeholder</div>`
-        // TODO
+        // TODO Get snapshot image
         // mapPlaceholder.src = map.map.getCanvas().toDataURL()
         mapContainer.parentElement?.replaceChild(mapPlaceholder, mapContainer)
         focusArea.appendChild(mapContainer)

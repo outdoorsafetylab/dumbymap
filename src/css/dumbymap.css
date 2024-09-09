@@ -179,7 +179,7 @@
   position: absolute;
   right: 10px;
   bottom: 10px;
-  /* FIXME */
+  /* FIXME Hide nav at proper time */
   display: none;
 
   padding: 0.5rem;
