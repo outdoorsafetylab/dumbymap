@@ -87,7 +87,7 @@ const saveContent = (content) => {
       localStorage.setItem('editorContent', content)
       resolve('Content Saved')
     }, 3000)
-  }).catch((err) => console.warn('Fail to save content', err))
+  }).catch(() => null)
 }
 
 // Render HTML to result container and save current content
