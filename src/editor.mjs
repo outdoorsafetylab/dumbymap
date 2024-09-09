@@ -1,6 +1,6 @@
 import TinyMDE from 'tiny-markdown-editor'
 import { markdown2HTML, generateMaps } from './dumbymap'
-import { defaultAliasesForRenderer, parseConfigsFromText } from 'mapclay'
+import { defaultAliasesForRenderer, parseConfigsFromYaml } from 'mapclay'
 
 // Set up Editor {{{
 
@@ -104,7 +104,7 @@ const defaultApply = '/default.yml'
 fetch(defaultApply)
   .then(res => res.text())
   .then(rawText => {
-    const config = parseConfigsFromText(rawText)?.at(0)
+    const config = parseConfigsFromYaml(rawText)?.at(0)
     Object.assign(aliasesForMapOptions, config.aliases ?? {})
   })
   .catch(err => console.warn(`Fail to get aliases from ${defaultApply}`, err))

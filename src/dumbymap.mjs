@@ -6,7 +6,7 @@ import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
 import PlainDraggable from 'plain-draggable'
-import { render, parseConfigsFromText } from 'mapclay'
+import { render, parseConfigsFromYaml } from 'mapclay'
 
 const observers = new Map()
 
@@ -215,13 +215,11 @@ export const generateMaps = async (container) => {
     mapIdList.push(mapId)
   }
 
-  const markerOptions = geoLinks.map(link => {
-    return {
-      targets: link.targets,
-      xy: link.xy,
-      title: link.url.pathname
-    }
-  })
+  const markerOptions = geoLinks.map(link => ({
+    targets: link.targets,
+    xy: link.xy,
+    title: link.url.pathname
+  }))
 
 
   // Render each code block with "language-map" class
@@ -234,7 +232,7 @@ export const generateMaps = async (container) => {
 
     let configList = []
     try {
-      configList = parseConfigsFromText(configText).map(result => {
+      configList = parseConfigsFromYaml(configText).map(result => {
         assignMapId(result)
         const markersFromLinks = markerOptions.filter(marker =>
           !marker.targets || marker.targets.includes(result.id)

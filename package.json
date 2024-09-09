@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "leader-line": "^1.0.7",
-    "mapclay": "^0.5.4",
+    "mapclay": "^0.6.1",
     "markdown-it": "^14.1.0",
     "markdown-it-anchor": "^9.1.0",
     "markdown-it-footnote": "^4.0.0",
