@@ -4,8 +4,6 @@
 
 .with-leader-line:not(:has(> *)) {
   display: inline-block;
-  left: 0px;
-  top: 0px;
 
   padding-right: 15px;
   padding-left: 6px;
@@ -24,7 +22,6 @@
   }
 
   &:hover {
-    padding-right: 6px;
     background-image: none;
 
     font-weight: bolder;
