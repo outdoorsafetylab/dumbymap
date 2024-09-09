@@ -59,7 +59,7 @@ a:hover {
   text-decoration: underline;
 }
 
-pre:has([class^="language-"]) {
+pre:has(code) {
   min-width: 400px;
   display: block;
   padding: 9.5px;
