@@ -252,7 +252,7 @@ export const generateMaps = async (container) => {
             afterEachMapLoaded(mapByConfig.value)
             return mapByConfig.value
           } else {
-            console.error('Fail to render target element', mapByConfig.value)
+            console.error('Fail to render target element', mapByConfig.reason)
           }
         })
       })
