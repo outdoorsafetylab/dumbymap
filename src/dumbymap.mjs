@@ -240,8 +240,8 @@ export const generateMaps = async (container) => {
         Object.assign(result, { markers: markersFromLinks })
         return result
       })
-    } catch (err) {
-      console.error('Fail to parse yaml config for element', target, err)
+    } catch (_) {
+      console.warn('Fail to parse yaml config for element', target)
     }
 
     // Render maps

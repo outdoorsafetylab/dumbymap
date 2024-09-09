@@ -62,18 +62,18 @@ markdown2HTML(HtmlContainer, tinyEditor.getContent())
 // Event Listener: change {{{
 
 // Save editor content to local storage, set timeout for 3 seconds
-let rejectLastSaving
+let cancelLastSave
 const saveContent = (content) => {
   new Promise((resolve, reject) => {
     // If user is typing, the last change cancel previous ones
-    if (rejectLastSaving) rejectLastSaving(content.length)
-    rejectLastSaving = reject
+    if (cancelLastSave) cancelLastSave(content.length)
+    cancelLastSave = reject
 
     setTimeout(() => {
       localStorage.setItem('editorContent', content)
       resolve('Content Saved')
     }, 3000)
-  }).catch(() => null)
+  }).catch((err) => console.warn('Fail to save content', err))
 }
 
 // Render HTML to result container and save current content
@@ -216,9 +216,7 @@ const addSuggestions = (currentLine, selection) => {
   if (renderer) {
 
     // Do not check properties
-    if (text.startsWith('  ')) {
-      return
-    }
+    if (text.startsWith('  ')) return
 
     // If no valid options for current used renderer, go get it!
     const validOptions = rendererOptions[renderer]

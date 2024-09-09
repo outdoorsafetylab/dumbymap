@@ -50,6 +50,6 @@ export default [
   {
     input: "src/dumbymap.mjs",
   },
-].map(config => {
-  return { ...general, ...config }
-})
+]
+  .map(config => ({ ...general, ...config }))
+  .filter((config) => production || config.input.match(/editor/))
