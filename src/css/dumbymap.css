@@ -45,7 +45,7 @@
     }
   }
 
-  #markdown {
+  .SemanticHtml {
     flex: 1;
     padding: 20px;
     overflow-y: scroll;
@@ -59,20 +59,19 @@
       background-color: white;
       margin-bottom: 3rem;
 
-      * {
-        width: fit-content;
-      }
-
       .draggable {
         display: none;
       }
     }
 
-    pre:has(.map-container) {
-      display: flex;
-      justify-content: flex-start;
+    pre {
       width: 100%;
-      background-color: inherit;
+
+      &:has(.map-container) {
+        display: flex;
+        justify-content: flex-start;
+        background-color: inherit;
+      }
     }
 
     .map-container {
@@ -122,7 +121,7 @@
 
 .result-html[data-layout=side] {
   #map,
-  #markdown {
+  .SemanticHtml {
     flex: 50%;
     overflow-y: scroll;
     height: 100vh;
@@ -131,13 +130,13 @@
 
 .result-html[data-layout=overlay] {
   #map,
-  #markdown {
+  .SemanticHtml {
     position: fixed;
     height: 100%;
     width: 100%;
   }
 
-  #markdown {
+  .SemanticHtml {
     font-size: 12px;
     pointer-events: none;
 

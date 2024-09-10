@@ -1,12 +1,22 @@
-import TinyMDE from 'tiny-markdown-editor'
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliasesForRenderer, parseConfigsFromYaml } from 'mapclay'
 
 // Set up Editor {{{
 
 const HtmlContainer = document.querySelector(".result-html")
-const mdeElement = document.querySelector("#tinymde")
+const textArea = document.querySelector(".editor textarea")
 
+const toggleMaps = (container) => {
+  if (!container.querySelector('.Showcase')) {
+    generateMaps(container)
+    document.activeElement.blur();
+  } else {
+    markdown2HTML(HtmlContainer, editor.value())
+    container.setAttribute('data-layout', 'none')
+  }
+}
+
+// Content values for editor
 const getContentFromHash = (cleanHash = false) => {
   const hashValue = location.hash.substring(1);
   if (cleanHash) window.location.hash = ''
@@ -14,57 +24,59 @@ const getContentFromHash = (cleanHash = false) => {
     ? decodeURIComponent(hashValue.substring(5))
     : null
 }
-
-// Add Editor
 const contentFromHash = getContentFromHash(true)
 const lastContent = localStorage.getItem('editorContent')
 const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
 
-const tinyEditor = new TinyMDE.Editor({
-  element: 'tinymde',
-  content: contentFromHash ?? lastContent ?? defaultContent
+// Set up EasyMDE {{{
+const editor = new EasyMDE({
+  element: textArea,
+  indentWithTabs: false,
+  initialValue: contentFromHash ?? lastContent ?? defaultContent,
+  lineNumbers: true,
+  promptURLs: true,
+  uploadImage: true,
+  spellChecker: false,
+  toolbarButtonClassPrefix: 'mde',
+  status: false,
+  shortcuts: {
+    "map": "Ctrl-Alt-M",
+    "debug": "Ctrl-Alt-D",
+    "toggleUnorderedList": "Ctrl-Shift-L",
+  },
+  toolbar: [
+    {
+      name: 'map',
+      title: 'Toggle Map Generation',
+      text: "🌏",
+      action: toggleMaps(HtmlContainer),
+    },
+    {
+      name: 'debug',
+      title: 'Save content as URL',
+      text: "🤔",
+      action: () => {
+        window.location.hash = '#text=' + encodeURIComponent(editor.value())
+        navigator.clipboard.writeText(window.location.href)
+        alert('URL copied to clipboard')
+      },
+    }, 'undo', 'redo', '|', 'heading-1', 'heading-2', '|', 'link', 'image', '|', 'bold', 'italic', 'strikethrough', 'code', 'clean-block', '|', 'unordered-list', 'ordered-list', 'quote', 'table', '|', 'fullscreen'
+  ],
 });
-mdeElement.querySelectorAll('span').forEach(e => e.setAttribute('spellcheck', 'false'))
 
+const cm = editor.codemirror
+markdown2HTML(HtmlContainer, editor.value())
+
+cm.on("change", () => {
+  markdown2HTML(HtmlContainer, editor.value())
+})
+// }}}
+
+// Reload editor content by hash value
 onhashchange = () => {
   const contentFromHash = getContentFromHash()
-  if (contentFromHash) tinyEditor.setContent(contentFromHash)
+  if (contentFromHash) editor.value(contentFromHash)
 }
-
-// Add command bar for editor
-// Use this command to render maps and geoLinks
-const mapCommand = {
-  name: 'map',
-  title: 'Switch Map Generation',
-  innerHTML: `<div style="font-size: 16px; line-height: 1.1;">🌏</div>`,
-  action: () => {
-    if (!HtmlContainer.querySelector('.map-container')) {
-      generateMaps(HtmlContainer)
-      document.activeElement.blur();
-    } else {
-      markdown2HTML(HtmlContainer, tinyEditor.getContent())
-      HtmlContainer.setAttribute('data-layout', 'none')
-    }
-  },
-  hotkey: 'Ctrl-m'
-}
-const debugCommand = {
-  name: 'debug',
-  title: 'show debug message',
-  innerHTML: `<div style="font-size: 16px; line-height: 1.1;">🤔</div>`,
-  action: () => {
-    window.location.hash = '#text=' + encodeURIComponent(tinyEditor.getContent())
-  },
-  hotkey: 'Ctrl-i'
-}
-// Set up command bar
-new TinyMDE.CommandBar({
-  element: 'tinymde_commandbar', editor: tinyEditor,
-  commands: [mapCommand, debugCommand, '|', 'h1', 'h2', '|', 'insertLink', 'insertImage', '|', 'bold', 'italic', 'strikethrough', 'code', '|', 'ul', 'ol', '|', 'blockquote']
-});
-
-// Render HTML to result container
-markdown2HTML(HtmlContainer, tinyEditor.getContent())
 
 // FIXME DEBUGONLY
 // generateMaps(HtmlContainer)
@@ -73,34 +85,10 @@ markdown2HTML(HtmlContainer, tinyEditor.getContent())
 // }, 500)
 
 // }}}
-// Event Listener: change {{{
-
-// Save editor content to local storage, set timeout for 3 seconds
-let cancelLastSave
-const saveContent = (content) => {
-  new Promise((resolve, reject) => {
-    // If user is typing, the last change cancel previous ones
-    if (cancelLastSave) cancelLastSave(content.length)
-    cancelLastSave = reject
-
-    setTimeout(() => {
-      localStorage.setItem('editorContent', content)
-      resolve('Content Saved')
-    }, 3000)
-  }).catch(() => null)
-}
-
-// Render HTML to result container and save current content
-tinyEditor.addEventListener('change', e => {
-  markdown2HTML(HtmlContainer, e.content)
-  saveContent(e.content)
-});
-// }}}
 // Completion in Code Blok {{{
 // Elements about suggestions {{{
 const suggestionsEle = document.createElement('div')
 suggestionsEle.classList.add('container__suggestions');
-mdeElement.appendChild(suggestionsEle)
 
 const rendererOptions = {}
 
@@ -110,7 +98,6 @@ class Suggestion {
     this.replace = replace
   }
 }
-
 // }}}
 // {{{ Aliases for map options
 const aliasesForMapOptions = {}
@@ -124,50 +111,54 @@ fetch(defaultApply)
   .catch(err => console.warn(`Fail to get aliases from ${defaultApply}`, err))
 // }}}
 // FUNCTION: Check cursor is inside map code block {{{
-const insideCodeblockForMap = (element) => {
-  const code = element.closest('.TMFencedCodeBacktick')
-  if (!code) return false
-
-  let ps = code.previousSibling
-  if (!ps) return false
-
-  // Look backward to find pattern of code block: /```map/
-  while (!ps.classList.contains('TMCodeFenceBacktickOpen')) {
-    ps = ps.previousSibling
-    if (!ps) return false
-    if (ps.classList.contains('TMCodeFenceBacktickClose')) return false
-  }
-
-  return ps.querySelector('.TMInfoString')?.textContent === 'map'
-}
+// const insideCodeblockForMap = (currentLine) => {
+//   let tokens = cm.getLineTokens(currentLine)
+//
+//   if (!tokens.includes("comment") || tokens.includes('formatting-code-block')) return false
+//
+//   do {
+//     line = line - 1
+//     if (line < 0) return false
+//     tokens = cm.getLineTokens(line)
+//   } while (!tokens.includes('formatting-code-block'))
+//
+//   return true
+// }
+// }}}
+//  Check if current token is inside code block {{{
+const insideCodeblockForMap = (token) =>
+  token.state.overlay.codeBlock && !token.string.match(/^````*/)
 // }}}
 // FUNCTION: Get renderer by cursor position in code block {{{
-const getLineWithRenderer = (element) => {
-  const currentLine = element.closest('.TMFencedCodeBacktick')
-  if (!currentLine) return null
+const getLineWithRenderer = (anchor) => {
+  const currentLine = anchor.line
+  const match = (line) => cm.getLine(line).match(/^use: /)
+  if (match(currentLine)) return currentLine
+
+  const getToken = (line) => cm.getTokenAt({ line: line, ch: 1 })
 
   // Look backward/forward for pattern of used renderer: /use: .+/
-  let ps = currentLine
-  do {
-    ps = ps.previousSibling
-    if (ps.textContent.match(/^use: /)) {
+  let ps = currentLine - 1
+  while (ps > 0 && insideCodeblockForMap(getToken(ps))) {
+    if (match(ps)) {
       return ps
-    } else if (ps.textContent.match(/^---/)) {
+    } else if (cm.getLine(ps).match(/^---/)) {
       // If yaml doc separator is found
       break
     }
-  } while (ps && ps.classList.contains('TMFencedCodeBacktick'))
+    ps = ps - 1
+  }
 
-  let ns = currentLine
-  do {
-    ns = ns.nextSibling
-    if (ns.textContent.match(/^use: /)) {
+  let ns = currentLine + 1
+  while (insideCodeblockForMap(getToken(ns))) {
+    if (match(ns)) {
       return ns
-    } else if (ns.textContent.match(/^---/)) {
+    } else if (cm.getLine(ns).match(/^---/)) {
       // If yaml doc separator is found
       return null
     }
-  } while (ns && ns.classList.contains('TMFencedCodeBacktick'))
+    ns = ns + 1
+  }
 
   return null
 }
@@ -218,29 +209,35 @@ const getSuggestionsFromAliases = (option) => Object.entries(aliasesForMapOption
   })
   ?? []
 // }}}
-const handleTypingInCodeBlock = (currentLine, selection) => {
-  const text = currentLine.textContent
+// FUCNTION: Handler for map codeblock {{{
+const handleTypingInCodeBlock = (anchor) => {
+  const text = cm.getLine(anchor.line)
   if (text.match(/^\s\+$/) && text.length % 2 !== 0) {
     // TODO Completion for even number of spaces
-  } else if (text.match(/^-/)){
+  } else if (text.match(/^-/)) {
     // TODO Completion for YAML doc separator
   } else {
-    addSuggestions(currentLine, selection)
+    const suggestions = getSuggestions(anchor)
+    addSuggestions(anchor, suggestions)
   }
 }
-// FUNCTION: Add HTML element for List of suggestions {{{
-const addSuggestions = (currentLine, selection) => {
-  const text = currentLine.textContent
-  const markInputIsInvalid = (ele) => (ele ?? currentLine).classList.add('invalid-input')
+// }}}
+// FUNCTION: get suggestions by current input {{{
+const getSuggestions = (anchor) => {
+  const text = cm.getLine(anchor.line)
+  const markInputIsInvalid = () => cm.getDoc().markText(
+    { ...anchor, ch: 0 },
+    { ...anchor, ch: -1 },
+    { className: 'invalid-input' },
+  )
   let suggestions = []
 
   // Check if "use: <renderer>" is set
-  const lineWithRenderer = getLineWithRenderer(currentLine)
-  const renderer = lineWithRenderer?.textContent.split(' ')[1]
+  const lineWithRenderer = getLineWithRenderer(anchor)
+  const renderer = cm.getLine(lineWithRenderer).split(' ')[1]
   if (renderer) {
-
     // Do not check properties
-    if (text.startsWith('  ')) return
+    if (text.startsWith('  ')) return []
 
     // If no valid options for current used renderer, go get it!
     const validOptions = rendererOptions[renderer]
@@ -253,9 +250,9 @@ const addSuggestions = (currentLine, selection) => {
         })
         .catch(() => {
           markInputIsInvalid(lineWithRenderer)
-          console.error('Fail to get valid options from renderer, URL is', rendererUrl)
+          console.warn(`Fail to get valid options from renderer with URL ${rendererUrl}` )
         })
-      return
+      return []
     }
 
     // If input is "key:value" (no space left after colon), then it is invalid
@@ -263,7 +260,7 @@ const addSuggestions = (currentLine, selection) => {
     const isValidKeyValue = text.match(/^[^:]+:\s+/)
     if (isKeyFinished && !isValidKeyValue) {
       markInputIsInvalid()
-      return
+      return []
     }
 
     // If user is typing option
@@ -311,6 +308,11 @@ const addSuggestions = (currentLine, selection) => {
       )
     suggestions = rendererSuggestions.length > 0 ? rendererSuggestions : []
   }
+  return suggestions
+}
+// }}}
+// {{{ FUNCTION: Show element about suggestions
+const addSuggestions = (anchor, suggestions) => {
 
   if (suggestions.length === 0) {
     suggestionsEle.style.display = 'none';
@@ -336,55 +338,35 @@ const addSuggestions = (currentLine, selection) => {
       option.classList.remove('focus')
     }
     option.onclick = () => {
-      const newFocus = { ...selection.focus, col: 0 }
-      const newAnchor = { ...selection.anchor, col: text.length }
-      tinyEditor.paste(suggestion.replace, newFocus, newAnchor)
-      suggestionsEle.style.display = 'none';
-      option.classList.remove('focus')
+      cm.setSelection(anchor, { ...anchor, ch: 0 })
+      cm.replaceSelection(suggestion.replace)
+      cm.focus();
+      const newAnchor = { ...anchor, ch: suggestion.replace.length }
+      cm.setCursor(newAnchor);
     };
     suggestionsEle.appendChild(option);
   });
 
-  const rect = currentLine.getBoundingClientRect();
-  suggestionsEle.style.top = `${rect.top + rect.height + 12}px`;
-  suggestionsEle.style.left = `${rect.right}px`;
-  suggestionsEle.style.maxWidth = `calc(${window.innerWidth}px - ${rect.right}px - 2rem)`;
+  cm.addWidget(anchor, suggestionsEle, true)
+  const rect = suggestionsEle.getBoundingClientRect()
+  suggestionsEle.style.maxWidth = `calc(${window.innerWidth}px - ${rect.x}px - 2rem)`;
+  suggestionsEle.style.display = 'block'
 }
 // }}}
 // EVENT: suggests for current selection {{{
-tinyEditor.addEventListener('selection', selection => {
-  // Check selection is inside editor contents
-  const node = selection?.anchor?.node
-  if (!node) return
+// FIXME Dont show suggestion when selecting multiple chars
+cm.on("beforeSelectionChange", (_, obj) => {
+  const anchor = (obj.ranges[0].anchor)
+  const token = cm.getTokenAt(anchor)
 
-  // FIXME Better way to prevent spellcheck across editor
-  // Get HTML element for current selection
-  const element = node instanceof HTMLElement
-    ? node
-    : node.parentNode
-  element.setAttribute('spellcheck', 'false')
-
-  // To trigger click event on suggestions list, don't set suggestion list invisible
-  if (suggestionsEle.querySelector('.container__suggestion.focus:hover') !== null) {
-    return
-  } else {
-    suggestionsEle.style.display = 'none';
-  }
-
-  // Do not show suggestion by attribute
-  if (suggestionsEle.getAttribute('data-keep-close') === 'true') {
-    suggestionsEle.setAttribute('data-keep-close', 'false')
-    return
-  }
-
-  // Show suggestions for map code block
-  if (insideCodeblockForMap(element)) {
-    handleTypingInCodeBlock(element, selection)
+  if (insideCodeblockForMap(token)) {
+    handleTypingInCodeBlock(anchor)
   }
 });
 // }}}
 // EVENT: keydown for suggestions {{{
-mdeElement.addEventListener('keydown', (e) => {
+cm.on('keydown', (_, e) => {
+
   // Only the following keys are used
   const keyForSuggestions = ['Tab', 'Enter', 'Escape'].includes(e.key)
   if (!keyForSuggestions || suggestionsEle.style.display === 'none') return;
@@ -402,7 +384,6 @@ mdeElement.addEventListener('keydown', (e) => {
   const focusSuggestion = e.shiftKey ? previousSuggestion : nextSuggestion
 
   // Current editor selection state
-  const selection = tinyEditor.getSelection(true)
   switch (e.key) {
     case 'Tab':
       Array.from(suggestionsEle.children).forEach(s => s.classList.remove('focus'))
@@ -411,16 +392,22 @@ mdeElement.addEventListener('keydown', (e) => {
       break;
     case 'Enter':
       currentSuggestion.onclick()
-      suggestionsEle.style.display = 'none';
       break;
     case 'Escape':
+      const anchor = cm.getCursor()
       suggestionsEle.style.display = 'none';
-      // Prevent trigger selection event again
-      suggestionsEle.setAttribute('data-keep-close', 'true')
-      setTimeout(() => tinyEditor.setSelection(selection), 100)
+      // Focus editor again
+      setTimeout(() => cm.focus() && cm.setCursor(anchor), 100)
       break;
   }
 });
+
+document.onkeydown = (e) => {
+  if (e.altKey && e.ctrlKey && e.key === 'm') {
+    toggleMaps(HtmlContainer)
+  }
+}
+
 // }}}
 // }}}
 

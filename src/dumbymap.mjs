@@ -1,4 +1,3 @@
-// vim:foldmethod
 import MarkdownIt from 'markdown-it'
 import MarkdownItAnchor from 'markdown-it-anchor'
 import MarkdownItFootnote from 'markdown-it-footnote'
@@ -8,15 +7,30 @@ import LeaderLine from 'leader-line'
 import PlainDraggable from 'plain-draggable'
 import { render, parseConfigsFromYaml } from 'mapclay'
 
-const observers = new Map()
+function onRemove(element, callback) {
+  const parent = element.parentNode;
+  if (!parent) throw new Error("The node must already be attached");
 
-export const markdown2HTML = async (container, mdContent) => {
-  // Render: Markdown -> HTML {{{
+  const obs = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      for (const el of mutation.removedNodes) {
+        if (el === element) {
+          obs.disconnect();
+          callback();
+        }
+      }
+    }
+  });
+  obs.observe(parent, { childList: true, });
+}
 
-  container.innerHTML = `
-    <div id="map"></div>
-    <div id="markdown"></div>
-  `
+// Render: Markdown -> HTML {{{
+export const markdown2HTML = (container, mdContent) => {
+
+  Array.from(container.children).map(e => e.remove())
+
+  container.innerHTML = '<div class="SemanticHtml"></div>'
+  const htmlHolder = container.querySelector('.SemanticHtml')
 
   const md = MarkdownIt({ html: true })
     .use(MarkdownItAnchor, {
@@ -46,15 +60,15 @@ export const markdown2HTML = async (container, mdContent) => {
     state.tokens.push(new state.Token('draggable_block_close', '', -1))
   })
 
-  const markdown = container.querySelector('#markdown')
   const contentWithToc = '${toc}\n\n\n' + mdContent
-  markdown.innerHTML = md.render(contentWithToc);
-  markdown.querySelectorAll('*> div:not(:has(nav))')
+  htmlHolder.innerHTML = md.render(contentWithToc);
+  // TODO Do this in markdown-it
+  htmlHolder.querySelectorAll('*> div:not(:has(nav))')
     .forEach(b => b.classList.add('draggable-block'))
 
 
   // TODO Improve it!
-  const docLinks = Array.from(container.querySelectorAll('#markdown a[href^="#"][title^="doc"]'))
+  const docLinks = Array.from(container.querySelectorAll('a[href^="#"][title^="doc"]'))
   docLinks.forEach(link => {
     link.classList.add('with-leader-line', 'doclink')
     link.lines = []
@@ -77,24 +91,29 @@ export const markdown2HTML = async (container, mdContent) => {
       link.lines.length = 0
     }
   })
+
+  return container
   //}}}
 }
 
+// FIXME Don't use hard-coded CSS selector
 export const generateMaps = async (container) => {
   // LeaderLine {{{
 
   // Get anchors with "geo:" scheme
-  const markdown = container.querySelector('#markdown')
-  markdown.anchors = []
+  const htmlHolder = container.querySelector('.SemanticHtml') ?? container
+  htmlHolder.anchors = []
 
   // Set focusArea
-  const focusArea = container.querySelector('#map')
+  const showcase = document.createElement('div')
+  container.appendChild(showcase)
+  showcase.classList.add('Showcase')
   const mapPlaceholder = document.createElement('div')
   mapPlaceholder.id = 'mapPlaceholder'
-  focusArea.appendChild(mapPlaceholder)
+  showcase.appendChild(mapPlaceholder)
 
   // Links points to map by geo schema and id
-  const geoLinks = Array.from(container.querySelectorAll('#markdown a[href^="geo:"]'))
+  const geoLinks = Array.from(htmlHolder.querySelectorAll('a[href^="geo:"]'))
     .filter(link => {
       const url = new URL(link.href)
       const xy = url?.href?.match(/^geo:([0-9.,]+)/)?.at(1)?.split(',')?.reverse()?.map(Number)
@@ -113,7 +132,7 @@ export const generateMaps = async (container) => {
       link.onmouseout = () => removeLeaderLines(link)
       link.onclick = (event) => {
         event.preventDefault()
-        markdown.anchors
+        htmlHolder.anchors
           .filter(isAnchorPointedBy(link))
           .forEach(updateMapByMarker(xy))
         // TODO Just hide leader line and show it again
@@ -147,7 +166,7 @@ export const generateMaps = async (container) => {
   }
 
   const addLeaderLines = (link) => {
-    link.lines = markdown.anchors
+    link.lines = htmlHolder.anchors
       .filter(isAnchorPointedBy(link))
       .filter(isAnchorVisible)
       .map(drawLeaderLine(link))
@@ -187,7 +206,7 @@ export const generateMaps = async (container) => {
 
   const afterEachMapLoaded = (mapContainer) => {
     mapContainer.querySelectorAll('.marker')
-      .forEach(marker => markdown.anchors.push(marker))
+      .forEach(marker => htmlHolder.anchors.push(marker))
 
     const focusClickedMap = () => {
       if (container.getAttribute('data-layout') !== 'none') return
@@ -215,6 +234,7 @@ export const generateMaps = async (container) => {
     mapIdList.push(mapId)
   }
 
+  // FIXME Create markers after maps are created
   const markerOptions = geoLinks.map(link => ({
     targets: link.targets,
     xy: link.xy,
@@ -263,20 +283,16 @@ export const generateMaps = async (container) => {
 
   //}}}
   // CSS observer {{{
-  if (!observers.get(container)) {
-    observers.set(container, [])
-  }
-  const obs = observers.get(container)
-  if (obs.length) {
-    obs.forEach(o => o.disconnect())
-    obs.length = 0
-  }
   // Layout{{{
 
   // press key to switch layout
   const layouts = ['none', 'side', 'overlay']
   container.setAttribute("data-layout", layouts[0])
+
+  // FIXME Use UI to switch layouts
+  const originalKeyDown = document.onkeydown
   document.onkeydown = (event) => {
+    originalKeyDown(event)
     if (event.key === 'x' && container.querySelector('.map-container')) {
       let currentLayout = container.getAttribute('data-layout')
       currentLayout = currentLayout ? currentLayout : 'none'
@@ -287,8 +303,8 @@ export const generateMaps = async (container) => {
   }
 
   // Add draggable part for blocks
-  markdown.blocks = Array.from(markdown.querySelectorAll('.draggable-block'))
-  markdown.blocks.forEach(block => {
+  htmlHolder.blocks = Array.from(htmlHolder.querySelectorAll('.draggable-block'))
+  htmlHolder.blocks.forEach(block => {
     const draggablePart = document.createElement('div');
     draggablePart.classList.add('draggable')
     draggablePart.textContent = '☰'
@@ -303,30 +319,30 @@ export const generateMaps = async (container) => {
   // observe layout change
   const layoutObserver = new MutationObserver(() => {
     const layout = container.getAttribute('data-layout')
-    markdown.blocks.forEach(b => b.style.display = "block")
+    htmlHolder.blocks.forEach(b => b.style.display = "block")
 
     if (layout === 'none') {
       mapPlaceholder.innerHTML = ""
-      const map = focusArea.querySelector('.map-container')
+      const map = showcase.querySelector('.map-container')
       // Swap focused map and palceholder in markdown
       if (map) {
         mapPlaceholder.parentElement?.replaceChild(map, mapPlaceholder)
-        focusArea.append(mapPlaceholder)
+        showcase.append(mapPlaceholder)
       }
     } else {
       // If paceholder is not set, create one and put map into focusArea
-      if (focusArea.contains(mapPlaceholder)) {
+      if (showcase.contains(mapPlaceholder)) {
         const mapContainer = container.querySelector('.map-container.focus') ?? container.querySelector('.map-container')
         mapPlaceholder.innerHTML = `<div>Placeholder</div>`
         // TODO Get snapshot image
         // mapPlaceholder.src = map.map.getCanvas().toDataURL()
         mapContainer.parentElement?.replaceChild(mapPlaceholder, mapContainer)
-        focusArea.appendChild(mapContainer)
+        showcase.appendChild(mapContainer)
       }
     }
 
     if (layout === 'overlay') {
-      markdown.blocks.forEach(block => {
+      htmlHolder.blocks.forEach(block => {
         block.draggableInstance = new PlainDraggable(block, { handle: block.querySelector('.draggable') })
         block.draggableInstance.snap = { x: { step: 20 }, y: { step: 20 } }
         // block.draggableInstance.onDragEnd = () => {
@@ -334,13 +350,9 @@ export const generateMaps = async (container) => {
         // }
       })
     } else {
-      markdown.blocks.forEach(block => {
-        try {
-          block.style.transform = 'none'
-          block.draggableInstance.remove()
-        } catch (err) {
-          console.warn('Fail to remove draggable instance', err)
-        }
+      htmlHolder.blocks.forEach(block => {
+        block.style.transform = 'none'
+        block.draggableInstance?.remove()
       })
     }
   });
@@ -349,7 +361,8 @@ export const generateMaps = async (container) => {
     attributeFilter: ["data-layout"],
     attributeOldValue: true
   });
-  obs.push(layoutObserver)
+
+  onRemove(htmlHolder, () => layoutObserver.disconnect())
   //}}}
   //}}}
   return container
