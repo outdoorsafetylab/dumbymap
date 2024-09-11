@@ -32,6 +32,7 @@ const getContentFromHash = (hash) => {
 }
 
 const initialState = getStateFromHash(window.location.hash)
+const queryParams = new URL(window.location).searchParams
 window.location.hash = ''
 const contentFromHash = initialState.content
 const lastContent = localStorage.getItem('editorContent')
@@ -81,6 +82,10 @@ const editor = new EasyMDE({
 const cm = editor.codemirror
 markdown2HTML(HtmlContainer, editor.value())
 createDocLinks(HtmlContainer)
+
+if (queryParams.get('render')) {
+  toggleMaps(HtmlContainer)
+}
 
 // Re-render HTML by editor content
 cm.on("change", () => {
