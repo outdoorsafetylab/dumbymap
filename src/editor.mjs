@@ -105,7 +105,7 @@ class Suggestion {
 // }}}
 // {{{ Aliases for map options
 const aliasesForMapOptions = {}
-const defaultApply = '/default.yml'
+const defaultApply = './dist/default.yml'
 fetch(defaultApply)
   .then(res => res.text())
   .then(rawText => {
