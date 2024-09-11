@@ -103,7 +103,7 @@ class Suggestion {
   }
 }
 // }}}
-// {{{ Aliases for map options
+// Aliases for map options {{{
 const aliasesForMapOptions = {}
 const defaultApply = './dist/default.yml'
 fetch(defaultApply)
@@ -129,7 +129,7 @@ fetch(defaultApply)
 //   return true
 // }
 // }}}
-//  Check if current token is inside code block {{{
+//  FUNCTION Check if current token is inside code block {{{
 const insideCodeblockForMap = (token) =>
   token.state.overlay.codeBlock && !token.string.match(/^````*/)
 // }}}
