@@ -82,9 +82,9 @@ cm.on("change", () => {
 // }}}
 
 // Reload editor content by hash value
-onhashchange = () => {
-  const contentFromHash = getContentFromHash()
-  if (contentFromHash) editor.value(contentFromHash)
+window.onhashchange = () => {
+  const content = getContentFromHash(window.location.hash)
+  if (content) editor.value(content)
 }
 
 // FIXME DEBUGONLY
@@ -259,7 +259,7 @@ const getSuggestions = (anchor) => {
         })
         .catch(() => {
           markInputIsInvalid(lineWithRenderer)
-          console.warn(`Fail to get valid options from renderer with URL ${rendererUrl}` )
+          console.warn(`Fail to get valid options from renderer with URL ${rendererUrl}`)
         })
       return []
     }
