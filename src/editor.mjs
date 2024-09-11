@@ -53,7 +53,7 @@ const editor = new EasyMDE({
       name: 'map',
       title: 'Toggle Map Generation',
       text: "🌏",
-      action: toggleMaps(HtmlContainer),
+      action: () => toggleMaps(HtmlContainer),
     },
     {
       name: 'debug',
