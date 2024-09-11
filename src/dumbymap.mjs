@@ -7,7 +7,8 @@ import LeaderLine from 'leader-line'
 import PlainDraggable from 'plain-draggable'
 import { render, parseConfigsFromYaml } from 'mapclay'
 
-function onRemove(element, callback) {
+// Utils {{{
+const onRemove = (element, callback) => {
   const parent = element.parentNode;
   if (!parent) throw new Error("The node must already be attached");
 
@@ -23,11 +24,46 @@ function onRemove(element, callback) {
   });
   obs.observe(parent, { childList: true, });
 }
+// }}}
+// FUNCTION: Get DocLinks from normal special anchor element {{{
 
-// Render: Markdown -> HTML {{{
+const docLinkSelector = 'a[href^="#"][title^="=>"]'
+export const createDocLinks = (container) => Array.from(container.querySelectorAll(docLinkSelector))
+  .map(link => {
+    link.classList.add('with-leader-line', 'doclink')
+    link.lines = []
+
+    link.onmouseover = () => {
+      const label = decodeURIComponent(link.href.split('#')[1])
+      const selector = link.title.split('=>')[1] ?? '#' + label
+      const target = document.querySelector(selector)
+      if (!target?.checkVisibility()) return
+
+      const line = new LeaderLine({
+        start: link,
+        end: target,
+        middleLabel: LeaderLine.pathLabel({
+          text: label,
+          fontWeight: 'bold',
+        }),
+        hide: true,
+        path: "magnet"
+      })
+      link.lines.push(line)
+      line.show('draw', { duration: 300, })
+    }
+    link.onmouseout = () => {
+      link.lines.forEach(line => line.remove())
+      link.lines.length = 0
+    }
+
+    return link
+  })
+// }}}
 export const markdown2HTML = (container, mdContent) => {
-
+  // Render: Markdown -> HTML {{{
   Array.from(container.children).map(e => e.remove())
+
 
   container.innerHTML = '<div class="SemanticHtml"></div>'
   const htmlHolder = container.querySelector('.SemanticHtml')
@@ -50,7 +86,11 @@ export const markdown2HTML = (container, mdContent) => {
 
   // Add close tag for block with more than 2 empty lines
   md.block.ruler.before('table', 'draggable_block', (state, startLine) => {
-    if (state.src[state.bMarks[startLine - 1]] === '\n' && state.src[state.bMarks[startLine - 2]] === '\n') {
+    if (
+      state.src[state.bMarks[startLine - 1]] === '\n' &&
+      state.src[state.bMarks[startLine - 2]] === '\n' &&
+      state.tokens.at(-1).type !== 'list_item_open' // Quick hack for not adding tag after "::marker" for <li>
+    ) {
       state.push('draggable_block_close', '', -1);
       state.push('draggable_block_open', '', 1);
     }
@@ -68,34 +108,10 @@ export const markdown2HTML = (container, mdContent) => {
 
 
   // TODO Improve it!
-  const docLinks = Array.from(container.querySelectorAll('a[href^="#"][title^="doc"]'))
-  docLinks.forEach(link => {
-    link.classList.add('with-leader-line', 'doclink')
-    link.lines = []
-
-    link.onmouseover = () => {
-      const target = document.querySelector(link.getAttribute('href'))
-      if (!target?.checkVisibility()) return
-
-      const line = new LeaderLine({
-        start: link,
-        end: target,
-        hide: true,
-        path: "magnet"
-      })
-      link.lines.push(line)
-      line.show('draw', { duration: 300, })
-    }
-    link.onmouseout = () => {
-      link.lines.forEach(line => line.remove())
-      link.lines.length = 0
-    }
-  })
 
   return container
   //}}}
 }
-
 // FIXME Don't use hard-coded CSS selector
 export const generateMaps = async (container) => {
   // LeaderLine {{{

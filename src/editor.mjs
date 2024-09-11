@@ -1,5 +1,6 @@
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliasesForRenderer, parseConfigsFromYaml } from 'mapclay'
+import { createDocLinks } from './dumbymap.mjs'
 
 // Set up Editor {{{
 
@@ -12,6 +13,7 @@ const toggleMaps = (container) => {
     document.activeElement.blur();
   } else {
     markdown2HTML(HtmlContainer, editor.value())
+    createDocLinks(container)
     container.setAttribute('data-layout', 'none')
   }
 }
@@ -70,9 +72,12 @@ const editor = new EasyMDE({
 
 const cm = editor.codemirror
 markdown2HTML(HtmlContainer, editor.value())
+createDocLinks(HtmlContainer)
 
+// Re-render HTML by editor content
 cm.on("change", () => {
   markdown2HTML(HtmlContainer, editor.value())
+  createDocLinks(HtmlContainer)
 })
 // }}}
 
