@@ -19,14 +19,21 @@ const toggleMaps = (container) => {
 }
 
 // Content values for editor
-const getContentFromHash = (cleanHash = false) => {
-  const hashValue = location.hash.substring(1);
-  if (cleanHash) window.location.hash = ''
-  return hashValue.startsWith('text=')
-    ? decodeURIComponent(hashValue.substring(5))
-    : null
+const getStateFromHash = (hash) => {
+  const hashValue = hash.substring(1);
+  const stateString = decodeURIComponent(hashValue)
+  try { return JSON.parse(stateString) ?? {} }
+  catch (_) { return {} }
 }
-const contentFromHash = getContentFromHash(true)
+
+const getContentFromHash = (hash) => {
+  const state = getStateFromHash(hash)
+  return state.content
+}
+
+const initialState = getStateFromHash(window.location.hash)
+window.location.hash = ''
+const contentFromHash = initialState.content
 const lastContent = localStorage.getItem('editorContent')
 const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
 
@@ -62,7 +69,8 @@ const editor = new EasyMDE({
       title: 'Save content as URL',
       text: "🤔",
       action: () => {
-        window.location.hash = '#text=' + encodeURIComponent(editor.value())
+        const state = { content: editor.value() }
+        window.location.hash = encodeURIComponent(JSON.stringify(state))
         navigator.clipboard.writeText(window.location.href)
         alert('URL copied to clipboard')
       },
