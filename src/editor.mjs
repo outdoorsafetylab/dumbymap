@@ -36,6 +36,10 @@ const editor = new EasyMDE({
   lineNumbers: true,
   promptURLs: true,
   uploadImage: true,
+  autosave: {
+    enabled: true,
+    uniqueId: 'dumbymap',
+  },
   spellChecker: false,
   toolbarButtonClassPrefix: 'mde',
   status: false,
