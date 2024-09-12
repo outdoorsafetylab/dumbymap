@@ -38,7 +38,7 @@
   overflow-x: scroll;
   /* height: 100vh; */
 
-  #map {
+  .Showcase {
     flex: 0;
     #mapPlaceholder {
       display: none;
@@ -47,7 +47,7 @@
 
   .SemanticHtml {
     flex: 1;
-    padding: 20px;
+    padding: 0.5rem;
     overflow-y: scroll;
 
     > .draggable-block {
@@ -99,7 +99,7 @@
     width: fit-content;
   }
 
-  #map .map-container {
+  .Showcase .map-container {
     width: 100% !important;
     height: 100% !important;
   }
@@ -120,7 +120,7 @@
 }
 
 .result-html[data-layout=side] {
-  #map,
+  .Showcase,
   .SemanticHtml {
     flex: 50%;
     overflow-y: scroll;
@@ -129,7 +129,7 @@
 }
 
 .result-html[data-layout=overlay] {
-  #map,
+  .Showcase,
   .SemanticHtml {
     position: fixed;
     height: 100%;
