@@ -25,7 +25,7 @@ const onRemove = (element, callback) => {
   obs.observe(parent, { childList: true, });
 }
 // }}}
-// FUNCTION: Get DocLinks from normal special anchor element {{{
+// FUNCTION: Get DocLinks from special anchor element {{{
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
 export const createDocLinks = (container) => Array.from(container.querySelectorAll(docLinkSelector))
@@ -59,6 +59,30 @@ export const createDocLinks = (container) => Array.from(container.querySelectorA
 
     return link
   })
+// }}}
+// FUNCTION: Get GeoLinks from special anchor element {{{
+// Links points to map by geo schema and id
+const geoLinkSelector = 'a[href^="geo:"]'
+export const createGeoLinks = (container, callback) => Array.from(container.querySelectorAll(geoLinkSelector))
+  .filter(link => {
+    const url = new URL(link.href)
+    const xy = url?.href?.match(/^geo:([0-9.,]+)/)?.at(1)?.split(',')?.reverse()?.map(Number)
+
+    if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false
+
+    // Geo information in link
+    link.url = url
+    link.xy = xy
+    link.classList.add('with-leader-line', 'geolink')
+    link.targets = link.url.searchParams.get('id')?.split(',') ?? null
+
+    // LeaderLine
+    link.lines = []
+    callback(link)
+
+    return true
+  })
+
 // }}}
 export const markdown2HTML = (container, mdContent) => {
   // Render: Markdown -> HTML {{{
@@ -119,6 +143,18 @@ export const generateMaps = async (container) => {
   // Get anchors with "geo:" scheme
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   htmlHolder.anchors = []
+  const geoLinks = createGeoLinks(htmlHolder, (link) => {
+    link.onmouseover = () => addLeaderLines(link)
+    link.onmouseout = () => removeLeaderLines(link)
+    link.onclick = (event) => {
+      event.preventDefault()
+      htmlHolder.anchors
+        .filter(isAnchorPointedBy(link))
+        .forEach(updateMapByMarker(link.xy))
+      // TODO Just hide leader line and show it again
+      removeLeaderLines(link)
+    }
+  })
 
   // Set focusArea
   const showcase = document.createElement('div')
@@ -127,36 +163,6 @@ export const generateMaps = async (container) => {
   const mapPlaceholder = document.createElement('div')
   mapPlaceholder.id = 'mapPlaceholder'
   showcase.appendChild(mapPlaceholder)
-
-  // Links points to map by geo schema and id
-  const geoLinks = Array.from(htmlHolder.querySelectorAll('a[href^="geo:"]'))
-    .filter(link => {
-      const url = new URL(link.href)
-      const xy = url?.href?.match(/^geo:([0-9.,]+)/)?.at(1)?.split(',')?.reverse()?.map(Number)
-
-      if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false
-
-      // Geo information in link
-      link.url = url
-      link.xy = xy
-      link.classList.add('with-leader-line', 'geolink')
-      link.targets = link.url.searchParams.get('id')?.split(',') ?? null
-
-      // LeaderLine
-      link.lines = []
-      link.onmouseover = () => addLeaderLines(link)
-      link.onmouseout = () => removeLeaderLines(link)
-      link.onclick = (event) => {
-        event.preventDefault()
-        htmlHolder.anchors
-          .filter(isAnchorPointedBy(link))
-          .forEach(updateMapByMarker(xy))
-        // TODO Just hide leader line and show it again
-        removeLeaderLines(link)
-      }
-
-      return true
-    })
 
   const isAnchorPointedBy = (link) => (anchor) => {
     const mapContainer = anchor.closest('.map-container')
@@ -276,7 +282,6 @@ export const generateMaps = async (container) => {
         Object.assign(result, { markers: markersFromLinks })
         return result
       })
-      /* eslint-disable no-unused-vars */
     } catch (_) {
       console.warn('Fail to parse yaml config for element', target)
     }
