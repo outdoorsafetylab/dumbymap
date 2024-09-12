@@ -22,6 +22,7 @@ body {
 .editor {
   order: 1;
   flex: 0 0 48%;
+  max-width: 50vw;
   height: calc(100vh - 15px);
   margin: 10px;
 }
