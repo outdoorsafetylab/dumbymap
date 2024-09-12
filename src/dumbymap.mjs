@@ -126,12 +126,10 @@ export const markdown2HTML = (container, mdContent) => {
 
   const contentWithToc = '${toc}\n\n\n' + mdContent
   htmlHolder.innerHTML = md.render(contentWithToc);
+
   // TODO Do this in markdown-it
-  htmlHolder.querySelectorAll('*> div:not(:has(nav))')
+  htmlHolder.querySelectorAll('* > div:not(:has(nav))')
     .forEach(b => b.classList.add('draggable-block'))
-
-
-  // TODO Improve it!
 
   return container
   //}}}
@@ -155,14 +153,6 @@ export const generateMaps = async (container) => {
       removeLeaderLines(link)
     }
   })
-
-  // Set focusArea
-  const showcase = document.createElement('div')
-  container.appendChild(showcase)
-  showcase.classList.add('Showcase')
-  const mapPlaceholder = document.createElement('div')
-  mapPlaceholder.id = 'mapPlaceholder'
-  showcase.appendChild(mapPlaceholder)
 
   const isAnchorPointedBy = (link) => (anchor) => {
     const mapContainer = anchor.closest('.map-container')
@@ -304,6 +294,15 @@ export const generateMaps = async (container) => {
 
   //}}}
   // CSS observer {{{
+
+  // Set focusArea
+  const showcase = document.createElement('div')
+  container.appendChild(showcase)
+  showcase.classList.add('Showcase')
+  const mapPlaceholder = document.createElement('div')
+  mapPlaceholder.id = 'mapPlaceholder'
+  showcase.appendChild(mapPlaceholder)
+
   // Layout{{{
 
   // press key to switch layout
