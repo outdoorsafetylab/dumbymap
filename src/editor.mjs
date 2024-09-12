@@ -1,3 +1,5 @@
+/*global EasyMDE*/
+/*eslint no-undef: "error"*/
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliasesForRenderer, parseConfigsFromYaml } from 'mapclay'
 import { createDocLinks } from './dumbymap.mjs'
@@ -270,7 +272,7 @@ const getSuggestions = (anchor) => {
         .then(rendererModule => {
           rendererOptions[renderer] = rendererModule.default.validOptions
         })
-        .catch(() => {
+        .catch(_ => {
           markInputIsInvalid(lineWithRenderer)
           console.warn(`Fail to get valid options from renderer with URL ${rendererUrl}`)
         })
@@ -406,6 +408,7 @@ cm.on('keydown', (_, e) => {
   const focusSuggestion = e.shiftKey ? previousSuggestion : nextSuggestion
 
   // Current editor selection state
+  const anchor = cm.getCursor()
   switch (e.key) {
     case 'Tab':
       Array.from(suggestionsEle.children).forEach(s => s.classList.remove('focus'))
@@ -416,7 +419,6 @@ cm.on('keydown', (_, e) => {
       currentSuggestion.onclick()
       break;
     case 'Escape':
-      const anchor = cm.getCursor()
       suggestionsEle.style.display = 'none';
       // Focus editor again
       setTimeout(() => cm.focus() && cm.setCursor(anchor), 100)
