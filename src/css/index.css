@@ -40,6 +40,9 @@ body {
     border-radius: var(--content-border-radius);
     padding-inline: 0;
 
+    font-family: monospace;
+    font-size: 1.0rem;
+
     span {
       white-space: pre;
     }
