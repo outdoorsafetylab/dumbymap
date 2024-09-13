@@ -180,6 +180,7 @@ window.onhashchange = () => {
 // Elements about suggestions {{{
 const suggestionsEle = document.createElement('div')
 suggestionsEle.classList.add('container__suggestions');
+document.body.append(suggestionsEle)
 
 const rendererOptions = {}
 
@@ -448,11 +449,13 @@ const addSuggestions = (anchor, suggestions) => {
     suggestionsEle.appendChild(option);
   });
 
-  cm.addWidget(anchor, suggestionsEle, true)
-  const rect = suggestionsEle.getBoundingClientRect()
-  suggestionsEle.style.maxWidth = `calc(${window.innerWidth}px - ${rect.x}px - 2rem)`;
+  const widgetAnchor = document.createElement('div')
+  cm.addWidget(anchor, widgetAnchor, true)
+  const rect = widgetAnchor.getBoundingClientRect()
+  suggestionsEle.style.left = `calc(${rect.left}px + 2rem)`;
+  suggestionsEle.style.top = `calc(${rect.bottom}px + 1rem)`;
+  suggestionsEle.style.maxWidth = `calc(${window.innerWidth}px - ${rect.x}px - 3rem)`;
   suggestionsEle.style.display = 'block'
-  suggestionsEle.style.transform = 'translate(2em, 1em)'
 }
 // }}}
 // EVENT: Suggests for current selection {{{
