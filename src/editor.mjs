@@ -77,7 +77,7 @@ const editor = new EasyMDE({
         navigator.clipboard.writeText(window.location.href)
         alert('URL copied to clipboard')
       },
-    }, 'undo', 'redo', '|', 'heading-1', 'heading-2', '|', 'link', 'image', '|', 'bold', 'italic', 'strikethrough', 'code', 'clean-block', '|', 'unordered-list', 'ordered-list', 'quote', 'table', '|', 'fullscreen'
+    }, 'undo', 'redo', '|', 'heading-1', 'heading-2', '|', 'link', 'image', '|', 'bold', 'italic', 'strikethrough', 'code', 'clean-block', '|', 'unordered-list', 'ordered-list', 'quote', 'table'
   ],
 });
 
