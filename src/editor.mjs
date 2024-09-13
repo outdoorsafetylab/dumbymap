@@ -4,7 +4,7 @@ import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliasesForRenderer, parseConfigsFromYaml } from 'mapclay'
 import { createDocLinks } from './dumbymap.mjs'
 
-// Set up Editor {{{
+// Set up Containers {{{
 
 const HtmlContainer = document.querySelector(".result-html")
 const textArea = document.querySelector(".editor textarea")
@@ -19,6 +19,8 @@ const toggleMaps = (container) => {
     container.setAttribute('data-layout', 'none')
   }
 }
+// }}}
+// Set up EasyMDE {{{
 
 // Content values for editor
 const getStateFromHash = (hash) => {
@@ -40,7 +42,6 @@ const contentFromHash = initialState.content
 const lastContent = localStorage.getItem('editorContent')
 const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
 
-// Set up EasyMDE {{{
 const editor = new EasyMDE({
   element: textArea,
   indentWithTabs: false,
@@ -82,6 +83,8 @@ const editor = new EasyMDE({
 });
 
 const cm = editor.codemirror
+// }}}
+// Set up logic about editor content {{{
 markdown2HTML(HtmlContainer, editor.value())
 createDocLinks(HtmlContainer)
 
@@ -111,7 +114,6 @@ cm.on("change", (_, obj) => {
   createDocLinks(HtmlContainer)
   addClassToCodeLines()
 })
-// }}}
 
 // Reload editor content by hash value
 window.onhashchange = () => {
@@ -176,6 +178,8 @@ const insideCodeblockForMap = (anchor) => {
 // FUNCTION: Get Renderer by cursor position in code block {{{
 const getLineWithRenderer = (anchor) => {
   const currentLine = anchor.line
+  if (!cm.getLine) return null
+
   const match = (line) => cm.getLine(line).match(/^use: /)
 
   if (match(currentLine)) return currentLine
