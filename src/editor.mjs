@@ -89,10 +89,27 @@ if (queryParams.get('render')) {
   toggleMaps(HtmlContainer)
 }
 
+// Quick hack to style lines inside code block
+const addClassToCodeLines = () => {
+  const lines = cm.getLineHandle(0).parent.lines
+  let insideCodeBlock = false
+  lines.forEach((line, index) => {
+    if (line.text.match(/^````*/)) {
+      insideCodeBlock = !insideCodeBlock
+    } else if (insideCodeBlock) {
+      cm.addLineClass(index, "text", "inside-code-block")
+    } else {
+      cm.removeLineClass(index, "text", "inside-code-block")
+    }
+  })
+}
+addClassToCodeLines()
+
 // Re-render HTML by editor content
-cm.on("change", () => {
+cm.on("change", (_, obj) => {
   markdown2HTML(HtmlContainer, editor.value())
   createDocLinks(HtmlContainer)
+  addClassToCodeLines()
 })
 // }}}
 

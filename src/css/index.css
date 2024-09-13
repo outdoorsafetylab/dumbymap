@@ -64,7 +64,8 @@ body {
 }
 
 /* FIXME For those empty line (no child with cm-comment) */
-.CodeMirror-line:has(.cm-comment) {
+.inside-code-block,
+.CodeMirror-line:has(.cm-formatting-code-block) {
   background: rgba(0,0,0,.05) !important;
 
   .cm-comment {
