@@ -173,7 +173,7 @@ const insideCodeblockForMap = (anchor) => {
   return result
 }
 // }}}
-// FUNCTION: Get renderer by cursor position in code block {{{
+// FUNCTION: Get Renderer by cursor position in code block {{{
 const getLineWithRenderer = (anchor) => {
   const currentLine = anchor.line
   const match = (line) => cm.getLine(line).match(/^use: /)
@@ -182,25 +182,26 @@ const getLineWithRenderer = (anchor) => {
 
 
   // Look backward/forward for pattern of used renderer: /use: .+/
-  let ps = currentLine - 1
-  while (ps > 0 && insideCodeblockForMap(anchor)) {
-    if (match(ps)) {
-      return ps
-    } else if (cm.getLine(ps).match(/^---/)) {
-      // If yaml doc separator is found
+  let pl = currentLine - 1
+  while (pl > 0 && insideCodeblockForMap(anchor)) {
+    const text = cm.getLine(pl)
+    if (match(pl)) {
+      return pl
+    } else if (text.match(/^---|^````*/)) {
       break
     }
-    ps = ps - 1
+    pl = pl - 1
   }
 
-  let ns = currentLine + 1
+  let nl = currentLine + 1
   while (insideCodeblockForMap(anchor)) {
-    if (match(ns)) {
-      return ns
-    } else if (cm.getLine(ns).match(/^---/)) {
+    const text = cm.getLine(nl)
+    if (match(nl)) {
+      return nl
+    } else if (text.match(/^---|^````*/)) {
       return null
     }
-    ns = ns + 1
+    nl = nl + 1
   }
 
   return null
