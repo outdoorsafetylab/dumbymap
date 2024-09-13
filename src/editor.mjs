@@ -97,7 +97,7 @@ const addClassToCodeLines = () => {
   const lines = cm.getLineHandle(0).parent.lines
   let insideCodeBlock = false
   lines.forEach((line, index) => {
-    if (line.text.match(/^````*/)) {
+    if (line.text.match(/^[\u0060]{3}/)) {
       insideCodeBlock = !insideCodeBlock
     } else if (insideCodeBlock) {
       cm.addLineClass(index, "text", "inside-code-block")
@@ -108,11 +108,59 @@ const addClassToCodeLines = () => {
 }
 addClassToCodeLines()
 
+const completeForCodeBlock = (change) => {
+  const line = change.to.line
+  if (change.origin === "+input") {
+    const text = change.text[0]
+
+    // Completion for YAML doc separator
+    if (text === "-" && change.to.ch === 0 && insideCodeblockForMap(cm.getCursor())) {
+      cm.setSelection({ line: line, ch: 0 }, { line: line, ch: 1 })
+      cm.replaceSelection(text.repeat(3))
+    }
+
+    // Completion for Code fence
+    if (text === "`" && change.to.ch === 0) {
+      cm.setSelection({ line: line, ch: 0 }, { line: line, ch: 1 })
+      cm.replaceSelection(text.repeat(3))
+      const numberOfFences = cm.getValue()
+        .split('\n')
+        .filter(line => line.match(/[\u0060]{3}/))
+        .length
+      if (numberOfFences % 2 === 1) {
+        cm.replaceSelection('map\n\n```')
+        cm.setCursor({ line: line + 1 })
+      }
+    }
+  }
+
+  // For YAML doc separator, <hr> and code fence
+  // Auto delete to start of line
+  if (change.origin === "+delete") {
+    const match = change.removed[0].match(/^[-\u0060]$/)?.at(0)
+    if (match && cm.getLine(line) === match.repeat(2) && match) {
+      cm.setSelection({ line: line, ch: 0 }, { line: line, ch: 2 })
+      cm.replaceSelection('')
+    }
+  }
+}
+
 // Re-render HTML by editor content
-cm.on("change", (_, obj) => {
+cm.on("change", (_, change) => {
   markdown2HTML(HtmlContainer, editor.value())
   createDocLinks(HtmlContainer)
   addClassToCodeLines()
+  completeForCodeBlock(change)
+})
+
+cm.on("beforeChange", (_, change) => {
+  const line = change.to.line
+  // Don't allow more content after YAML doc separator
+  if (change.origin.match(/^(\+input|paste)$/)) {
+    if (cm.getLine(line) === "---" && change.text[0] !== "") {
+      change.cancel()
+    }
+  }
 })
 
 // Reload editor content by hash value
@@ -153,26 +201,23 @@ fetch(defaultApply)
   })
   .catch(err => console.warn(`Fail to get aliases from ${defaultApply}`, err))
 // }}}
-// FUNCTION: Check cursor is inside map code block {{{
-// const insideCodeblockForMap = (currentLine) => {
-//   let tokens = cm.getLineTokens(currentLine)
-//
-//   if (!tokens.includes("comment") || tokens.includes('formatting-code-block')) return false
-//
-//   do {
-//     line = line - 1
-//     if (line < 0) return false
-//     tokens = cm.getLineTokens(line)
-//   } while (!tokens.includes('formatting-code-block'))
-//
-//   return true
-// }
-// }}}
 //  FUNCTION: Check if current token is inside code block {{{
 const insideCodeblockForMap = (anchor) => {
   const token = cm.getTokenAt(anchor)
-  const result = token.state.overlay.codeBlock && !cm.getLine(anchor.line).match(/^````*/)
-  return result
+  const insideCodeBlock = token.state.overlay.codeBlock && !cm.getLine(anchor.line).match(/^[\u0060]{3}/)
+  if (!insideCodeBlock) return false
+
+  let line = anchor.line - 1
+  while (line >= 0) {
+    const content = cm.getLine(line)
+    if (content === '```map') {
+      return true
+    } else if (content === '```'){
+      return false
+    }
+    line = line - 1
+  }
+  return false
 }
 // }}}
 // FUNCTION: Get Renderer by cursor position in code block {{{
@@ -191,7 +236,7 @@ const getLineWithRenderer = (anchor) => {
     const text = cm.getLine(pl)
     if (match(pl)) {
       return pl
-    } else if (text.match(/^---|^````*/)) {
+    } else if (text.match(/^---|^[\u0060]{3}/)) {
       break
     }
     pl = pl - 1
@@ -202,7 +247,7 @@ const getLineWithRenderer = (anchor) => {
     const text = cm.getLine(nl)
     if (match(nl)) {
       return nl
-    } else if (text.match(/^---|^````*/)) {
+    } else if (text.match(/^---|^[\u0060]{3}/)) {
       return null
     }
     nl = nl + 1
