@@ -166,21 +166,24 @@ fetch(defaultApply)
 //   return true
 // }
 // }}}
-//  FUNCTION Check if current token is inside code block {{{
-const insideCodeblockForMap = (token) =>
-  token.state.overlay.codeBlock && !token.string.match(/^````*/)
+//  FUNCTION: Check if current token is inside code block {{{
+const insideCodeblockForMap = (anchor) => {
+  const token = cm.getTokenAt(anchor)
+  const result = token.state.overlay.codeBlock && !cm.getLine(anchor.line).match(/^````*/)
+  return result
+}
 // }}}
 // FUNCTION: Get renderer by cursor position in code block {{{
 const getLineWithRenderer = (anchor) => {
   const currentLine = anchor.line
   const match = (line) => cm.getLine(line).match(/^use: /)
+
   if (match(currentLine)) return currentLine
 
-  const getToken = (line) => cm.getTokenAt({ line: line, ch: 1 })
 
   // Look backward/forward for pattern of used renderer: /use: .+/
   let ps = currentLine - 1
-  while (ps > 0 && insideCodeblockForMap(getToken(ps))) {
+  while (ps > 0 && insideCodeblockForMap(anchor)) {
     if (match(ps)) {
       return ps
     } else if (cm.getLine(ps).match(/^---/)) {
@@ -191,11 +194,10 @@ const getLineWithRenderer = (anchor) => {
   }
 
   let ns = currentLine + 1
-  while (insideCodeblockForMap(getToken(ns))) {
+  while (insideCodeblockForMap(anchor)) {
     if (match(ns)) {
       return ns
     } else if (cm.getLine(ns).match(/^---/)) {
-      // If yaml doc separator is found
       return null
     }
     ns = ns + 1
@@ -265,18 +267,22 @@ const handleTypingInCodeBlock = (anchor) => {
 // }}}
 // FUNCTION: get suggestions by current input {{{
 const getSuggestions = (anchor) => {
-  const text = cm.getLine(anchor.line)
-  const markInputIsInvalid = () => cm.getDoc().markText(
-    { ...anchor, ch: 0 },
-    { ...anchor, ch: -1 },
-    { className: 'invalid-input' },
-  )
   let suggestions = []
+  const text = cm.getLine(anchor.line)
+  const markInputIsInvalid = () => {
+    cm.getDoc().markText(
+      { ...anchor, ch: 0 },
+      { ...anchor, ch: -1 },
+      { className: 'invalid-input' },
+    )
+  }
 
   // Check if "use: <renderer>" is set
   const lineWithRenderer = getLineWithRenderer(anchor)
-  const renderer = cm.getLine(lineWithRenderer).split(' ')[1]
-  if (renderer) {
+  const renderer = lineWithRenderer
+    ? cm.getLine(lineWithRenderer).split(' ')[1]
+    : null
+  if (renderer && anchor.line !== lineWithRenderer) {
     // Do not check properties
     if (text.startsWith('  ')) return []
 
@@ -288,10 +294,14 @@ const getSuggestions = (anchor) => {
       import(rendererUrl)
         .then(rendererModule => {
           rendererOptions[renderer] = rendererModule.default.validOptions
+          const currentAnchor = cm.getCursor()
+          if (insideCodeblockForMap(currentAnchor)) {
+            handleTypingInCodeBlock(currentAnchor)
+          }
         })
         .catch(_ => {
           markInputIsInvalid(lineWithRenderer)
-          console.warn(`Fail to get valid options from renderer with URL ${rendererUrl}`)
+          console.warn(`Fail to get valid options from Renderer typed: ${renderer}`)
         })
       return []
     }
@@ -336,10 +346,10 @@ const getSuggestions = (anchor) => {
     const rendererSuggestions = Object.entries(defaultAliasesForRenderer.use)
       .filter(([renderer,]) => {
         const suggestion = `use: ${renderer}`
-        const suggetionNoSpace = suggestion.replace(' ', '')
-        const textNoSpace = text.replace(' ', '')
+        const suggestionPattern = suggestion.replace(' ', '').toLowerCase()
+        const textPattern = text.replace(' ', '').toLowerCase()
         return suggestion !== text &&
-          (suggetionNoSpace.includes(textNoSpace))
+          (suggestionPattern.includes(textPattern))
       })
       .map(([renderer, info]) =>
         new Suggestion({
@@ -392,15 +402,16 @@ const addSuggestions = (anchor, suggestions) => {
   const rect = suggestionsEle.getBoundingClientRect()
   suggestionsEle.style.maxWidth = `calc(${window.innerWidth}px - ${rect.x}px - 2rem)`;
   suggestionsEle.style.display = 'block'
+  suggestionsEle.style.transform = 'translate(2em, 1em)'
 }
 // }}}
-// EVENT: suggests for current selection {{{
+// EVENT: Suggests for current selection {{{
 // FIXME Dont show suggestion when selecting multiple chars
-cm.on("beforeSelectionChange", (_, obj) => {
-  const anchor = (obj.ranges[0].anchor)
-  const token = cm.getTokenAt(anchor)
+cm.on("cursorActivity", (_) => {
+  suggestionsEle.style.display = 'none'
+  const anchor = cm.getCursor()
 
-  if (insideCodeblockForMap(token)) {
+  if (insideCodeblockForMap(anchor)) {
     handleTypingInCodeBlock(anchor)
   }
 });
