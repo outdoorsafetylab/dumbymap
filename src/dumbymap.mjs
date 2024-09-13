@@ -258,9 +258,11 @@ export const generateMaps = async (container) => {
   const renderTargets = Array.from(container.querySelectorAll('pre:has(.language-map)'))
   const renderAllTargets = renderTargets.map(async (target) => {
     // Get text in code block starts with '```map'
-    // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
-    // replace it by normal space
-    const configText = target.querySelector('.language-map').textContent.replace(/\u00A0/g, '\u0020')
+    const configText = target.querySelector('.language-map')
+      .textContent
+      // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
+      // replace it by normal space
+      .replace(/\u00A0/g, '\u0020')
 
     let configList = []
     try {
