@@ -39,23 +39,21 @@
   /* height: 100vh; */
 
   .Showcase {
-    flex: 0;
+    order: 2;
     #mapPlaceholder {
       display: none;
     }
   }
 
   .SemanticHtml {
-    flex: 1;
+    order: 1;
     padding: 0.5rem;
     overflow-y: scroll;
 
     > .draggable-block {
       width: 100%;
-      position: relative;
       pointer-events: auto;
       border-radius: 0.5rem;
-      padding: 0.5rem;
       background-color: white;
       margin-bottom: 3rem;
 
@@ -145,12 +143,20 @@
       box-sizing: content-box;
       position: absolute;
       width: fit-content;
+      height: fill-available;
       max-height: 50vh;
       overflow: scroll;
       border: solid gray;
+      padding: 0.3rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0;
 
       * {
         max-width: calc(100vw/4);
+      }
+
+      .map-container {
+        min-width: 200px;
       }
 
       .draggable {
@@ -167,6 +173,7 @@
         transition: all 0.3s ease-out;
         &:hover {
           background-color: lightgray;
+          padding-top: 1em;
         }
       }
     }
