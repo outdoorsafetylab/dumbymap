@@ -139,10 +139,30 @@ const completeForCodeBlock = (change) => {
   }
 }
 
-// Re-render HTML by editor content
-cm.on("change", (_, change) => {
+const debounceForMap = (() => {
+  let timer = null;
+
+  return function(...args) {
+    let context = this;
+
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      generateMaps.apply(context, args)
+    }, 1000);
+  }
+})()
+
+const updateDumbyMap = () => {
   markdown2HTML(HtmlContainer, editor.value())
   createDocLinks(HtmlContainer)
+  debounceForMap(HtmlContainer)
+}
+
+updateDumbyMap()
+
+// Re-render HTML by editor content
+cm.on("change", (_, change) => {
+  updateDumbyMap()
   addClassToCodeLines()
   completeForCodeBlock(change)
 })
