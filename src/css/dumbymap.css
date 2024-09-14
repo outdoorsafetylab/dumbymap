@@ -139,6 +139,7 @@
   .SemanticHtml {
     font-size: 12px;
     pointer-events: none;
+    z-index: 1;
 
     > .draggable-block {
       box-sizing: content-box;
