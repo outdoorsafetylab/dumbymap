@@ -5,7 +5,7 @@ import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
 import PlainDraggable from 'plain-draggable'
-import { render, parseConfigsFromYaml } from 'mapclay'
+import { renderWith, parseConfigsFromYaml } from 'mapclay'
 
 // Utils {{{
 const onRemove = (element, callback) => {
@@ -245,6 +245,7 @@ export const generateMaps = async (container) => {
   }
 
   // Render each code block with "language-map" class
+  const render = renderWith(config => ({ width: "100%", ...config }))
   const renderTargets = Array.from(container.querySelectorAll('pre:has(.language-map)'))
   const renderAllTargets = renderTargets.map(async (target) => {
     // Get text in code block starts with '```map'
