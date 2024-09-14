@@ -9,15 +9,13 @@ import { createDocLinks } from './dumbymap.mjs'
 const HtmlContainer = document.querySelector(".DumbyMap")
 const textArea = document.querySelector(".editor textarea")
 
-const toggleMaps = (container) => {
-  if (!container.querySelector('.Showcase')) {
-    generateMaps(container)
-    document.activeElement.blur();
+const toggleEditing = () => {
+  if (document.body.getAttribute("data-layout") === "editing") {
+    document.body.removeAttribute("data-layout")
   } else {
-    markdown2HTML(HtmlContainer, editor.value())
-    createDocLinks(container)
-    container.setAttribute('data-layout', 'none')
+    document.body.setAttribute("data-layout", "editing")
   }
+  HtmlContainer.setAttribute("data-layout", "none")
 }
 // }}}
 // Set up EasyMDE {{{
@@ -66,7 +64,7 @@ const editor = new EasyMDE({
       name: 'map',
       title: 'Toggle Map Generation',
       text: "🌏",
-      action: () => toggleMaps(HtmlContainer),
+      action: () => toggleEditing(),
     },
     {
       name: 'debug',
@@ -87,10 +85,6 @@ const cm = editor.codemirror
 // Set up logic about editor content {{{
 markdown2HTML(HtmlContainer, editor.value())
 createDocLinks(HtmlContainer)
-
-if (queryParams.get('render')) {
-  toggleMaps(HtmlContainer)
-}
 
 // Quick hack to style lines inside code block
 const addClassToCodeLines = () => {
@@ -509,11 +503,23 @@ cm.on('keydown', (_, e) => {
 
 document.onkeydown = (e) => {
   if (e.altKey && e.ctrlKey && e.key === 'm') {
-    toggleMaps(HtmlContainer)
+    toggleEditing()
   }
 }
 
 // }}}
 // }}}
+const layoutObserver = new MutationObserver(() => {
+  const layout = HtmlContainer.getAttribute('data-layout')
+  if (layout !== 'none') {
+    document.body.removeAttribute('data-layout')
+  }
+})
+
+layoutObserver.observe(HtmlContainer, {
+  attributes: true,
+  attributeFilter: ["data-layout"],
+  attributeOldValue: true
+});
 
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}

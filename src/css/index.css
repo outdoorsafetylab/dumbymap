@@ -4,38 +4,50 @@
 }
 
 body {
-  display: flex;
-  justify-items: stretch;
   width: 100%;
-}
+  height: 100vh;
 
-.DumbyMap {
-  order: 2;
-  flex: 0 0 49%;
-  height: calc(100vh - 15px);
-  margin: 10px;
-  overflow-y: scroll;
-  border: var(--content-border);
-  border-radius: var(--content-border-radius);
+  &[data-layout=editing] {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5em;
+
+    padding: 0.5em;
+
+    .DumbyMap {
+      order: 2;
+      flex: 1 0 calc(50% - 0.5em);
+      height: 100%;
+      overflow-y: scroll;
+      border: var(--content-border);
+      border-radius: var(--content-border-radius);
+    }
+    .editor {
+      display: block;
+
+      order: 1;
+      flex: 1 0 50%;
+      max-width: calc(50% - 0.5em);
+      height: 100%;
+    }
+  }
 }
 
 .editor {
-  order: 1;
-  flex: 0 0 48%;
-  max-width: 50vw;
-  height: calc(100vh - 15px);
-  margin: 10px;
+  display: none;
 }
 
 .EasyMDEContainer {
   display: flex;
+  align-items: stretch;
+  gap: 0.5em;
+  height: 100%;
   flex-direction: column;
-  height: calc(100vh - 20px);
   box-sizing: border-box;
 
   .CodeMirror {
     order: 1;
-    flex-grow: 1;
+    flex: 1 0 auto;
     border: var(--content-border);
     border-radius: var(--content-border-radius);
     padding-inline: 0;
@@ -53,7 +65,7 @@ body {
 
   .editor-toolbar {
     order: 2;
-    margin-top: 0.5rem;
+    flex: 0 0 auto;
     border-left: 1px solid #ced4da;
     border-right: 1px solid #ced4da;
     border-bottom: 1px solid #ced4da;
