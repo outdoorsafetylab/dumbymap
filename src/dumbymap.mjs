@@ -217,9 +217,6 @@ export const generateMaps = async (container) => {
   // Render Maps {{{
 
   const afterEachMapLoaded = (mapContainer) => {
-    mapContainer.querySelectorAll('.marker')
-      .forEach(marker => htmlHolder.anchors.push(marker))
-
     const focusClickedMap = () => {
       if (container.getAttribute('data-layout') !== 'none') return
 
@@ -244,15 +241,8 @@ export const generateMaps = async (container) => {
       config.id = mapId
     }
     mapIdList.push(mapId)
+    return config
   }
-
-  // FIXME Create markers after maps are created
-  const markerOptions = geoLinks.map(link => ({
-    targets: link.targets,
-    xy: link.xy,
-    title: link.url.pathname
-  }))
-
 
   // Render each code block with "language-map" class
   const renderTargets = Array.from(container.querySelectorAll('pre:has(.language-map)'))
@@ -266,14 +256,7 @@ export const generateMaps = async (container) => {
 
     let configList = []
     try {
-      configList = parseConfigsFromYaml(configText).map(result => {
-        assignMapId(result)
-        const markersFromLinks = markerOptions.filter(marker =>
-          !marker.targets || marker.targets.includes(result.id)
-        )
-        Object.assign(result, { markers: markersFromLinks })
-        return result
-      })
+      configList = parseConfigsFromYaml(configText).map(assignMapId)
     } catch (_) {
       console.warn('Fail to parse yaml config for element', target)
     }
@@ -292,6 +275,21 @@ export const generateMaps = async (container) => {
       })
   })
   const renderInfo = await Promise.all(renderAllTargets).then(() => 'Finish Rendering')
+  const maps = htmlHolder.querySelectorAll('.map-container') ?? []
+  Array.from(maps)
+    .forEach(ele => {
+      const markers = geoLinks
+        .filter(link => !link.targets || link.targets.include(ele.id))
+        .map(link => ({
+          xy: link.xy,
+          title: link.url.pathname
+        }))
+      ele?.renderer?.addMarkers(markers)
+    })
+
+  htmlHolder.querySelectorAll('.marker')
+    .forEach(marker => htmlHolder.anchors.push(marker))
+
   console.info(renderInfo)
 
   //}}}
