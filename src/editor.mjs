@@ -227,7 +227,7 @@ const insideCodeblockForMap = (anchor) => {
     const content = cm.getLine(line)
     if (content === '```map') {
       return true
-    } else if (content === '```'){
+    } else if (content === '```') {
       return false
     }
     line = line - 1
