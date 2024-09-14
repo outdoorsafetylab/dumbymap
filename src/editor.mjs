@@ -6,7 +6,7 @@ import { createDocLinks } from './dumbymap.mjs'
 
 // Set up Containers {{{
 
-const HtmlContainer = document.querySelector(".result-html")
+const HtmlContainer = document.querySelector(".DumbyMap")
 const textArea = document.querySelector(".editor textarea")
 
 const toggleMaps = (container) => {

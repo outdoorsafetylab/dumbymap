@@ -9,7 +9,7 @@ body {
   width: 100%;
 }
 
-.result-html {
+.DumbyMap {
   order: 2;
   flex: 0 0 49%;
   height: calc(100vh - 15px);
