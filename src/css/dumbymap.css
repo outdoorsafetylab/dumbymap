@@ -142,6 +142,7 @@
 
     > .draggable-block {
       box-sizing: content-box;
+      position: absolute;
       width: fit-content;
       max-height: 50vh;
       overflow: scroll;

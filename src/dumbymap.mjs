@@ -294,6 +294,26 @@ export const generateMaps = async (container) => {
   console.info(renderInfo)
 
   //}}}
+  // Draggable Blocks{{{
+  // Add draggable part for blocks
+  htmlHolder.blocks = Array.from(htmlHolder.querySelectorAll('.draggable-block'))
+  htmlHolder.blocks.forEach(block => {
+    // Add draggable part
+    const draggablePart = document.createElement('div');
+    draggablePart.classList.add('draggable')
+    draggablePart.textContent = '☰'
+    draggablePart.title = 'Use middle-click to remove block'
+    block.insertBefore(draggablePart, block.firstChild)
+    block.draggablePart = draggablePart
+
+    draggablePart.onmouseup = (e) => {
+      if (e.button === 1) {
+        block.style.display = "none";
+      }
+    }
+  })
+
+  // }}}
   // CSS observer {{{
 
   // Set focusArea
@@ -323,20 +343,6 @@ export const generateMaps = async (container) => {
     }
   }
 
-  // Add draggable part for blocks
-  htmlHolder.blocks = Array.from(htmlHolder.querySelectorAll('.draggable-block'))
-  htmlHolder.blocks.forEach(block => {
-    const draggablePart = document.createElement('div');
-    draggablePart.classList.add('draggable')
-    draggablePart.textContent = '☰'
-
-    // TODO Better way to close block
-    draggablePart.onmouseup = (e) => {
-      if (e.button === 1) block.style.display = "none";
-    }
-    block.insertBefore(draggablePart, block.firstChild)
-  })
-
   // observe layout change
   const layoutObserver = new MutationObserver(() => {
     const layout = container.getAttribute('data-layout')
@@ -363,17 +369,29 @@ export const generateMaps = async (container) => {
     }
 
     if (layout === 'overlay') {
-      htmlHolder.blocks.forEach(block => {
-        block.draggableInstance = new PlainDraggable(block, { handle: block.querySelector('.draggable') })
-        block.draggableInstance.snap = { x: { step: 20 }, y: { step: 20 } }
-        // block.draggableInstance.onDragEnd = () => {
-        //   links(block).forEach(link => link.line.position())
-        // }
+      let x = 0;
+      let y = 0;
+      htmlHolder.blocks.forEach(block =>{
+        block.draggableInstance = new PlainDraggable(block, {
+          handle: block.draggablePart,
+          snap: { x: { step: 20 }, y: { step: 20 } },
+          autoScroll: false,
+        })
+        // block.style.transform = `translate(${x}px, ${y}px)`
+        block.style.left = `${x}px`
+        block.style.top = `${y}px`
+        x += parseInt(window.getComputedStyle(block).width) + 50
+        if (x > window.innerWidth) {
+          y += 200
+          x = x % window.innerWidth
+        }
       })
     } else {
       htmlHolder.blocks.forEach(block => {
         block.style.transform = 'none'
-        block.draggableInstance?.remove()
+        try {
+          block.draggableInstance?.remove()
+        } catch (err) { }
       })
     }
   });
