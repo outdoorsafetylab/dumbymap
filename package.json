@@ -1,7 +1,7 @@
 {
   "name": "dumbymap",
   "description": "Generate interactive maps from Semantic HTML",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "license": "MIT",
   "type": "module",
   "main": "dist/dumbymap.mjs",
