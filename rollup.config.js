@@ -29,6 +29,16 @@ const general = {
       },
     },
     {
+      name: 'plain-draggable',
+      transform(code, id) {
+        if (id.includes('node_modules/plain-draggable/')) {
+          const removePattern = /window\.addEventListener\('scroll'[^\)]*\)/
+          return `${code.replace(removePattern, "")}`;
+        }
+        return null;
+      },
+    },
+    {
       name: 'mapclay',
       resolveId(source) {
         if (source === 'mapclay' && existsSync(join('.', 'mapclay'))) {
