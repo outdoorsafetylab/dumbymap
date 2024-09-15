@@ -391,7 +391,7 @@ export const generateMaps = async (container) => {
         block.style.transform = 'none'
         try {
           block.draggableInstance?.remove()
-        } catch (err) { }
+        } catch (_) { }
       })
     }
   });

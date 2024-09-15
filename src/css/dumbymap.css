@@ -144,7 +144,6 @@
       box-sizing: content-box;
       position: absolute;
       width: fit-content;
-      height: fill-available;
       max-height: 50vh;
       overflow: scroll;
       border: solid gray;

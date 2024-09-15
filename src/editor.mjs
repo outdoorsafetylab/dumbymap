@@ -34,7 +34,6 @@ const getContentFromHash = (hash) => {
 }
 
 const initialState = getStateFromHash(window.location.hash)
-const queryParams = new URL(window.location).searchParams
 window.location.hash = ''
 const contentFromHash = initialState.content
 const lastContent = localStorage.getItem('editorContent')
@@ -143,11 +142,9 @@ const debounceForMap = (() => {
   let timer = null;
 
   return function(...args) {
-    let context = this;
-
     clearTimeout(timer);
     timer = setTimeout(() => {
-      generateMaps.apply(context, args)
+      generateMaps.apply(this, args)
     }, 1000);
   }
 })()
