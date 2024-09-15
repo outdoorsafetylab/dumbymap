@@ -372,18 +372,17 @@ export const generateMaps = async (container) => {
     }
 
     if (layout === 'overlay') {
-      let x = 0;
-      let y = 0;
+      let [x, y] = [0, 0];
       htmlHolder.blocks.forEach(block => {
         // Add draggable instance
         block.draggableInstance = new PlainDraggable(block, {
           handle: block.draggablePart,
           snap: { x: { step: 20 }, y: { step: 20 } },
-          autoScroll: false,
+          left: x,
+          top: y,
         })
+
         // Set initial postion side by side
-        block.style.left = `${x}px`
-        block.style.top = `${y}px`
         x += parseInt(window.getComputedStyle(block).width) + 50
         if (x > window.innerWidth) {
           y += 200
