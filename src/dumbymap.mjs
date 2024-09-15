@@ -92,7 +92,10 @@ export const markdown2HTML = (container, mdContent) => {
   container.innerHTML = '<div class="SemanticHtml"></div>'
   const htmlHolder = container.querySelector('.SemanticHtml')
 
-  const md = MarkdownIt({ html: true })
+  const md = MarkdownIt({
+    html: true,
+    breaks: true,
+  })
     .use(MarkdownItAnchor, {
       permalink: MarkdownItAnchor.permalink.linkInsideHeader({ placement: 'before' })
     })
