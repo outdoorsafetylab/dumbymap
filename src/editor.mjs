@@ -149,10 +149,18 @@ const debounceForMap = (() => {
   }
 })()
 
+const afterMapRendered = (mapHolder) => {
+  mapHolder.oncontextmenu = (event) => {
+    event.preventDefault()
+    const lonLat = mapHolder.renderer.unproject([event.x, event.y])
+    // TODO...
+  }
+}
+
 const updateDumbyMap = () => {
   markdown2HTML(HtmlContainer, editor.value())
   createDocLinks(HtmlContainer)
-  debounceForMap(HtmlContainer)
+  debounceForMap(HtmlContainer, afterMapRendered)
 }
 
 updateDumbyMap()
