@@ -138,7 +138,7 @@ export const markdown2HTML = (container, mdContent) => {
   //}}}
 }
 // FIXME Don't use hard-coded CSS selector
-export const generateMaps = async (container) => {
+export const generateMaps = async (container, callback) => {
   // LeaderLine {{{
 
   // Get anchors with "geo:" scheme
@@ -250,51 +250,55 @@ export const generateMaps = async (container) => {
   // Render each code block with "language-map" class
   const render = renderWith(config => ({ width: "100%", ...config }))
   const renderTargets = Array.from(container.querySelectorAll('pre:has(.language-map)'))
-  const renderAllTargets = renderTargets.map(async (target) => {
-    // Get text in code block starts with '```map'
-    const configText = target.querySelector('.language-map')
-      .textContent
-      // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
-      // replace it by normal space
-      .replace(/\u00A0/g, '\u0020')
+    .map(async (target) => {
+      // Get text in code block starts with '```map'
+      const configText = target.querySelector('.language-map')
+        .textContent
+        // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
+        // replace it by normal space
+        .replace(/\u00A0/g, '\u0020')
 
-    let configList = []
-    try {
-      configList = parseConfigsFromYaml(configText).map(assignMapId)
-    } catch (_) {
-      console.warn('Fail to parse yaml config for element', target)
-    }
+      let configList = []
+      try {
+        configList = parseConfigsFromYaml(configText).map(assignMapId)
+      } catch (_) {
+        console.warn('Fail to parse yaml config for element', target)
+      }
 
-    // Render maps
-    return render(target, configList)
-      .then(results => {
-        results.forEach((mapByConfig) => {
-          if (mapByConfig.status === 'fulfilled') {
-            afterEachMapLoaded(mapByConfig.value)
-            return mapByConfig.value
-          } else {
-            console.error('Fail to render target element', mapByConfig.reason)
-          }
+      // Render maps
+      return render(target, configList)
+        .then(results => {
+          results.forEach((mapByConfig) => {
+            if (mapByConfig.status === 'fulfilled') {
+              afterEachMapLoaded(mapByConfig.value)
+              return mapByConfig.value
+            } else {
+              console.error('Fail to render target element', mapByConfig.reason)
+            }
+          })
         })
-      })
-  })
-  const renderInfo = await Promise.all(renderAllTargets).then(() => 'Finish Rendering')
-  const maps = htmlHolder.querySelectorAll('.map-container') ?? []
-  Array.from(maps)
-    .forEach(ele => {
-      const markers = geoLinks
-        .filter(link => !link.targets || link.targets.include(ele.id))
-        .map(link => ({
-          xy: link.xy,
-          title: link.url.pathname
-        }))
-      ele?.renderer?.addMarkers(markers)
     })
 
-  htmlHolder.querySelectorAll('.marker')
-    .forEach(marker => htmlHolder.anchors.push(marker))
+  const renderAllTargets = Promise.all(renderTargets)
+  renderAllTargets.then(() => {
+    console.info('Finish Rendering')
 
-  console.info(renderInfo)
+    const maps = htmlHolder.querySelectorAll('.map-container') ?? []
+    Array.from(maps)
+      .forEach(ele => {
+        callback(ele)
+        const markers = geoLinks
+          .filter(link => !link.targets || link.targets.include(ele.id))
+          .map(link => ({
+            xy: link.xy,
+            title: link.url.pathname
+          }))
+        ele?.renderer?.addMarkers(markers)
+      })
+
+    htmlHolder.querySelectorAll('.marker')
+      .forEach(marker => htmlHolder.anchors.push(marker))
+  })
 
   //}}}
   // Draggable Blocks{{{
@@ -407,5 +411,5 @@ export const generateMaps = async (container) => {
   onRemove(htmlHolder, () => layoutObserver.disconnect())
   //}}}
   //}}}
-  return container
+  return renderAllTargets
 }
