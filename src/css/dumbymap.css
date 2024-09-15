@@ -148,10 +148,13 @@
       max-width: 25vw;
       overflow: scroll;
       border: solid gray;
-      padding: 0.3rem;
       padding-top: 0.5rem;
       padding-bottom: 0;
       resize: both;
+
+      * {
+        padding-inline: 0.5rem;
+      }
 
       &[style*="height"],
       &[style*="width"] {
@@ -161,23 +164,24 @@
 
       .map-container {
         min-width: 200px;
+        padding-inline: 0;
       }
 
       .draggable {
-        width: 100%;
         display: block;
         top: 0;
-        left: 0;
         position: sticky;
+        background-color: white;
         margin-bottom: -18px;
-        opacity: 0.3;
         transform: translate(0, -16px);
+        width: 100%;
+        padding-inline: 0;
         text-align: center;
         z-index: 100;
         transition: all 0.3s ease-out;
         &:hover {
-          background-color: lightgray;
-          padding-top: 1em;
+          background-color: #f1f1f1;
+          padding-block: 1em 0.5em;
         }
       }
     }
