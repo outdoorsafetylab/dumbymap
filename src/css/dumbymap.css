@@ -145,14 +145,18 @@
       position: absolute;
       width: fit-content;
       max-height: 50vh;
+      max-width: 25vw;
       overflow: scroll;
       border: solid gray;
       padding: 0.3rem;
       padding-top: 0.5rem;
       padding-bottom: 0;
+      resize: both;
 
-      * {
-        max-width: calc(100vw/4);
+      &[style*="height"],
+      &[style*="width"] {
+        max-height: unset;
+        max-width: unset;
       }
 
       .map-container {

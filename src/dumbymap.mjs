@@ -375,12 +375,13 @@ export const generateMaps = async (container) => {
       let x = 0;
       let y = 0;
       htmlHolder.blocks.forEach(block =>{
+        // Add draggable instance
         block.draggableInstance = new PlainDraggable(block, {
           handle: block.draggablePart,
           snap: { x: { step: 20 }, y: { step: 20 } },
           autoScroll: false,
         })
-        // block.style.transform = `translate(${x}px, ${y}px)`
+        // Set initial postion side by side
         block.style.left = `${x}px`
         block.style.top = `${y}px`
         x += parseInt(window.getComputedStyle(block).width) + 50
@@ -391,9 +392,9 @@ export const generateMaps = async (container) => {
       })
     } else {
       htmlHolder.blocks.forEach(block => {
-        block.style.transform = 'none'
+        block.removeAttribute('style')
         try {
-          block.draggableInstance?.remove()
+          block.draggableInstance.remove()
         } catch (_) { }
       })
     }
