@@ -374,7 +374,7 @@ export const generateMaps = async (container) => {
     if (layout === 'overlay') {
       let x = 0;
       let y = 0;
-      htmlHolder.blocks.forEach(block =>{
+      htmlHolder.blocks.forEach(block => {
         // Add draggable instance
         block.draggableInstance = new PlainDraggable(block, {
           handle: block.draggablePart,
@@ -395,7 +395,7 @@ export const generateMaps = async (container) => {
         block.removeAttribute('style')
         try {
           block.draggableInstance.remove()
-        } catch (_) { }
+        } catch (_) { null }
       })
     }
   });
