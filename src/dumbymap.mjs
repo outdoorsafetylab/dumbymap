@@ -288,7 +288,7 @@ export const generateMaps = async (container, callback) => {
       .forEach(ele => {
         callback(ele)
         const markers = geoLinks
-          .filter(link => !link.targets || link.targets.include(ele.id))
+          .filter(link => !link.targets || link.targets.includes(ele.id))
           .map(link => ({
             xy: link.xy,
             title: link.url.pathname
