@@ -347,13 +347,20 @@ const handleTypingInCodeBlock = (anchor) => {
 const getSuggestions = (anchor) => {
   let suggestions = []
   const text = cm.getLine(anchor.line)
-  const markInputIsInvalid = () => {
+
+  // Clear marks on text
+  cm.findMarks(
+    { ...anchor, ch: 0 },
+    { ...anchor, ch: text.length }
+  ).forEach(m => m.clear())
+
+  // Mark user input invalid by case
+  const markInputIsInvalid = () =>
     cm.getDoc().markText(
       { ...anchor, ch: 0 },
-      { ...anchor, ch: -1 },
+      { ...anchor, ch: text.length },
       { className: 'invalid-input' },
     )
-  }
 
   // Check if "use: <renderer>" is set
   const lineWithRenderer = getLineWithRenderer(anchor)
@@ -395,8 +402,8 @@ const getSuggestions = (anchor) => {
     // If user is typing option
     const keyTyped = text.split(':')[0].trim()
     if (!isKeyFinished) {
-      suggestions = getSuggestionsForOptions(keyTyped, validOptions)
       markInputIsInvalid()
+      return getSuggestionsForOptions(keyTyped, validOptions)
     }
 
     // If user is typing value
@@ -409,13 +416,14 @@ const getSuggestions = (anchor) => {
       const valueTyped = text.substring(text.indexOf(':') + 1).trim()
       const isValidValue = matchedOption.isValid(valueTyped)
       if (!valueTyped) {
-        suggestions = [
+        return [
           getSuggestionFromMapOption(matchedOption),
           ...getSuggestionsFromAliases(matchedOption)
         ].filter(s => s instanceof Suggestion)
       }
       if (valueTyped && !isValidValue) {
         markInputIsInvalid()
+        return []
       }
     }
 
@@ -435,7 +443,7 @@ const getSuggestions = (anchor) => {
           replace: `use: ${renderer}`,
         })
       )
-    suggestions = rendererSuggestions.length > 0 ? rendererSuggestions : []
+    return rendererSuggestions.length > 0 ? rendererSuggestions : []
   }
   return suggestions
 }
