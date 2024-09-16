@@ -21,35 +21,19 @@ const toggleEditing = () => {
 // Set up EasyMDE {{{
 
 // Content values for editor
-const getStateFromHash = (hash) => {
-  const hashValue = hash.substring(1);
-  const stateString = decodeURIComponent(hashValue)
-  try { return JSON.parse(stateString) ?? {} }
-  catch (_) { return {} }
-}
 
-const getContentFromHash = (hash) => {
-  const state = getStateFromHash(hash)
-  return state.content
-}
-
-const initialState = getStateFromHash(window.location.hash)
-window.location.hash = ''
-const contentFromHash = initialState.content
-const lastContent = localStorage.getItem('editorContent')
 const defaultContent = '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
-
 const editor = new EasyMDE({
   element: textArea,
-  indentWithTabs: false,
-  initialValue: contentFromHash ?? lastContent ?? defaultContent,
-  lineNumbers: true,
-  promptURLs: true,
-  uploadImage: true,
+  initialValue: defaultContent,
   autosave: {
     enabled: true,
     uniqueId: 'dumbymap',
   },
+  indentWithTabs: false,
+  lineNumbers: true,
+  promptURLs: true,
+  uploadImage: true,
   spellChecker: false,
   toolbarButtonClassPrefix: 'mde',
   status: false,
@@ -80,6 +64,29 @@ const editor = new EasyMDE({
 });
 
 const cm = editor.codemirror
+
+const getStateFromHash = (hash) => {
+  const hashValue = hash.substring(1);
+  const stateString = decodeURIComponent(hashValue)
+  try { return JSON.parse(stateString) ?? {} }
+  catch (_) { return {} }
+}
+
+const getContentFromHash = (hash) => {
+  const state = getStateFromHash(hash)
+  return state.content
+}
+
+const initialState = getStateFromHash(window.location.hash)
+window.location.hash = ''
+const contentFromHash = initialState.content
+
+// Seems like autosave would overwrite initialValue, set content from hash here
+if (contentFromHash) {
+  editor.cleanup()
+  editor.value(contentFromHash)
+}
+
 // }}}
 // Set up logic about editor content {{{
 markdown2HTML(HtmlContainer, editor.value())
@@ -167,6 +174,7 @@ updateDumbyMap()
 
 // Re-render HTML by editor content
 cm.on("change", (_, change) => {
+  console.log('change', change.text)
   updateDumbyMap()
   addClassToCodeLines()
   completeForCodeBlock(change)
