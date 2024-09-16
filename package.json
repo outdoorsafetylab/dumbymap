@@ -1,7 +1,7 @@
 {
   "name": "dumbymap",
   "description": "Generate interactive maps from Semantic HTML",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "license": "MIT",
   "type": "module",
   "main": "dist/dumbymap.mjs",
@@ -17,7 +17,6 @@
     "openlayers",
     "leaflet"
   ],
-  "license": "MIT",
   "scripts": {
     "watch": "npx rollup -c -w",
     "build": "mkdir -p dist; npm run build-css; npm run build-renderers; npm run build-resources; npx rollup -c",
@@ -45,7 +44,7 @@
   "dependencies": {
     "easymde": "^2.18.0",
     "leader-line": "^1.0.7",
-    "mapclay": "^0.6.3",
+    "mapclay": "^0.6.4",
     "markdown-it": "^14.1.0",
     "markdown-it-anchor": "^9.2.0",
     "markdown-it-footnote": "^4.0.0",
