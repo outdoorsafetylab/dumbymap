@@ -40,8 +40,11 @@
 
   .Showcase {
     order: 2;
-    #mapPlaceholder {
-      display: none;
+    display: none;
+
+    .map-container {
+      width: 100% !important;
+      height: 100% !important;
     }
   }
 
@@ -74,9 +77,11 @@
     }
 
     .map-container {
+      background: white;
       margin: 2px;
-      &.focus {
-        border: solid gray;
+      border: 3px solid transparent;
+      &[data-focus=true] {
+        border: 3px solid gray;
       }
     }
 
@@ -90,6 +95,11 @@
         width: fit-content;
         flex: 0 0;
       }
+    [data-placeholder] {
+      box-sizing: border-box;
+      border: 5px solid white;
+      background: lightgray;
+      margin: 0;
     }
   }
 
@@ -115,6 +125,10 @@
   & ~ :not(.leader-line) {
     display: none;
     pointer-events: none;
+  }
+
+  .Showcase {
+    display: block;
   }
 }
 
@@ -191,8 +205,13 @@
         }
       }
     }
+
     > :not(.draggable-block) {
       display: none;
+    }
+
+    [data-placeholder] {
+      max-width: 50px;
     }
   }
 }

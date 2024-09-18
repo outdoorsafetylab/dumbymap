@@ -40,7 +40,8 @@ const editor = new EasyMDE({
   shortcuts: {
     "map": "Ctrl-Alt-M",
     "debug": "Ctrl-Alt-D",
-    "toggleUnorderedList": "Ctrl-Shift-L",
+    "toggleUnorderedList": null,
+    "toggleOrderedList": null,
   },
   toolbar: [
     {
@@ -156,12 +157,12 @@ const debounceForMap = (() => {
   }
 })()
 
-const afterMapRendered = (mapHolder) => {
-  mapHolder.oncontextmenu = (event) => {
-    event.preventDefault()
-    const lonLat = mapHolder.renderer.unproject([event.x, event.y])
-    // TODO...
-  }
+const afterMapRendered = (_) => {
+  // mapHolder.oncontextmenu = (event) => {
+  //   event.preventDefault()
+  //   const lonLat = mapHolder.renderer.unproject([event.x, event.y])
+  //   // TODO...
+  // }
 }
 
 const updateDumbyMap = () => {
@@ -174,7 +175,6 @@ updateDumbyMap()
 
 // Re-render HTML by editor content
 cm.on("change", (_, change) => {
-  console.log('change', change.text)
   updateDumbyMap()
   addClassToCodeLines()
   completeForCodeBlock(change)
@@ -345,7 +345,6 @@ const handleTypingInCodeBlock = (anchor) => {
 // }}}
 // FUNCTION: get suggestions by current input {{{
 const getSuggestions = (anchor) => {
-  let suggestions = []
   const text = cm.getLine(anchor.line)
 
   // Clear marks on text
@@ -445,7 +444,7 @@ const getSuggestions = (anchor) => {
       )
     return rendererSuggestions.length > 0 ? rendererSuggestions : []
   }
-  return suggestions
+  return []
 }
 // }}}
 // {{{ FUNCTION: Show element about suggestions
@@ -505,11 +504,9 @@ cm.on("cursorActivity", (_) => {
 });
 // }}}
 // EVENT: keydown for suggestions {{{
+const keyForSuggestions = ['Tab', 'Enter', 'Escape']
 cm.on('keydown', (_, e) => {
-
-  // Only the following keys are used
-  const keyForSuggestions = ['Tab', 'Enter', 'Escape'].includes(e.key)
-  if (!keyForSuggestions || suggestionsEle.style.display === 'none') return;
+  if (!cm.hasFocus || !keyForSuggestions.includes(e.key) || suggestionsEle.style.display === 'none') return;
 
   // Directly add a newline when no suggestion is selected
   const currentSuggestion = suggestionsEle.querySelector('.container__suggestion.focus')
@@ -545,6 +542,13 @@ cm.on('keydown', (_, e) => {
 document.onkeydown = (e) => {
   if (e.altKey && e.ctrlKey && e.key === 'm') {
     toggleEditing()
+    e.preventDefault()
+    return null
+  }
+  if (cm.hasFocus()) {
+    return null
+  } else {
+    return e
   }
 }
 

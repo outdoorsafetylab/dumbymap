@@ -217,17 +217,176 @@ export const generateMaps = async (container, callback) => {
       childRect.bottom < parentRect.bottom - offset
   }
   //}}}
+  // Draggable Blocks{{{
+  // Add draggable part for blocks
+  htmlHolder.blocks = Array.from(htmlHolder.querySelectorAll('.draggable-block'))
+  htmlHolder.blocks.forEach(block => {
+    // Add draggable part
+    const draggablePart = document.createElement('div');
+    draggablePart.classList.add('draggable')
+    draggablePart.textContent = '☰'
+    draggablePart.title = 'Use middle-click to remove block'
+    block.insertBefore(draggablePart, block.firstChild)
+    block.draggablePart = draggablePart
+
+    draggablePart.onmouseup = (e) => {
+      if (e.button === 1) {
+        block.style.display = "none";
+      }
+    }
+  })
+
+  // }}}
+  // CSS observer {{{
+  // Set focusArea
+  const showcase = document.createElement('div')
+  container.appendChild(showcase)
+  showcase.classList.add('Showcase')
+
+  // Focus Map {{{
+  const mapFocusObserver = () => new MutationObserver((mutations) => {
+    const mutation = mutations.at(-1)
+    const target = mutation.target
+    const focus = target.getAttribute(mutation.attributeName) === 'true'
+    const shouldBeInShowcase = focus && getComputedStyle(showcase).display !== 'none'
+
+    if (shouldBeInShowcase) {
+      if (showcase.contains(target)) return
+
+      const placeholder = document.createElement('div')
+      placeholder.setAttribute('data-placeholder', target.id)
+      placeholder.style.width = target.style.width
+      target.parentElement.replaceChild(placeholder, target)
+      showcase.appendChild(target)
+    } else if (showcase.contains(target)) {
+      const placeholder = htmlHolder.querySelector(`[data-placeholder="${target.id}"]`)
+      if (!placeholder) throw Error(`Cannot fine placeholder for map "${target.id}"`)
+      placeholder.parentElement.replaceChild(target, placeholder)
+      placeholder.remove()
+    }
+  })
+  // }}}
+  // Layout {{{
+
+  // press key to switch layout
+  const layouts = ['none', 'side', 'overlay']
+  container.setAttribute("data-layout", layouts[0])
+
+  // FIXME Use UI to switch layouts
+  const originalKeyDown = document.onkeydown
+  document.onkeydown = (e) => {
+    const event = originalKeyDown(e)
+    if (!event) return
+
+    if (event.key === 'x' && container.querySelector('.map-container')) {
+      e.preventDefault()
+      let currentLayout = container.getAttribute('data-layout')
+      currentLayout = currentLayout ? currentLayout : 'none'
+      const nextIndex = (layouts.indexOf(currentLayout) + 1) % layouts.length
+      const nextLayout = layouts[nextIndex]
+
+      container.setAttribute("data-layout", nextLayout)
+    }
+
+    if (event.key === 'Tab') {
+      e.preventDefault()
+
+      const selector = '.map-container, [data-placeholder]'
+      const candidates = Array.from(htmlHolder.querySelectorAll(selector))
+      if (candidates.length === 0) return
+
+      const currentFocus = htmlHolder.querySelector('.map-container[data-focus=true]')
+        ?? htmlHolder.querySelector('[data-placeholder]')
+      Array.from(container.querySelectorAll('.map-container')).forEach(e =>
+        e.removeAttribute('data-focus')
+      );
+      const index = currentFocus
+        ? (candidates.indexOf(currentFocus) + (event.shiftKey ? -1 : 1)) % candidates.length
+        : 0
+      const nextFocus = candidates.at(index)
+      nextFocus.setAttribute('data-focus', "true")
+    }
+  }
+
+  // observe layout change
+  const layoutObserver = new MutationObserver((mutations) => {
+    const mutation = mutations.at(-1)
+    const layout = container.getAttribute(mutation.attributeName)
+
+    // Trigger Mutation Observer
+    const focusMap = container.querySelector('.map-container[data-focus=true]')
+      ?? container.querySelector('.map-container')
+    focusMap?.setAttribute('data-focus', 'true')
+
+    // Check empty block with map-container in showcase
+    htmlHolder.blocks.forEach(b => {
+      const contentChildren = Array.from(b.querySelectorAll(':scope > :not(.draggable)')) ?? []
+      if (contentChildren.length === 1
+        && elementsWithMapConfig.includes(contentChildren[0])
+        && !contentChildren[0].querySelector('.map-container')
+      ) {
+        b.style.display = "none"
+      } else {
+        b.style.display = "block"
+      }
+    })
+
+    if (layout === 'overlay') {
+      let [x, y] = [0, 0];
+      htmlHolder.blocks.forEach(block => {
+        // Add draggable instance
+        block.draggableInstance = new PlainDraggable(block, {
+          handle: block.draggablePart,
+          snap: { x: { step: 20 }, y: { step: 20 } },
+          left: x,
+          top: y,
+        })
+
+        // Set initial postion side by side
+        x += parseInt(window.getComputedStyle(block).width) + 50
+        if (x > window.innerWidth) {
+          y += 200
+          x = x % window.innerWidth
+        }
+      })
+    } else {
+      htmlHolder.blocks.forEach(block => {
+        block.removeAttribute('style')
+        try {
+          block.draggableInstance.remove()
+        } catch (_) {
+          null
+        }
+      })
+    }
+  });
+  layoutObserver.observe(container, {
+    attributes: true,
+    attributeFilter: ["data-layout"],
+    attributeOldValue: true
+  });
+
+  onRemove(htmlHolder, () => layoutObserver.disconnect())
+  //}}}
+  //}}}
   // Render Maps {{{
 
   const afterEachMapLoaded = (mapContainer) => {
     const focusClickedMap = () => {
-      if (container.getAttribute('data-layout') !== 'none') return
-
       container.querySelectorAll('.map-container')
-        .forEach(c => c.classList.remove('focus'))
-      mapContainer.classList.add('focus')
+        .forEach(c => c.removeAttribute('data-focus'))
+      mapContainer.setAttribute('data-focus', true)
     }
     mapContainer.onclick = focusClickedMap
+    mapContainer.setAttribute('tabindex', "-1")
+
+    const observer = mapFocusObserver()
+    mapFocusObserver().observe(mapContainer, {
+      attributes: true,
+      attributeFilter: ["data-focus"],
+      attributeOldValue: true
+    });
+    onRemove(mapContainer, () => observer.disconnect())
   }
 
   // Set unique ID for map container
@@ -236,9 +395,9 @@ export const generateMaps = async (container, callback) => {
     let mapId = config.id
     if (!mapId) {
       mapId = config.use?.split('/')?.at(-1)
-      let counter = 2
-      while (mapIdList.includes(mapId)) {
-        mapId = `${config.use}.${counter}`
+      let counter = 1
+      while (!mapId || mapIdList.includes(mapId)) {
+        mapId = `${config.use ?? "unnamed"}-${counter}`
         counter++
       }
       config.id = mapId
@@ -248,8 +407,9 @@ export const generateMaps = async (container, callback) => {
   }
 
   // Render each code block with "language-map" class
+  const elementsWithMapConfig = Array.from(container.querySelectorAll('pre:has(.language-map)') ?? [])
   const render = renderWith(config => ({ width: "100%", ...config }))
-  const renderTargets = Array.from(container.querySelectorAll('pre:has(.language-map)'))
+  const renderTargets = elementsWithMapConfig
     .map(async (target) => {
       // Get text in code block starts with '```map'
       const configText = target.querySelector('.language-map')
@@ -280,136 +440,28 @@ export const generateMaps = async (container, callback) => {
     })
 
   const renderAllTargets = Promise.all(renderTargets)
-  renderAllTargets.then(() => {
-    console.info('Finish Rendering')
+    .then(() => {
+      console.info('Finish Rendering')
 
-    const maps = htmlHolder.querySelectorAll('.map-container') ?? []
-    Array.from(maps)
-      .forEach(ele => {
-        callback(ele)
-        const markers = geoLinks
-          .filter(link => !link.targets || link.targets.includes(ele.id))
-          .map(link => ({
-            xy: link.xy,
-            title: link.url.pathname
-          }))
-        ele?.renderer?.addMarkers(markers)
-      })
-
-    htmlHolder.querySelectorAll('.marker')
-      .forEach(marker => htmlHolder.anchors.push(marker))
-  })
-
-  //}}}
-  // Draggable Blocks{{{
-  // Add draggable part for blocks
-  htmlHolder.blocks = Array.from(htmlHolder.querySelectorAll('.draggable-block'))
-  htmlHolder.blocks.forEach(block => {
-    // Add draggable part
-    const draggablePart = document.createElement('div');
-    draggablePart.classList.add('draggable')
-    draggablePart.textContent = '☰'
-    draggablePart.title = 'Use middle-click to remove block'
-    block.insertBefore(draggablePart, block.firstChild)
-    block.draggablePart = draggablePart
-
-    draggablePart.onmouseup = (e) => {
-      if (e.button === 1) {
-        block.style.display = "none";
-      }
-    }
-  })
-
-  // }}}
-  // CSS observer {{{
-
-  // Set focusArea
-  const showcase = document.createElement('div')
-  container.appendChild(showcase)
-  showcase.classList.add('Showcase')
-  const mapPlaceholder = document.createElement('div')
-  mapPlaceholder.id = 'mapPlaceholder'
-  showcase.appendChild(mapPlaceholder)
-
-  // Layout{{{
-
-  // press key to switch layout
-  const layouts = ['none', 'side', 'overlay']
-  container.setAttribute("data-layout", layouts[0])
-
-  // FIXME Use UI to switch layouts
-  const originalKeyDown = document.onkeydown
-  document.onkeydown = (event) => {
-    originalKeyDown(event)
-    if (event.key === 'x' && container.querySelector('.map-container')) {
-      let currentLayout = container.getAttribute('data-layout')
-      currentLayout = currentLayout ? currentLayout : 'none'
-      const nextLayout = layouts[(layouts.indexOf(currentLayout) + 1) % layouts.length]
-
-      container.setAttribute("data-layout", nextLayout)
-    }
-  }
-
-  // observe layout change
-  const layoutObserver = new MutationObserver(() => {
-    const layout = container.getAttribute('data-layout')
-    htmlHolder.blocks.forEach(b => b.style.display = "block")
-
-    if (layout === 'none') {
-      mapPlaceholder.innerHTML = ""
-      const map = showcase.querySelector('.map-container')
-      // Swap focused map and palceholder in markdown
-      if (map) {
-        mapPlaceholder.parentElement?.replaceChild(map, mapPlaceholder)
-        showcase.append(mapPlaceholder)
-      }
-    } else {
-      // If paceholder is not set, create one and put map into focusArea
-      if (showcase.contains(mapPlaceholder)) {
-        const mapContainer = container.querySelector('.map-container.focus') ?? container.querySelector('.map-container')
-        mapPlaceholder.innerHTML = `<div>Placeholder</div>`
-        // TODO Get snapshot image
-        // mapPlaceholder.src = map.map.getCanvas().toDataURL()
-        mapContainer.parentElement?.replaceChild(mapPlaceholder, mapContainer)
-        showcase.appendChild(mapContainer)
-      }
-    }
-
-    if (layout === 'overlay') {
-      let [x, y] = [0, 0];
-      htmlHolder.blocks.forEach(block => {
-        // Add draggable instance
-        block.draggableInstance = new PlainDraggable(block, {
-          handle: block.draggablePart,
-          snap: { x: { step: 20 }, y: { step: 20 } },
-          left: x,
-          top: y,
+      const maps = htmlHolder.querySelectorAll('.map-container') ?? []
+      Array.from(maps)
+        .forEach(ele => {
+          callback(ele)
+          const markers = geoLinks
+            .filter(link => !link.targets || link.targets.includes(ele.id))
+            .map(link => ({
+              xy: link.xy,
+              title: link.url.pathname
+            }))
+          ele?.renderer?.addMarkers(markers)
         })
 
-        // Set initial postion side by side
-        x += parseInt(window.getComputedStyle(block).width) + 50
-        if (x > window.innerWidth) {
-          y += 200
-          x = x % window.innerWidth
-        }
-      })
-    } else {
-      htmlHolder.blocks.forEach(block => {
-        block.removeAttribute('style')
-        try {
-          block.draggableInstance.remove()
-        } catch (_) { null }
-      })
-    }
-  });
-  layoutObserver.observe(container, {
-    attributes: true,
-    attributeFilter: ["data-layout"],
-    attributeOldValue: true
-  });
+      htmlHolder.querySelectorAll('.marker')
+        .forEach(marker => htmlHolder.anchors.push(marker))
 
-  onRemove(htmlHolder, () => layoutObserver.disconnect())
-  //}}}
+      return maps
+    })
+
   //}}}
   return renderAllTargets
 }
