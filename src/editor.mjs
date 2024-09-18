@@ -502,6 +502,9 @@ cm.on("cursorActivity", (_) => {
     handleTypingInCodeBlock(anchor)
   }
 });
+cm.on("blur", () => {
+  suggestionsEle.style.display = 'none'
+})
 // }}}
 // EVENT: keydown for suggestions {{{
 const keyForSuggestions = ['Tab', 'Enter', 'Escape']
