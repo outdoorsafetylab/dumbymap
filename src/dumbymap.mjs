@@ -254,13 +254,15 @@ export const generateMaps = async (container, callback) => {
       const placeholder = htmlHolder.querySelector(`[data-placeholder="${target.id}"]`)
       if (!placeholder) throw Error(`Cannot fine placeholder for map "${target.id}"`)
 
+      const afterAnimation = () => {
+        placeholder.parentElement.replaceChild(target, placeholder)
+        target.style = placeholder.style.cssText
+        placeholder.remove()
+      }
       animateRectTransition(target, placeholder.getBoundingClientRect())
         .finished
-        .finally(() => {
-          placeholder.parentElement.replaceChild(target, placeholder)
-          target.style = placeholder.style.cssText
-          placeholder.remove()
-        })
+        .then(afterAnimation)
+        .catch(afterAnimation)
     }
   })
   // }}}
