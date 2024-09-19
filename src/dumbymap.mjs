@@ -288,12 +288,13 @@ export const generateMaps = async (container, callback) => {
       container.setAttribute("data-layout", nextLayout)
     }
 
+    // Use Tab to change focus map
     if (event.key === 'Tab') {
       e.preventDefault()
 
       const selector = '.map-container, [data-placeholder]'
       const candidates = Array.from(htmlHolder.querySelectorAll(selector))
-      if (candidates.length === 0) return
+      if (candidates.length <= 1) return
 
       const currentFocus = htmlHolder.querySelector('.map-container[data-focus=true]')
         ?? htmlHolder.querySelector('[data-placeholder]')
