@@ -4,10 +4,8 @@
 
 .with-leader-line:not(:has(> *)) {
   display: inline-block;
-
   padding-right: 15px;
   padding-left: 6px;
-
   background-image: url("data:image/svg+xml;charset=utf-8;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cG9seWdvbiBwb2ludHM9IjI0LDAgMCw4IDgsMTEgMCwxOSA1LDI0IDEzLDE2IDE2LDI0IiBmaWxsPSJjb3JhbCIvPjwvc3ZnPg==");
   background-size: 12px 12px;
   background-repeat: no-repeat;
@@ -15,7 +13,7 @@
   color: #555;
 
   &.geolink {
-    background-color: rgb(248, 248, 129);
+    background-color: rgb(248 248 129);
   }
 
   &.doclink {
@@ -24,11 +22,35 @@
 
   &:hover {
     background-image: none;
-
     font-weight: bolder;
     text-decoration: none;
   }
 }
+
+*:has(> nav) {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+
+  /* FIXME Hide nav at proper time */
+  display: none;
+  padding: 0.5rem;
+  min-width: 120px;
+  border: 2px solid gray;
+  border-radius: 0.5rem;
+  background-color: white;
+  z-index: 500;
+
+  &:has(> nav:empty) {
+    display: none;
+  }
+
+  ol {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+}
+
 
 .DumbyMap {
   position: relative;
@@ -37,6 +59,7 @@
   padding: 0;
   display: flex;
   overflow-x: scroll;
+
   /* height: 100vh; */
 
   .Showcase {
@@ -69,7 +92,8 @@
       background: white;
       margin: 2px;
       border: 3px solid transparent;
-      &[data-focus=true] {
+
+      &[data-focus="true"] {
         border: 3px solid gray;
       }
     }
@@ -94,7 +118,7 @@
 }
 
 /* Left border to indicate there is a block */
-.DumbyMap[data-layout]:not([data-layout=overlay]) {
+.DumbyMap[data-layout]:not([data-layout="overlay"]) {
   .draggable-block{
     width: calc(100% + 0.5em);
     border-left: #f0f0f0 0.5em solid;
@@ -103,9 +127,8 @@
   }
 }
 
-.DumbyMap[data-layout]:not([data-layout=none]) {
+.DumbyMap[data-layout]:not([data-layout="none"]) {
   margin: 0 auto;
-
   height: 100vh;
   width: 100%;
   max-width: none;
@@ -121,7 +144,7 @@
   }
 }
 
-.DumbyMap[data-layout=side] {
+.DumbyMap[data-layout="side"] {
   .Showcase,
   .SemanticHtml {
     flex: 50%;
@@ -130,7 +153,7 @@
   }
 }
 
-.DumbyMap[data-layout=overlay] {
+.DumbyMap[data-layout="overlay"] {
   .Showcase,
   .SemanticHtml {
     position: fixed;
@@ -175,7 +198,7 @@
         top: 0;
         left: 0;
         position: sticky;
-        background: linear-gradient(0deg, rgba(255,255,255,0), rgba(255,255,255,1) 60%);
+        background: linear-gradient(0deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 100%) 60%);
         margin-bottom: -18px;
         transform: translate(0, -16px);
         width: 100%;
@@ -184,9 +207,11 @@
         text-align: center;
         z-index: 9999;
         transition: all 0.3s ease-out;
+
         &:hover {
           background: #e1e1e1;
           padding-block: 1em 0.5em;
+
           & ~ * {
             opacity: 0.7;
             color: gray;
@@ -202,29 +227,6 @@
     [data-placeholder] {
       max-width: 50px;
     }
-  }
-}
-
-*:has(> nav) {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  /* FIXME Hide nav at proper time */
-  display: none;
-
-  padding: 0.5rem;
-  min-width: 120px;
-  border: 2px solid gray;
-  border-radius: 0.5rem;
-  background-color: white;
-  z-index: 500;
-
-  &:has(> nav:empty) {
-    display: none;
-  }
-  ol {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
   }
 }
 
