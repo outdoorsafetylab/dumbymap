@@ -24,6 +24,35 @@ const onRemove = (element, callback) => {
   });
   obs.observe(parent, { childList: true, });
 }
+const animateRectTransition = (child, rect, resume = false) => {
+  const { width: w1, height: h1, left: x1, top: y1 } = rect
+  const { width: w2, height: h2, left: x2, top: y2 } = child.getBoundingClientRect()
+
+  const rw = w1 / w2
+  const rh = h1 / h2
+  const dx = x1 - x2;
+  const dy = y1 - y2;
+
+  if (dx === 0 && dy === 0) {
+    return;
+  }
+
+  const transform1 = `translate(0, 0) scale(1, 1)`;
+  const transform2 = `translate(${dx}px, ${dy}px) scale(${rw}, ${rh})`;
+  const keyframes = [
+    { transform: transform1, opacity: 1 },
+    { transform: transform2, opacity: 0.3 },
+  ]
+
+  return child.animate(
+    resume
+      ? keyframes.reverse()
+      : keyframes,
+    {
+      duration: 300,
+      easing: 'ease-in-out',
+    });
+}
 // }}}
 // FUNCTION: Get DocLinks from special anchor element {{{
 
@@ -253,16 +282,29 @@ export const generateMaps = async (container, callback) => {
     if (shouldBeInShowcase) {
       if (showcase.contains(target)) return
 
-      const placeholder = document.createElement('div')
+      // Placeholder for map in Showcase, it should has the same rect
+      const placeholder = target.cloneNode(true)
+      placeholder.classList.remove('map-container')
       placeholder.setAttribute('data-placeholder', target.id)
-      placeholder.style.width = target.style.width
       target.parentElement.replaceChild(placeholder, target)
+
+      // To fit showcase, remove all inline style
+      target.style = ""
       showcase.appendChild(target)
+
+      // Resume rect from Semantic HTML to Showcase, with animation
+      animateRectTransition(target, placeholder.getBoundingClientRect(), true)
     } else if (showcase.contains(target)) {
       const placeholder = htmlHolder.querySelector(`[data-placeholder="${target.id}"]`)
       if (!placeholder) throw Error(`Cannot fine placeholder for map "${target.id}"`)
-      placeholder.parentElement.replaceChild(target, placeholder)
-      placeholder.remove()
+
+      animateRectTransition(target, placeholder.getBoundingClientRect())
+        .finished
+        .finally(() => {
+          placeholder.parentElement.replaceChild(target, placeholder)
+          target.style = placeholder.style.cssText
+          placeholder.remove()
+        })
     }
   })
   // }}}
@@ -343,7 +385,7 @@ export const generateMaps = async (container, callback) => {
           top: y,
         })
 
-        // Set initial postion side by side
+        // Set initial position side by side
         x += parseInt(window.getComputedStyle(block).width) + 50
         if (x > window.innerWidth) {
           y += 200
