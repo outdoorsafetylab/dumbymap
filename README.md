@@ -1,6 +1,6 @@
 # Dumbymap
 
-This library generate web maps from Semantic HTML, see [demo page](https://outdoorsafetylab.github.io/dumbymap/)
+This library generate web maps from Semantic HTML, play around with [demo page](https://outdoorsafetylab.github.io/dumbymap/)
 
 ## Getting Started
 
@@ -26,11 +26,21 @@ generateMaps(container)
 browser (CDN):
 - [unpkg](https://unpkg.com/dumbymap@0.1.1/dist/dumbymap.mjs)
 
+
+## Depandencies
+
+- [leader-line](https://anseki.github.io/leader-line/)
+- [plain-draggable](https://anseki.github.io/plain-draggable/)
+- [markdown-it](https://github.com/markdown-it/markdown-it/)
+- [mapclay](https://github.com/outdoorsafetylab/mapclay)
+- [EasyMDE](https://github.com/Ionaru/easy-markdown-editor)
+
+
 ## TODOs
 
+- Semantic HTML
+  - context menu for add geolinks
 - Editor
-  - Better way to edit table in markdown
-  - `Ctrl-z` to resume last modificatioo
   - Reduce fontawesome resources
+  - Better way to edit table in markdown
 - Add favicon
-
