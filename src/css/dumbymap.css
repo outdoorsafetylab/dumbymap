@@ -138,10 +138,6 @@
     display: none;
     pointer-events: none;
   }
-
-  .Showcase {
-    display: block;
-  }
 }
 
 .DumbyMap[data-layout="side"] {
@@ -151,6 +147,10 @@
     overflow-y: scroll;
     height: 100vh;
   }
+
+  .Showcase {
+    display: block;
+  }
 }
 
 .DumbyMap[data-layout="overlay"] {
@@ -159,6 +159,10 @@
     position: fixed;
     height: 100%;
     width: 100%;
+  }
+
+  .Showcase {
+    display: block;
   }
 
   .SemanticHtml {
