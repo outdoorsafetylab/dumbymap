@@ -206,35 +206,56 @@ export const generateMaps = async (container, callback) => {
   // Add draggable part for blocks
 
   const dumbyBlocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
-  const intoDraggableContainer = (block) => {
+  const moveIntoDraggable = (block) => {
     // Create draggable block
-    const draggableContainer = document.createElement('div')
-    draggableContainer.classList.add('draggable-block')
+    const draggableBlock = document.createElement('div')
+    draggableBlock.classList.add('draggable-block')
 
     // Add draggable part
     const draggablePart = document.createElement('div');
     draggablePart.classList.add('draggable')
     draggablePart.textContent = '☰'
     draggablePart.title = 'Use middle-click to remove block'
-    // Hide block with middle click
     draggablePart.onmouseup = (e) => {
       if (e.button === 1) {
-        draggableContainer.style.display = "none";
+        // Hide block with middle click
+        draggableBlock.style.display = "none";
       }
     }
-    draggableContainer.appendChild(draggablePart)
 
-    draggableContainer.appendChild(block)
-    htmlHolder.appendChild(draggableContainer)
-    return draggableContainer
+    // Set elements
+    draggableBlock.appendChild(draggablePart)
+    draggableBlock.appendChild(block)
+    htmlHolder.appendChild(draggableBlock)
+
+    // Add draggable instance
+    const draggableInstance = new PlainDraggable(draggableBlock, {
+      handle: draggablePart,
+      snap: { x: { step: 20 }, y: { step: 20 } },
+    })
+
+    // Reposition draggable instance when resized
+    new ResizeObserver(() => {
+      try {
+        draggableInstance.position();
+      } catch (_) {
+        null
+      }
+    }).observe(draggableBlock);
+
+    // Callback for remove
+    onRemove(draggableBlock, () => {
+      draggableInstance.remove()
+    })
+
+    return draggableInstance
   }
 
-  const resumeFromDraggableContainer = (block) => {
+  const resumeFromDraggable = (block) => {
     const draggableContainer = block.closest('.draggable-block')
     if (!draggableContainer) return
     htmlHolder.appendChild(block)
     block.removeAttribute('style')
-    draggableContainer.draggableInstance.remove()
     draggableContainer.remove()
   }
   // }}}
@@ -362,32 +383,20 @@ export const generateMaps = async (container, callback) => {
     })
 
     if (layout === 'overlay') {
-      const draggableContainers = dumbyBlocks.map(intoDraggableContainer)
-
-      // Set initial position side by side
-      let [x, y] = [0, 0];
-      draggableContainers.forEach((c) => {
-
-        // Add draggable instance
-        c.draggableInstance = new PlainDraggable(c, {
-          handle: c.querySelector('.draggable') ?? c,
-          snap: { x: { step: 20 }, y: { step: 20 } },
-          left: x,
-          top: y,
+      let [x, y] = [0, 0]
+      dumbyBlocks.map(moveIntoDraggable)
+        .forEach(draggable => {
+          draggable.left = x
+          draggable.top = y
+          const rect = draggable.element.getBoundingClientRect()
+          x += rect.width + 30
+          if (x > window.innerWidth) {
+            y += 200
+            x = x % window.innerWidth
+          }
         })
-        x += parseInt(window.getComputedStyle(c).width) + 30
-        if (x > window.innerWidth) {
-          y += 200
-          x = x % window.innerWidth
-        }
-
-        const resizeObserver = new ResizeObserver(() => {
-          c.draggableInstance.position();
-        }).observe(c);
-        onRemove(c, () => resizeObserver.disconnect())
-      })
     } else {
-      dumbyBlocks.forEach(resumeFromDraggableContainer)
+      dumbyBlocks.forEach(resumeFromDraggable)
     }
   });
   layoutObserver.observe(container, {
