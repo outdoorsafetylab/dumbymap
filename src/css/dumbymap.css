@@ -91,7 +91,7 @@
     }
 
     [data-focus="true"] {
-      z-index: 9999;
+      z-index: 1;
     }
   }
 
@@ -100,6 +100,12 @@
     padding: 1.5rem;
     overflow-y: scroll;
     width: 100%;
+
+    .dumby-block {
+      border-left: #f0f0f0 0.5em solid;
+      padding-left: 0.5em;
+      margin-left: -0.5em;
+    }
 
     pre {
       width: 100%;
@@ -130,26 +136,6 @@
   }
 }
 
-.draggable-block {
-  pointer-events: auto;
-  background-color: white;
-  margin-bottom: 3rem;
-
-  .draggable {
-    display: none;
-  }
-}
-
-/* Left border to indicate there is a block */
-.DumbyMap[data-layout]:not([data-layout="overlay"]) {
-  .draggable-block{
-    width: calc(100% + 0.5em);
-    border-left: #f0f0f0 0.5em solid;
-    padding-left: 0.5em;
-    margin-left: -0.5em;
-  }
-}
-
 .DumbyMap[data-layout]:not([data-layout="none"]) {
   margin: 0 auto;
   height: 100vh;
@@ -174,87 +160,96 @@
     flex: 50%;
     display: block;
     height: 100vh;
+    z-index: -1;
   }
 }
 
 .DumbyMap[data-layout="overlay"] {
-  .Showcase,
-  .SemanticHtml {
-    position: fixed;
+  .SemanticHtml,
+  .Showcase {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0;
+    margin: 0;
     height: 100%;
     width: 100%;
   }
 
   .Showcase {
-    display: block;
+    z-index: 0;
   }
 
   .SemanticHtml {
-    font-size: 12px;
     pointer-events: none;
     z-index: 1;
+  }
+}
 
-    > .draggable-block {
-      box-sizing: content-box;
-      position: absolute;
-      width: fit-content;
-      max-height: 50vh;
-      max-width: 25vw;
-      overflow: scroll;
-      border: solid gray;
-      border-radius: 0.5rem;
-      padding-top: 0.5rem;
-      padding-bottom: 0;
-      resize: both;
+.draggable-block {
+  background-color: white;
+  margin-bottom: 3rem;
+  font-size: 12px;
+  pointer-events: auto;
+  box-sizing: content-box;
+  position: absolute;
+  width: fit-content;
+  max-height: 50vh;
+  max-width: 25vw;
+  overflow: scroll;
+  border: solid gray;
+  border-radius: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0;
+  resize: both;
 
-      &[style*="height"],
-      &[style*="width"] {
-        max-height: unset;
-        max-width: unset;
-      }
-
-      .map-container {
-        min-width: 200px;
-      }
-
-      > :not(.draggable) {
-        margin-inline: 0.5rem;
-      }
-
-      .draggable {
-        display: block;
-        top: 0;
-        left: 0;
-        position: sticky;
-        background: linear-gradient(0deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 100%) 60%);
-        margin-bottom: -18px;
-        transform: translate(0, -16px);
-        width: 100%;
-        padding-inline: 0;
-        padding-bottom: 2em;
-        text-align: center;
-        z-index: 9999;
-        transition: all 0.3s ease-in-out;
-
-        &:hover {
-          background: #e1e1e1;
-          padding-block: 1em 0.5em;
-
-          & ~ * {
-            opacity: 0.7;
-            color: gray;
-          }
-        }
-      }
-    }
-
-    > :not(.draggable-block) {
-      display: none;
-    }
-
+  &[style*="height"],
+  &[style*="width"] {
+    max-height: unset;
+    max-width: unset;
   }
 
+  .dumby-block {
+    border: none;
+    padding: 0;
+  }
+
+  .map-container {
+    min-width: 200px;
+  }
+
+  > :not(.draggable) {
+    margin-inline: 0.5rem;
+  }
+
+  .draggable {
+    display: block;
+    top: 0;
+    left: 0;
+    position: sticky;
+    background: linear-gradient(0deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 100%) 60%);
+    margin-bottom: -18px;
+    transform: translate(0, -16px);
+    width: 100%;
+    padding-inline: 0;
+    padding-bottom: 2em;
+    text-align: center;
+    z-index: 9999;
+    transition: all 0.3s ease-in-out;
+
+    &:hover {
+      background: #e1e1e1;
+      padding-block: 1em 0.5em;
+
+      & ~ * {
+        opacity: 0.7;
+        color: gray;
+      }
+    }
+  }
 }
+
 
 .bold-options {
   font-weight: bold;

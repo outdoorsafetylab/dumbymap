@@ -86,28 +86,28 @@ export const markdown2HTML = (container, mdContent) => {
     .use(MarkdownItFrontMatter)
     .use(MarkdownItTocDoneRight)
 
-  // FIXME A better way to generate draggable code block
-  md.renderer.rules.draggable_block_open = () => '<div>'
-  md.renderer.rules.draggable_block_close = () => '</div>'
+  // FIXME A better way to generate blocks
+  md.renderer.rules.dumby_block_open = () => '<div>'
+  md.renderer.rules.dumby_block_close = () => '</div>'
 
-  md.core.ruler.before('block', 'draggable_block', (state) => {
-    state.tokens.push(new state.Token('draggable_block_open', '', 1))
+  md.core.ruler.before('block', 'dumby_block', (state) => {
+    state.tokens.push(new state.Token('dumby_block_open', '', 1))
   })
 
   // Add close tag for block with more than 2 empty lines
-  md.block.ruler.before('table', 'draggable_block', (state, startLine) => {
+  md.block.ruler.before('table', 'dumby_block', (state, startLine) => {
     if (
       state.src[state.bMarks[startLine - 1]] === '\n' &&
       state.src[state.bMarks[startLine - 2]] === '\n' &&
       state.tokens.at(-1).type !== 'list_item_open' // Quick hack for not adding tag after "::marker" for <li>
     ) {
-      state.push('draggable_block_close', '', -1);
-      state.push('draggable_block_open', '', 1);
+      state.push('dumby_block_close', '', -1);
+      state.push('dumby_block_open', '', 1);
     }
   })
 
-  md.core.ruler.after('block', 'draggable_block', (state) => {
-    state.tokens.push(new state.Token('draggable_block_close', '', -1))
+  md.core.ruler.after('block', 'dumby_block', (state) => {
+    state.tokens.push(new state.Token('dumby_block_close', '', -1))
   })
 
   const contentWithToc = '${toc}\n\n\n' + mdContent
@@ -115,7 +115,7 @@ export const markdown2HTML = (container, mdContent) => {
 
   // TODO Do this in markdown-it
   htmlHolder.querySelectorAll('* > div:not(:has(nav))')
-    .forEach(b => b.classList.add('draggable-block'))
+    .forEach(b => b.classList.add('dumby-block'))
 
   return container
   //}}}
@@ -200,33 +200,48 @@ export const generateMaps = async (container, callback) => {
       childRect.bottom < parentRect.bottom - offset
   }
   //}}}
-  // Draggable Blocks{{{
+  // Draggable Blocks {{{
   // Add draggable part for blocks
-  htmlHolder.blocks = Array.from(htmlHolder.querySelectorAll('.draggable-block'))
-  htmlHolder.blocks.forEach(block => {
+
+  const dumbyBlocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
+  const intoDraggableContainer = (block) => {
+    // Create draggable block
+    const draggableContainer = document.createElement('div')
+    draggableContainer.classList.add('draggable-block')
+
     // Add draggable part
     const draggablePart = document.createElement('div');
     draggablePart.classList.add('draggable')
     draggablePart.textContent = '☰'
     draggablePart.title = 'Use middle-click to remove block'
-    block.insertBefore(draggablePart, block.firstChild)
-    block.draggablePart = draggablePart
-
+    // Hide block with middle click
     draggablePart.onmouseup = (e) => {
       if (e.button === 1) {
-        block.style.display = "none";
+        draggableContainer.style.display = "none";
       }
     }
-  })
+    draggableContainer.appendChild(draggablePart)
 
+    draggableContainer.appendChild(block)
+    htmlHolder.appendChild(draggableContainer)
+    return draggableContainer
+  }
+
+  const resumeFromDraggableContainer = (block) => {
+    const draggableContainer = block.closest('.draggable-block')
+    if (!draggableContainer) return
+    htmlHolder.appendChild(block)
+    draggableContainer.draggableInstance.remove()
+    draggableContainer.remove()
+  }
   // }}}
   // CSS observer {{{
+  // Focus Map {{{
   // Set focusArea
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
 
-  // Focus Map {{{
   const toShowcaseWithThrottle = throttle(animateRectTransition, 300)
   const fromShowCaseWithThrottle = throttle(animateRectTransition, 300)
 
@@ -331,7 +346,7 @@ export const generateMaps = async (container, callback) => {
     focusMap?.setAttribute('data-focus', 'true')
 
     // Check empty block with map-container in showcase
-    htmlHolder.blocks.forEach(b => {
+    dumbyBlocks.forEach(b => {
       const contentChildren = Array.from(b.querySelectorAll(':scope > :not(.draggable)')) ?? []
       if (contentChildren.length === 1
         && elementsWithMapConfig.includes(contentChildren[0])
@@ -344,32 +359,27 @@ export const generateMaps = async (container, callback) => {
     })
 
     if (layout === 'overlay') {
+      const draggableContainers = dumbyBlocks.map(intoDraggableContainer)
+
+      // Set initial position side by side
       let [x, y] = [0, 0];
-      htmlHolder.blocks.forEach(block => {
+      draggableContainers.forEach((c) => {
+
         // Add draggable instance
-        block.draggableInstance = new PlainDraggable(block, {
-          handle: block.draggablePart,
+        c.draggableInstance = new PlainDraggable(c, {
+          handle: c.querySelector('.draggable') ?? c,
           snap: { x: { step: 20 }, y: { step: 20 } },
           left: x,
           top: y,
         })
-
-        // Set initial position side by side
-        x += parseInt(window.getComputedStyle(block).width) + 50
+        x += parseInt(window.getComputedStyle(c).width) + 30
         if (x > window.innerWidth) {
           y += 200
           x = x % window.innerWidth
         }
       })
     } else {
-      htmlHolder.blocks.forEach(block => {
-        block.removeAttribute('style')
-        try {
-          block.draggableInstance.remove()
-        } catch (_) {
-          null
-        }
-      })
+      dumbyBlocks.forEach(resumeFromDraggableContainer)
     }
   });
   layoutObserver.observe(container, {
