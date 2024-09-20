@@ -266,9 +266,6 @@ export const generateMaps = async (container, callback) => {
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
 
-  const toShowcaseWithThrottle = throttle(animateRectTransition, 300)
-  const fromShowCaseWithThrottle = throttle(animateRectTransition, 300)
-
   const mapFocusObserver = () => new MutationObserver((mutations) => {
     const mutation = mutations.at(-1)
     const target = mutation.target
@@ -289,16 +286,14 @@ export const generateMaps = async (container, callback) => {
       showcase.appendChild(target)
 
       // Resume rect from Semantic HTML to Showcase, with animation
-      toShowcaseWithThrottle(target, placeholder.getBoundingClientRect(), {
+      animateRectTransition(target, placeholder.getBoundingClientRect(), {
         duration: 300,
         resume: true
       })
     } else if (showcase.contains(target)) {
       const placeholder = htmlHolder.querySelector(`[data-placeholder="${target.id}"]`)
       if (!placeholder) throw Error(`Cannot fine placeholder for map "${target.id}"`)
-      const animation = fromShowCaseWithThrottle(target, placeholder.getBoundingClientRect(), {
-        duration: 300
-      })
+      const animation = animateRectTransition(target, placeholder.getBoundingClientRect(), { duration: 300 })
 
       const afterAnimation = () => {
         placeholder.parentElement.replaceChild(target, placeholder)
@@ -322,7 +317,40 @@ export const generateMaps = async (container, callback) => {
   const layouts = ['none', 'side', 'overlay']
   container.setAttribute("data-layout", layouts[0])
 
-  // FIXME Use UI to switch layouts
+  const switchToNextLayout = throttle(() => {
+    let currentLayout = container.getAttribute('data-layout')
+    currentLayout = currentLayout ? currentLayout : 'none'
+    const nextIndex = (layouts.indexOf(currentLayout) + 1) % layouts.length
+    const nextLayout = layouts[nextIndex]
+
+    container.setAttribute("data-layout", nextLayout)
+  }, 300)
+
+  // TODO Use UI to switch layouts
+  // Focus to next map with throttle
+  const focusNextMap = throttle((reverse = false) => {
+    // Decide how many candidates could be focused
+    const selector = '.map-container, [data-placeholder]'
+    const candidates = Array.from(htmlHolder.querySelectorAll(selector))
+    if (candidates.length <= 1) return
+
+    // Get current focused element
+    const currentFocus = htmlHolder.querySelector('.map-container[data-focus=true]')
+      ?? htmlHolder.querySelector('[data-placeholder]')
+
+    // Remove class name of focus for ALL candidates
+    // This may trigger animation
+    Array.from(container.querySelectorAll('.map-container'))
+      .forEach(ele => ele.removeAttribute('data-focus'));
+
+    // Focus next focus element
+    const nextIndex = currentFocus
+      ? (candidates.indexOf(currentFocus) + (reverse ? -1 : 1)) % candidates.length
+      : 0
+    const nextFocus = candidates.at(nextIndex)
+    nextFocus.setAttribute('data-focus', "true")
+  }, 300)
+
   const originalKeyDown = document.onkeydown
   document.onkeydown = (e) => {
     const event = originalKeyDown(e)
@@ -330,32 +358,13 @@ export const generateMaps = async (container, callback) => {
 
     if (event.key === 'x' && container.querySelector('.map-container')) {
       e.preventDefault()
-      let currentLayout = container.getAttribute('data-layout')
-      currentLayout = currentLayout ? currentLayout : 'none'
-      const nextIndex = (layouts.indexOf(currentLayout) + 1) % layouts.length
-      const nextLayout = layouts[nextIndex]
-
-      container.setAttribute("data-layout", nextLayout)
+      switchToNextLayout()
     }
 
     // Use Tab to change focus map
     if (event.key === 'Tab') {
       e.preventDefault()
-
-      const selector = '.map-container, [data-placeholder]'
-      const candidates = Array.from(htmlHolder.querySelectorAll(selector))
-      if (candidates.length <= 1) return
-
-      const currentFocus = htmlHolder.querySelector('.map-container[data-focus=true]')
-        ?? htmlHolder.querySelector('[data-placeholder]')
-      Array.from(container.querySelectorAll('.map-container')).forEach(e =>
-        e.removeAttribute('data-focus')
-      );
-      const index = currentFocus
-        ? (candidates.indexOf(currentFocus) + (event.shiftKey ? -1 : 1)) % candidates.length
-        : 0
-      const nextFocus = candidates.at(index)
-      nextFocus.setAttribute('data-focus', "true")
+      focusNextMap(event.shiftkey)
     }
   }
 
@@ -402,7 +411,8 @@ export const generateMaps = async (container, callback) => {
   layoutObserver.observe(container, {
     attributes: true,
     attributeFilter: ["data-layout"],
-    attributeOldValue: true
+    attributeOldValue: true,
+    characterDataOldValue: true
   });
 
   onRemove(htmlHolder, () => layoutObserver.disconnect())
