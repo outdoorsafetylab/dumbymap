@@ -23,8 +23,14 @@ markdown2HTML(container, '# Heading\n\n```map\nid: foo\nuse: Maplibre\n```\n')
 generateMaps(container)
 ```
 
-browser (CDN):
-- [unpkg](https://unpkg.com/dumbymap@0.1.1/dist/dumbymap.mjs)
+Browser (CDN):
+- unpkg: https://unpkg.com/dumbymap@latest/dist/dumbymap.mjs
+
+## Structure
+
+After `generateMaps()`, the container has the following structure:
+
+![structure](./assets/structure_1.jpg)
 
 
 ## Depandencies
