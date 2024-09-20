@@ -42,7 +42,7 @@ export const animateRectTransition = (element, rect, options = {}) => {
   const dx = x1 - x2;
   const dy = y1 - y2;
 
-  if (dx === 0 && dy === 0) {
+  if (dx === 0 && dy === 0 || rw === Infinity || rh === Infinity) {
     return;
   }
 
