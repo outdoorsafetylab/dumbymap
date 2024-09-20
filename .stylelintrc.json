@@ -1,6 +1,112 @@
 {
-  "extends": ["stylelint-config-standard"],
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "plugins": [
+    "stylelint-order"
+  ],
   "rules": {
-    "selector-class-pattern": null
+    "declaration-empty-line-before": null,
+    "declaration-block-single-line-max-declarations": 1,
+    "custom-property-empty-line-before": "never",
+    "selector-class-pattern": null,
+    "no-duplicate-selectors": true,
+    "color-hex-length": "short",
+    "color-named": "always-where-possible",
+    "selector-attribute-quotes": "always",
+    "property-no-vendor-prefix": true,
+    "value-no-vendor-prefix": true,
+    "font-family-name-quotes": "always-where-required",
+    "comment-whitespace-inside": "always",
+    "comment-empty-line-before": "always",
+    "at-rule-no-vendor-prefix": true,
+    "selector-no-vendor-prefix": true,
+    "order/order": [
+      "custom-properties",
+      "dollar-variables",
+      "declarations",
+      "rules",
+      "at-rules"
+    ],
+    "order/properties-order": [
+      {
+        "groupName": "Display & Box Model",
+        "emptyLineBefore": "always",
+        "noEmptyLineBetween": true,
+        "properties": [
+          "display",
+          "overflow",
+          "box-sizing",
+          "width",
+          "height",
+          "margin",
+          "padding"
+        ]
+      },
+      {
+        "groupName": "Positioning",
+        "emptyLineBefore": "always",
+        "noEmptyLineBetween": true,
+        "properties": [
+          "position",
+          "top",
+          "right",
+          "bottom",
+          "left",
+          "z-index"
+        ]
+      },
+      {
+        "groupName": "Border",
+        "emptyLineBefore": "always",
+        "noEmptyLineBetween": true,
+        "properties": [
+          "border",
+          "border-top",
+          "border-right",
+          "border-bottom",
+          "border-left",
+          "border-radius"
+        ]
+      },
+      {
+        "groupName": "Background",
+        "emptyLineBefore": "always",
+        "noEmptyLineBetween": true,
+        "properties": [
+          "background",
+          "background-color",
+          "background-image",
+          "background-repeat",
+          "background-position"
+        ]
+      },
+      {
+        "groupName": "Typography",
+        "emptyLineBefore": "always",
+        "noEmptyLineBetween": true,
+        "properties": [
+          "color",
+          "font-family",
+          "font-size",
+          "font-weight",
+          "line-height",
+          "text-align",
+          "text-transform"
+        ]
+      },
+      {
+        "groupName": "Misc",
+        "emptyLineBefore": "always",
+        "noEmptyLineBetween": true,
+        "properties": [
+          "opacity",
+          "visibility",
+          "cursor",
+          "transition",
+          "transform"
+        ]
+      }
+    ]
   }
 }
