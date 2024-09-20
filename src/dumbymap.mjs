@@ -114,7 +114,7 @@ export const markdown2HTML = (container, mdContent) => {
   htmlHolder.innerHTML = md.render(contentWithToc);
 
   // TODO Do this in markdown-it
-  htmlHolder.querySelectorAll('* > div:not(:has(nav))')
+  htmlHolder.querySelectorAll(':scope > div:not(:has(nav))')
     .forEach(b => b.classList.add('dumby-block'))
 
   return container
@@ -122,10 +122,12 @@ export const markdown2HTML = (container, mdContent) => {
 }
 // FIXME Don't use hard-coded CSS selector
 export const generateMaps = async (container, callback) => {
+  container.classList.add('DumbyMap')
+  const htmlHolder = container.querySelector('.SemanticHtml') ?? container
+
   // LeaderLine {{{
 
   // Get anchors with "geo:" scheme
-  const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   htmlHolder.anchors = []
   const geoLinks = createGeoLinks(htmlHolder, (link) => {
     link.onmouseover = () => addLeaderLines(link)
