@@ -280,6 +280,8 @@
     &:hover {
       background: #e1e1e1;
 
+      border-bottom: solid gray;
+
       transform: unset;
 
       & ~ * {
