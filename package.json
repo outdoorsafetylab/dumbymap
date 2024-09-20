@@ -20,12 +20,13 @@
   "scripts": {
     "watch": "npx rollup -c -w",
     "build": "mkdir -p dist; npm run build-css; npm run build-renderers; npm run build-resources; npx rollup -c",
-    "build-css": "cp -r src/css dist",
-    "build-renderers": "cp -r node_modules/mapclay/dist/renderers dist",
+    "build-css": "rm -rf dist/css; cp -r src/css dist; cp node_modules/easymde/dist/easymde.min.css dist/css/",
+    "build-renderers": "rm -rf dist/renderers; cp -r node_modules/mapclay/dist/renderers dist",
     "build-resources": "cp node_modules/mapclay/assets/default.yml dist; cp node_modules/easymde/dist/easymde.min.js dist; cp node_modules/easymde/dist/easymde.min.css dist/css",
     "server": "live-server --port=8080 --ignore='**/src/**js' --wait=2000 --no-browser --cors",
     "dev": "npm run build; npm run server",
-    "lint": "npx eslint src"
+    "lint": "npx eslint src",
+    "style": "npx stylelint src/css/**"
   },
   "devDependencies": {
     "@eslint/compat": "^1.1.1",
