@@ -65,6 +65,12 @@
   }
 }
 
+.dumby-block {
+  border-left: #f0f0f0 0.5em solid;
+  padding-left: 0.5em;
+  margin-left: -0.5em;
+  margin-bottom: 3rem;
+}
 
 .DumbyMap {
   position: relative;
@@ -100,12 +106,6 @@
     padding: 1.5rem;
     overflow-y: scroll;
     width: 100%;
-
-    .dumby-block {
-      border-left: #f0f0f0 0.5em solid;
-      padding-left: 0.5em;
-      margin-left: -0.5em;
-    }
 
     pre {
       width: 100%;
@@ -189,58 +189,65 @@
 
 .draggable-block {
   background-color: white;
-  margin-bottom: 3rem;
   font-size: 12px;
   pointer-events: auto;
   box-sizing: content-box;
   position: absolute;
   width: fit-content;
-  max-height: 50vh;
-  max-width: 25vw;
-  overflow: scroll;
   border: solid gray;
   border-radius: 0.5rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0;
-  resize: both;
-
-  &[style*="height"],
-  &[style*="width"] {
-    max-height: unset;
-    max-width: unset;
-  }
+  overflow: clip;
 
   .dumby-block {
     border: none;
-    padding: 0;
-  }
+    resize: both;
+    padding-inline: 1em;
+    margin: 0;
+    overflow: scroll;
+    max-height: 50vh;
+    max-width: 25vw;
+    position: relative;
 
-  .map-container {
-    min-width: 200px;
-  }
+    /* allow random width/height after resize */
+    &[style*="height"],
+    &[style*="width"] {
+      max-height: unset;
+      max-width: unset;
+    }
 
-  > :not(.draggable) {
-    margin-inline: 0.5rem;
+    /* gray out top of content, make draggable part easy to be seen */
+    &::before {
+      display: block;
+      position: sticky;
+      top: 0;
+      content: '';
+      width: 100%;
+      height: 1.5rem;
+      background: linear-gradient(0deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 100%) 60%);
+    }
+
+    .map-container {
+      min-width: 200px;
+    }
   }
 
   .draggable {
     display: block;
+    position: absolute;
+    width: 100%;
     top: 0;
     left: 0;
-    position: sticky;
-    background: linear-gradient(0deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 100%) 60%);
-    margin-bottom: -18px;
-    transform: translate(0, -16px);
-    width: 100%;
-    padding-inline: 0;
-    padding-bottom: 2em;
+    font-size: 1.1rem;
+    z-index: 1;
+
     text-align: center;
-    z-index: 9999;
+
     transition: all 0.3s ease-in-out;
+    transform: translate(0, -0.6rem);
 
     &:hover {
       background: #e1e1e1;
-      padding-block: 1em 0.5em;
+      transform: unset;
 
       & ~ * {
         opacity: 0.7;

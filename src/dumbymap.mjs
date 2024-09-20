@@ -231,6 +231,7 @@ export const generateMaps = async (container, callback) => {
     const draggableContainer = block.closest('.draggable-block')
     if (!draggableContainer) return
     htmlHolder.appendChild(block)
+    block.removeAttribute('style')
     draggableContainer.draggableInstance.remove()
     draggableContainer.remove()
   }
@@ -377,6 +378,11 @@ export const generateMaps = async (container, callback) => {
           y += 200
           x = x % window.innerWidth
         }
+
+        const resizeObserver = new ResizeObserver(() => {
+          c.draggableInstance.position();
+        }).observe(c);
+        onRemove(c, () => resizeObserver.disconnect())
       })
     } else {
       dumbyBlocks.forEach(resumeFromDraggableContainer)
