@@ -1,4 +1,9 @@
-// Disconnect MutationObserver if element is removed
+/**
+ * Do callback when HTMLElement in removed
+ *
+ * @param {HTMLElement} element observing
+ * @param {Function} callback
+ */
 export const onRemove = (element, callback) => {
   const parent = element.parentNode;
   if (!parent) throw new Error("The node must already be attached");
@@ -16,10 +21,21 @@ export const onRemove = (element, callback) => {
   obs.observe(parent, { childList: true, });
 }
 
-// Animation for new rectangle
-export const animateRectTransition = (child, rect, resume = false) => {
+/**
+ * Animate transition of DOMRect, with Web Animation API
+ *
+ * @param {HTMLElement} element                 Element which animation applies
+ * @param {DOMRect}     rect                    DOMRect for transition
+ * @param {Object}      options
+ * @param {Boolean}     options.resume          If true, transition starts from rect to DOMRect of element
+ * @param {Number}      options.duration        Duration of animation in milliseconds
+ * @returns {Animation} https://developer.mozilla.org/en-US/docs/Web/API/Animation
+ */
+export const animateRectTransition = (element, rect, options = {}) => {
+  if (!element.parentElement) throw new Error("The node must already be attached");
+
   const { width: w1, height: h1, left: x1, top: y1 } = rect
-  const { width: w2, height: h2, left: x2, top: y2 } = child.getBoundingClientRect()
+  const { width: w2, height: h2, left: x2, top: y2 } = element.getBoundingClientRect()
 
   const rw = w1 / w2
   const rh = h1 / h2
@@ -36,13 +52,33 @@ export const animateRectTransition = (child, rect, resume = false) => {
     { transform: transform1, opacity: 1 },
     { transform: transform2, opacity: 0.3 },
   ]
+  if (options.resume === true) keyframes.reverse()
 
-  return child.animate(
-    resume
-      ? keyframes.reverse()
-      : keyframes,
+  return element.animate(
+    keyframes,
     {
-      duration: 300,
+      duration: options.duration ?? 300,
       easing: 'ease-in-out',
-    });
+    }
+  );
+}
+
+
+/**
+ * Throttle for function call
+ *
+ * @param {Function} func
+ * @param {Number} delay milliseconds
+ * @returns {Any} return value of function call, or null if throttled
+ */
+export function throttle(func, delay) {
+  let timerFlag = null;
+
+  return (...args) => {
+    if (timerFlag !== null) return null
+    timerFlag = setTimeout(() => {
+      timerFlag = null;
+    }, delay);
+    return func(...args);
+  };
 }

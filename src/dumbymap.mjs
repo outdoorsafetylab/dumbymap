@@ -6,10 +6,8 @@ import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
 import PlainDraggable from 'plain-draggable'
 import { renderWith, parseConfigsFromYaml } from 'mapclay'
-import { onRemove, animateRectTransition } from './utils'
+import { onRemove, animateRectTransition, throttle } from './utils'
 
-// Utils {{{
-// }}}
 // FUNCTION: Get DocLinks from special anchor element {{{
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
@@ -229,6 +227,9 @@ export const generateMaps = async (container, callback) => {
   showcase.classList.add('Showcase')
 
   // Focus Map {{{
+  const toShowcaseWithThrottle = throttle(animateRectTransition, 300)
+  const fromShowCaseWithThrottle = throttle(animateRectTransition, 300)
+
   const mapFocusObserver = () => new MutationObserver((mutations) => {
     const mutation = mutations.at(-1)
     const target = mutation.target
@@ -238,31 +239,41 @@ export const generateMaps = async (container, callback) => {
     if (shouldBeInShowcase) {
       if (showcase.contains(target)) return
 
-      // Placeholder for map in Showcase, it should has the same rect
+      // Placeholder for map in Showcase, it should has the same DOMRect
       const placeholder = target.cloneNode(true)
       placeholder.classList.remove('map-container')
       placeholder.setAttribute('data-placeholder', target.id)
       target.parentElement.replaceChild(placeholder, target)
 
       // To fit showcase, remove all inline style
-      target.style = ""
+      target.removeAttribute('style')
       showcase.appendChild(target)
 
       // Resume rect from Semantic HTML to Showcase, with animation
-      animateRectTransition(target, placeholder.getBoundingClientRect(), true)
+      toShowcaseWithThrottle(target, placeholder.getBoundingClientRect(), {
+        duration: 300,
+        resume: true
+      })
     } else if (showcase.contains(target)) {
       const placeholder = htmlHolder.querySelector(`[data-placeholder="${target.id}"]`)
       if (!placeholder) throw Error(`Cannot fine placeholder for map "${target.id}"`)
+      const animation = fromShowCaseWithThrottle(target, placeholder.getBoundingClientRect(), {
+        duration: 300
+      })
 
       const afterAnimation = () => {
         placeholder.parentElement.replaceChild(target, placeholder)
         target.style = placeholder.style.cssText
         placeholder.remove()
       }
-      animateRectTransition(target, placeholder.getBoundingClientRect())
-        .finished
-        .then(afterAnimation)
-        .catch(afterAnimation)
+
+      if (animation) {
+        animation.finished
+          .then(afterAnimation)
+          .catch(afterAnimation)
+      } else {
+        afterAnimation()
+      }
     }
   })
   // }}}
