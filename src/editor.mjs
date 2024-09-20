@@ -117,7 +117,7 @@ const completeForCodeBlock = (change) => {
     // Completion for YAML doc separator
     if (text === "-" && change.to.ch === 0 && insideCodeblockForMap(cm.getCursor())) {
       cm.setSelection({ line: line, ch: 0 }, { line: line, ch: 1 })
-      cm.replaceSelection(text.repeat(3))
+      cm.replaceSelection(text.repeat(3) + '\n')
     }
 
     // Completion for Code fence
