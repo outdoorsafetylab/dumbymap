@@ -18,13 +18,15 @@
 
 .with-leader-line:not(:has(> *)) {
   display: inline-block;
-  padding-right: 15px;
-  padding-left: 6px;
+
   background-image: url("data:image/svg+xml;charset=utf-8;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cG9seWdvbiBwb2ludHM9IjI0LDAgMCw4IDgsMTEgMCwxOSA1LDI0IDEzLDE2IDE2LDI0IiBmaWxsPSJjb3JhbCIvPjwvc3ZnPg==");
-  background-size: 12px 12px;
   background-repeat: no-repeat;
   background-position: right 2px top 2px;
+
   color: #555;
+  padding-right: 15px;
+  padding-left: 6px;
+  background-size: 12px 12px;
 
   &.geolink {
     background-color: rgb(248 248 129);
@@ -36,24 +38,28 @@
 
   &:hover {
     background-image: none;
+
     font-weight: bolder;
     text-decoration: none;
   }
 }
 
 *:has(> nav) {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
 
   /* FIXME Hide nav at proper time */
   display: none;
   padding: 0.5rem;
-  min-width: 120px;
+
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 500;
+
   border: 2px solid gray;
   border-radius: 0.5rem;
+
   background-color: white;
-  z-index: 500;
+  min-width: 120px;
 
   &:has(> nav:empty) {
     display: none;
@@ -66,34 +72,38 @@
 }
 
 .dumby-block {
-  border-left: #f0f0f0 0.5em solid;
-  padding-left: 0.5em;
   margin-left: -0.5em;
+  padding-left: 0.5em;
+
+  border-left: #f0f0f0 0.5em solid;
   margin-bottom: 3rem;
 }
 
 .DumbyMap {
-  position: relative;
-  max-width: 60em;
+  display: flex;
   margin: 0 auto;
   padding: 0;
-  display: flex;
+
+  position: relative;
   overflow-x: scroll;
+  max-width: 60em;
 
   /* height: 100vh; */
 
   .Showcase {
-    order: 2;
     display: none;
     overflow: visible;
+
     position: relative;
+    order: 2;
 
     > * {
-      position: absolute;
-      left: 0;
-      top: 0;
       width: 100%;
       height: 100%;
+
+      position: absolute;
+      top: 0;
+      left: 0;
     }
 
     [data-focus="true"] {
@@ -102,10 +112,10 @@
   }
 
   .SemanticHtml {
-    order: 1;
+    width: 100%;
     padding: 1.5rem;
     overflow-y: scroll;
-    width: 100%;
+    order: 1;
 
     pre {
       width: 100%;
@@ -113,14 +123,17 @@
       &:has(.map-container) {
         display: flex;
         justify-content: flex-start;
+
         background-color: inherit;
       }
     }
 
     .map-container {
-      background: white;
       margin: 2px;
+
       border: 3px solid transparent;
+
+      background: white;
       animation: fade-in 1s;
 
       &[data-focus="true"] {
@@ -129,19 +142,21 @@
     }
 
     [data-placeholder] {
-      animation: fade-out 1s;
-      opacity: 0.3;
       border: 3px solid gray;
+
+      opacity: 0.3;
+      animation: fade-out 1s;
     }
   }
 }
 
 .DumbyMap[data-layout]:not([data-layout="none"]) {
-  margin: 0 auto;
-  height: 100vh;
   width: 100%;
-  max-width: none;
+  height: 100vh;
+  margin: 0 auto;
+
   border: none;
+  max-width: none;
 
   & ~ :not(.leader-line) {
     display: none;
@@ -153,14 +168,16 @@
   .SemanticHtml {
     flex: 50%;
     overflow-y: scroll;
+
     height: 100vh;
   }
 
   .Showcase {
-    flex: 50%;
     display: block;
     height: 100vh;
+
     z-index: -1;
+    flex: 50%;
   }
 }
 
@@ -168,13 +185,14 @@
   .SemanticHtml,
   .Showcase {
     display: block;
-    position: absolute;
-    left: 0;
-    top: 0;
-    padding: 0;
-    margin: 0;
-    height: 100%;
     width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 
   .Showcase {
@@ -183,47 +201,60 @@
 
   .SemanticHtml {
     pointer-events: none;
+
     z-index: 1;
   }
 }
 
 .draggable-block {
-  background-color: white;
-  font-size: 12px;
-  pointer-events: auto;
+  overflow: clip;
   box-sizing: content-box;
-  position: absolute;
   width: fit-content;
+
+  position: absolute;
+
   border: solid gray;
   border-radius: 0.5rem;
-  overflow: clip;
+
+  background-color: white;
+
+  font-size: 12px;
+  pointer-events: auto;
 
   .dumby-block {
-    border: none;
-    resize: both;
-    padding-inline: 1em;
-    margin: 0;
     overflow: scroll;
-    max-height: 50vh;
-    max-width: 25vw;
+    margin: 0;
+
     position: relative;
 
+    border: none;
+    resize: both;
+    min-width: 5rem;
+    max-width: 25vw;
+    min-height: 5rem;
+    max-height: 50vh;
+    padding-inline: 1em;
+
     /* allow random width/height after resize */
+
     &[style*="height"],
     &[style*="width"] {
-      max-height: unset;
       max-width: unset;
+      max-height: unset;
     }
 
     /* gray out top of content, make draggable part easy to be seen */
+
     &::before {
       display: block;
-      position: sticky;
-      top: 0;
-      content: '';
       width: 100%;
       height: 1.5rem;
-      background: linear-gradient(0deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 100%) 60%);
+
+      position: sticky;
+      top: 0;
+
+      background: linear-gradient(0deg, rgb(255 255 255 / 0%), white 60%);
+      content: '';
     }
 
     .map-container {
@@ -233,13 +264,14 @@
 
   .draggable {
     display: block;
-    position: absolute;
     width: 100%;
+
+    position: absolute;
     top: 0;
     left: 0;
-    font-size: 1.1rem;
     z-index: 1;
 
+    font-size: 1.1rem;
     text-align: center;
 
     transition: all 0.3s ease-in-out;
@@ -247,11 +279,13 @@
 
     &:hover {
       background: #e1e1e1;
+
       transform: unset;
 
       & ~ * {
-        opacity: 0.7;
         color: gray;
+
+        opacity: 0.7;
       }
     }
   }
