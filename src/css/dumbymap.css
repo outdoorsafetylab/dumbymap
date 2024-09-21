@@ -150,7 +150,6 @@
   }
 }
 
-.DumbyMap[data-layout]:not([data-layout="none"]) {
   width: 100%;
   height: 100vh;
   margin: 0 auto;
@@ -162,9 +161,10 @@
     display: none;
     pointer-events: none;
   }
+.DumbyMap[data-layout]:not([data-layout="normal"]) {
 }
 
-.DumbyMap[data-layout="side"] {
+.DumbyMap[data-layout="side-by-side"] {
   .SemanticHtml {
     flex: 50%;
     overflow-y: auto;

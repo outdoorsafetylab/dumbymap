@@ -1,7 +1,17 @@
 import PlainDraggable from 'plain-draggable'
 import { onRemove } from './utils'
 
-export class OverlayLayout {
+export class Layout {
+  constructor(options = {}) {
+    if (!options.name) throw Error("Layout name is not given")
+    this.name = options.name
+    this.enterHandler = options.enterHandler
+    this.leaveHandler = options.leaveHandler
+  }
+  valueOf = () => this.name
+}
+
+export class OverlayLayout extends Layout {
   name = "overlay"
 
   enterHandler = (dumbymap) => {

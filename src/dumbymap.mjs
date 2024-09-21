@@ -6,24 +6,15 @@ import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
 import { renderWith, parseConfigsFromYaml } from 'mapclay'
 import { onRemove, animateRectTransition, throttle } from './utils'
-import { OverlayLayout } from './OverlayLayout'
+import { Layout, OverlayLayout } from './Layout'
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
 const geoLinkSelector = 'a[href^="geo:"]'
 
-class Layout {
-  constructor({ name, enterHandler = null, leaveHandler = null }) {
-    this.name = name
-    this.enterHandler = enterHandler
-    this.leaveHandler = leaveHandler
-  }
-  valueOf = () => this.name
-}
-
 const layouts = [
-  new Layout({ name: "none" }),
-  new Layout({ name: "side" }),
-  new OverlayLayout(),
+  new Layout({ name: "normal" }),
+  new Layout({ name: "side-by-side" }),
+  new OverlayLayout({ name: "overlay" }),
 ]
 
 // FUNCTION: Get DocLinks from special anchor element {{{
