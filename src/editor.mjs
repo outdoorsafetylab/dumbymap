@@ -15,7 +15,7 @@ const toggleEditing = () => {
   } else {
     document.body.setAttribute("data-layout", "editing")
   }
-  HtmlContainer.setAttribute("data-layout", "none")
+  HtmlContainer.setAttribute("data-layout", "normal")
 }
 // }}}
 // Set up EasyMDE {{{
@@ -559,7 +559,7 @@ document.onkeydown = (e) => {
 // }}}
 const layoutObserver = new MutationObserver(() => {
   const layout = HtmlContainer.getAttribute('data-layout')
-  if (layout !== 'none') {
+  if (layout !== 'normal') {
     document.body.removeAttribute('data-layout')
   }
 })
