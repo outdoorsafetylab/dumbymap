@@ -1,7 +1,7 @@
 /*global EasyMDE*/
 /*eslint no-undef: "error"*/
 import { markdown2HTML, generateMaps } from './dumbymap'
-import { defaultAliasesForRenderer, parseConfigsFromYaml } from 'mapclay'
+import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import { createDocLinks } from './dumbymap.mjs'
 
 // Set up Containers {{{
@@ -374,7 +374,7 @@ const getSuggestions = (anchor) => {
     const validOptions = rendererOptions[renderer]
     if (!validOptions) {
       // Get list of valid options for current renderer
-      const rendererUrl = defaultAliasesForRenderer.use[renderer]?.value
+      const rendererUrl = defaultAliases.use[renderer]?.value
       import(rendererUrl)
         .then(rendererModule => {
           rendererOptions[renderer] = rendererModule.default.validOptions
@@ -428,7 +428,7 @@ const getSuggestions = (anchor) => {
 
   } else {
     // Suggestion for "use"
-    const rendererSuggestions = Object.entries(defaultAliasesForRenderer.use)
+    const rendererSuggestions = Object.entries(defaultAliases.use)
       .filter(([renderer,]) => {
         const suggestion = `use: ${renderer}`
         const suggestionPattern = suggestion.replace(' ', '').toLowerCase()
