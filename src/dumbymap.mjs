@@ -346,7 +346,7 @@ export const generateMaps = async (container, callback) => {
     // Use Tab to change focus map
     if (event.key === 'Tab') {
       e.preventDefault()
-      focusNextMap(event.shiftkey)
+      focusNextMapWithThrottle(event.shiftKey)
     }
   }
 
