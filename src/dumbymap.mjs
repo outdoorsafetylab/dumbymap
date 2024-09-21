@@ -285,7 +285,6 @@ export const generateMaps = async (container, callback) => {
   })
   // }}}
   // Layout {{{
-
   // press key to switch layout
   const defaultLayout = layouts[0]
   container.setAttribute("data-layout", defaultLayout.name)
@@ -346,15 +345,16 @@ export const generateMaps = async (container, callback) => {
   const layoutObserver = new MutationObserver((mutations) => {
     const mutation = mutations.at(-1)
     const oldLayout = mutation.oldValue
-    const layout = container.getAttribute(mutation.attributeName)
+    const newLayout = container.getAttribute(mutation.attributeName)
 
+    // Apply handler for leaving/entering layouts
     if (oldLayout) {
       layouts.find(l => l.name === oldLayout)
         ?.leaveHandler
         ?.call(this, dumbymap)
     }
-    if (layout) {
-      layouts.find(l => l.name === layout)
+    if (newLayout) {
+      layouts.find(l => l.name === newLayout)
         ?.enterHandler
         ?.call(this, dumbymap)
     }
