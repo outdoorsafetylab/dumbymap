@@ -308,9 +308,7 @@ export const generateMaps = async (container, callback) => {
   }, 300)
 
   // TODO Use UI to switch layouts
-  // Focus to next map with throttle
-
-  const focusNextMap = throttle((reverse = false) => {
+  const focusNextMap = (reverse = false) => {
     // Decide how many candidates could be focused
     const selector = '.map-container, [data-placeholder]'
     const candidates = Array.from(htmlHolder.querySelectorAll(selector))
@@ -331,13 +329,16 @@ export const generateMaps = async (container, callback) => {
       : 0
     const nextFocus = candidates.at(nextIndex)
     nextFocus.setAttribute('data-focus', "true")
-  }, 300)
+  }
+  const focusDelay = () => getComputedStyle(showcase).display === 'none' ? 50 : 300
+  const focusNextMapWithThrottle = throttle(focusNextMap, focusDelay)
 
   const originalKeyDown = document.onkeydown
   document.onkeydown = (e) => {
     const event = originalKeyDown(e)
     if (!event) return
 
+    // Switch to next layout
     if (event.key === 'x' && container.querySelector('.map-container')) {
       e.preventDefault()
       switchToNextLayout()
