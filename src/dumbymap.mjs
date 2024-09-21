@@ -4,13 +4,28 @@ import MarkdownItFootnote from 'markdown-it-footnote'
 import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
-import PlainDraggable from 'plain-draggable'
 import { renderWith, parseConfigsFromYaml } from 'mapclay'
 import { onRemove, animateRectTransition, throttle } from './utils'
 
 // FUNCTION: Get DocLinks from special anchor element {{{
+import { OverlayLayout } from './OverlayLayout'
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
+
+class Layout {
+  constructor({ name, enterHandler = null, leaveHandler = null }) {
+    this.name = name
+    this.enterHandler = enterHandler
+    this.leaveHandler = leaveHandler
+  }
+  valueOf = () => this.name
+}
+
+const layouts = [
+  new Layout({ name: "none" }),
+  new Layout({ name: "side" }),
+  new OverlayLayout(),
+]
 export const createDocLinks = (container) => Array.from(container.querySelectorAll(docLinkSelector))
   .map(link => {
     link.classList.add('with-leader-line', 'doclink')
@@ -122,9 +137,18 @@ export const markdown2HTML = (container, mdContent) => {
 }
 // FIXME Don't use hard-coded CSS selector
 export const generateMaps = async (container, callback) => {
-  container.classList.add('DumbyMap')
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
+  const showcase = document.createElement('div')
+  container.appendChild(showcase)
+  showcase.classList.add('Showcase')
 
+  const dumbymap = {
+    blocks: Array.from(htmlHolder.querySelectorAll('.dumby-block')),
+    htmlHolder: htmlHolder,
+    showcase: showcase,
+  }
+
+  container.classList.add('DumbyMap')
   // LeaderLine {{{
 
   // Get anchors with "geo:" scheme
@@ -205,66 +229,11 @@ export const generateMaps = async (container, callback) => {
   // Draggable Blocks {{{
   // Add draggable part for blocks
 
-  const dumbyBlocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
-  const moveIntoDraggable = (block) => {
-    // Create draggable block
-    const draggableBlock = document.createElement('div')
-    draggableBlock.classList.add('draggable-block')
 
-    // Add draggable part
-    const draggablePart = document.createElement('div');
-    draggablePart.classList.add('draggable')
-    draggablePart.textContent = '☰'
-    draggablePart.title = 'Use middle-click to remove block'
-    draggablePart.onmouseup = (e) => {
-      if (e.button === 1) {
-        // Hide block with middle click
-        draggableBlock.style.display = "none";
-      }
-    }
-
-    // Set elements
-    draggableBlock.appendChild(draggablePart)
-    draggableBlock.appendChild(block)
-    htmlHolder.appendChild(draggableBlock)
-
-    // Add draggable instance
-    const draggableInstance = new PlainDraggable(draggableBlock, {
-      handle: draggablePart,
-      snap: { x: { step: 20 }, y: { step: 20 } },
-    })
-
-    // Reposition draggable instance when resized
-    new ResizeObserver(() => {
-      try {
-        draggableInstance.position();
-      } catch (_) {
-        null
-      }
-    }).observe(draggableBlock);
-
-    // Callback for remove
-    onRemove(draggableBlock, () => {
-      draggableInstance.remove()
-    })
-
-    return draggableInstance
-  }
-
-  const resumeFromDraggable = (block) => {
-    const draggableContainer = block.closest('.draggable-block')
-    if (!draggableContainer) return
-    htmlHolder.appendChild(block)
-    block.removeAttribute('style')
-    draggableContainer.remove()
-  }
   // }}}
   // CSS observer {{{
   // Focus Map {{{
   // Set focusArea
-  const showcase = document.createElement('div')
-  container.appendChild(showcase)
-  showcase.classList.add('Showcase')
 
   const mapFocusObserver = () => new MutationObserver((mutations) => {
     const mutation = mutations.at(-1)
@@ -314,20 +283,20 @@ export const generateMaps = async (container, callback) => {
   // Layout {{{
 
   // press key to switch layout
-  const layouts = ['none', 'side', 'overlay']
-  container.setAttribute("data-layout", layouts[0])
+  const defaultLayout = layouts[0]
+  container.setAttribute("data-layout", defaultLayout.name)
 
   const switchToNextLayout = throttle(() => {
-    let currentLayout = container.getAttribute('data-layout')
-    currentLayout = currentLayout ? currentLayout : 'none'
-    const nextIndex = (layouts.indexOf(currentLayout) + 1) % layouts.length
+    const currentLayoutName = container.getAttribute('data-layout')
+    const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
+    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % layouts.length
     const nextLayout = layouts[nextIndex]
-
-    container.setAttribute("data-layout", nextLayout)
+    container.setAttribute("data-layout", nextLayout.name)
   }, 300)
 
   // TODO Use UI to switch layouts
   // Focus to next map with throttle
+
   const focusNextMap = throttle((reverse = false) => {
     // Decide how many candidates could be focused
     const selector = '.map-container, [data-placeholder]'
@@ -371,42 +340,25 @@ export const generateMaps = async (container, callback) => {
   // observe layout change
   const layoutObserver = new MutationObserver((mutations) => {
     const mutation = mutations.at(-1)
+    const oldLayout = mutation.oldValue
     const layout = container.getAttribute(mutation.attributeName)
 
-    // Trigger Mutation Observer
+    if (oldLayout) {
+      layouts.find(l => l.name === oldLayout)
+        ?.leaveHandler
+        ?.call(this, dumbymap)
+    }
+    if (layout) {
+      layouts.find(l => l.name === layout)
+        ?.enterHandler
+        ?.call(this, dumbymap)
+    }
+
+    // Since layout change may show/hide showcase, the current focused map should do something
+    // Reset attribute triggers MutationObserver which is observing it
     const focusMap = container.querySelector('.map-container[data-focus=true]')
       ?? container.querySelector('.map-container')
     focusMap?.setAttribute('data-focus', 'true')
-
-    // Check empty block with map-container in showcase
-    dumbyBlocks.forEach(b => {
-      const contentChildren = Array.from(b.querySelectorAll(':scope > :not(.draggable)')) ?? []
-      if (contentChildren.length === 1
-        && elementsWithMapConfig.includes(contentChildren[0])
-        && !contentChildren[0].querySelector('.map-container')
-      ) {
-        b.style.display = "none"
-      } else {
-        b.style.display = "block"
-      }
-    })
-
-    if (layout === 'overlay') {
-      let [x, y] = [0, 0]
-      dumbyBlocks.map(moveIntoDraggable)
-        .forEach(draggable => {
-          draggable.left = x
-          draggable.top = y
-          const rect = draggable.element.getBoundingClientRect()
-          x += rect.width + 30
-          if (x > window.innerWidth) {
-            y += 200
-            x = x % window.innerWidth
-          }
-        })
-    } else {
-      dumbyBlocks.forEach(resumeFromDraggable)
-    }
   });
   layoutObserver.observe(container, {
     attributes: true,
