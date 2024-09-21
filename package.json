@@ -27,8 +27,8 @@
     "dev": "npm run server",
     "lint": "npx eslint src",
     "style": "scripts/stylelint.sh",
-    "prepack": "npm run build; npm run lint && npm run style",
-    "postpack": "rm -rf dist/css dist/renderers; ln -sf `pwd`/src/css dist/css; cp node_modules/easymde/dist/easymde.min.css src/css; ln -sf mapclay/dist/renderers dist/rendereres"
+    "prepack": "npm run lint && npm run style && npm run build",
+    "postpack": "rm -rf dist/css dist/renderers; ln -sf `pwd`/src/css dist; cp node_modules/easymde/dist/easymde.min.css src/css; ln -sf `pwd`/mapclay/dist/renderers dist"
   },
   "devDependencies": {
     "@eslint/compat": "^1.1.1",
