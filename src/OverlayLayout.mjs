@@ -10,11 +10,18 @@ export class OverlayLayout {
       // Create draggable block
       const draggableBlock = document.createElement('div')
       draggableBlock.classList.add('draggable-block')
+      draggableBlock.innerHTML = `
+        <div class="draggable">
+          <div class="handle">\u2630</div>
+        </div>
+        <div class="utils">
+          <div id="plus-font-size" ">\u2795</div>
+          <div id="minus-font-size">\u2796</div>
+        </div>
+      `
 
       // Add draggable part
-      const draggablePart = document.createElement('div');
-      draggablePart.classList.add('draggable')
-      draggablePart.textContent = '☰'
+      const draggablePart = draggableBlock.querySelector('.draggable')
       draggablePart.title = 'Use middle-click to remove block'
       draggablePart.onmouseup = (e) => {
         if (e.button === 1) {
@@ -33,6 +40,26 @@ export class OverlayLayout {
         handle: draggablePart,
         snap: { x: { step: 20 }, y: { step: 20 } },
       })
+
+      // Plus/Minus font-size of content
+      const plusButton = draggableBlock.querySelector('#plus-font-size')
+      plusButton.onclick = () => {
+        const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
+        block.style.fontSize = `${fontSize + 0.1}rem`
+      }
+      const minusButton = draggableBlock.querySelector('#minus-font-size')
+      minusButton.onclick = () => {
+        const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
+        block.style.fontSize = `${fontSize - 0.1}rem`
+      }
+      draggableInstance.onDragStart = () => {
+        plusButton.style.opacity = '0'
+        minusButton.style.opacity = '0'
+      }
+      draggableInstance.onDragEnd = () => {
+        plusButton.style = ''
+        minusButton.style = ''
+      }
 
       // Reposition draggable instance when resized
       new ResizeObserver(() => {
