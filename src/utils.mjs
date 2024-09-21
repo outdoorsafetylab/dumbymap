@@ -76,9 +76,12 @@ export function throttle(func, delay) {
 
   return (...args) => {
     if (timerFlag !== null) return null
-    timerFlag = setTimeout(() => {
-      timerFlag = null;
-    }, delay);
+
+    timerFlag = setTimeout(
+      () => timerFlag = null,
+      typeof delay === 'function' ? delay() : delay
+    );
+
     return func(...args);
   };
 }
