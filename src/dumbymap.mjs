@@ -458,6 +458,7 @@ export const generateMaps = async (container, callback) => {
       console.info('Finish Rendering')
 
       const maps = htmlHolder.querySelectorAll('.map-container') ?? []
+      focusNextMap()
       Array.from(maps)
         .forEach(ele => {
           callback(ele)
