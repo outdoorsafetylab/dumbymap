@@ -272,6 +272,10 @@
     display: none;
   }
 
+  &[data-hide="true"] {
+    display: none;
+  }
+
   &:has(.draggable:hover, .utils:hover) {
     .dumby-block {
       color: gray;

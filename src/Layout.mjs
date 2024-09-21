@@ -36,7 +36,7 @@ export class OverlayLayout extends Layout {
       draggablePart.onmouseup = (e) => {
         if (e.button === 1) {
           // Hide block with middle click
-          draggableBlock.style.display = "none";
+          draggableBlock.setAttribute("data-hide", "true")
         }
       }
 
