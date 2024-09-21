@@ -6,11 +6,10 @@ import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
 import { renderWith, parseConfigsFromYaml } from 'mapclay'
 import { onRemove, animateRectTransition, throttle } from './utils'
-
-// FUNCTION: Get DocLinks from special anchor element {{{
 import { OverlayLayout } from './OverlayLayout'
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
+const geoLinkSelector = 'a[href^="geo:"]'
 
 class Layout {
   constructor({ name, enterHandler = null, leaveHandler = null }) {
@@ -26,6 +25,14 @@ const layouts = [
   new Layout({ name: "side" }),
   new OverlayLayout(),
 ]
+
+// FUNCTION: Get DocLinks from special anchor element {{{
+/**
+ * CreateDocLinks.
+ *
+ * @param {HTMLElement} Elements contains anchor elements for doclinks
+ * @returns {Array} List of doclinks just created
+ */
 export const createDocLinks = (container) => Array.from(container.querySelectorAll(docLinkSelector))
   .map(link => {
     link.classList.add('with-leader-line', 'doclink')
@@ -59,8 +66,12 @@ export const createDocLinks = (container) => Array.from(container.querySelectorA
   })
 // }}}
 // FUNCTION: Get GeoLinks from special anchor element {{{
-// Links points to map by geo schema and id
-const geoLinkSelector = 'a[href^="geo:"]'
+/**
+ * Create geolinks, which points to map by geo schema and id
+ *
+ * @param {HTMLElement} Elements contains anchor elements for doclinks
+ * @returns {Array} List of doclinks just created
+ */
 export const createGeoLinks = (container, callback) => Array.from(container.querySelectorAll(geoLinkSelector))
   .filter(link => {
     const url = new URL(link.href)
@@ -80,7 +91,6 @@ export const createGeoLinks = (container, callback) => Array.from(container.quer
 
     return true
   })
-
 // }}}
 export const markdown2HTML = (container, mdContent) => {
   // Render: Markdown -> HTML {{{
