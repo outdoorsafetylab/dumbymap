@@ -6,15 +6,15 @@ import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
 import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import { onRemove, animateRectTransition, throttle } from './utils'
-import { Layout, OverlayLayout } from './Layout'
+import { Layout, SideBySide, Overlay } from './Layout'
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
 const geoLinkSelector = 'a[href^="geo:"]'
 
 const layouts = [
   new Layout({ name: "normal" }),
-  new Layout({ name: "side-by-side" }),
-  new OverlayLayout({ name: "overlay" }),
+  new SideBySide({ name: "side-by-side" }),
+  new Overlay({ name: "overlay" }),
 ]
 
 // FUNCTION: Get DocLinks from special anchor element {{{
@@ -144,9 +144,10 @@ export const generateMaps = async (container, callback) => {
   showcase.classList.add('Showcase')
 
   const dumbymap = {
-    blocks: Array.from(htmlHolder.querySelectorAll('.dumby-block')),
+    container: container,
     htmlHolder: htmlHolder,
     showcase: showcase,
+    blocks: Array.from(htmlHolder.querySelectorAll('.dumby-block')),
   }
 
   container.classList.add('DumbyMap')

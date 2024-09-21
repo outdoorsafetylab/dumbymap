@@ -11,7 +11,48 @@ export class Layout {
   valueOf = () => this.name
 }
 
-export class OverlayLayout extends Layout {
+export class SideBySide extends Layout {
+  name = "side-by-side"
+
+  enterHandler = ({ container, htmlHolder, showcase }) => {
+    const bar = document.createElement('div')
+    bar.className = 'bar'
+    bar.innerHTML = '<div class="bar-handle"></div>'
+    const handle = bar.querySelector('.bar-handle')
+    container.appendChild(bar)
+
+    const resizeByLeft = (left) => {
+      htmlHolder.style.width = (left) + "px"
+      showcase.style.width = (parseFloat(getComputedStyle(container).width) - left) + "px"
+    }
+
+    const draggable = new PlainDraggable(bar, {
+      handle: handle,
+      containment: { left: '25%', top: 0, right: '75%', height: 0 },
+    })
+    draggable.draggableCursor = "grab"
+    draggable.onDrag = (pos) => {
+      handle.style.transform = 'unset'
+      resizeByLeft(pos.left)
+    }
+    draggable.onDragEnd = (_) => {
+      handle.removeAttribute('style')
+    }
+
+    new ResizeObserver(() => {
+      if (draggable) resizeByLeft(draggable.left)
+    }).observe(container);
+  }
+
+  leaveHandler = ({ container, htmlHolder, showcase }) => {
+    container.removeAttribute('style')
+    htmlHolder.removeAttribute('style')
+    showcase.removeAttribute('style')
+    container.querySelector('.bar')?.remove()
+  }
+}
+
+export class Overlay extends Layout {
   name = "overlay"
 
   enterHandler = (dumbymap) => {
