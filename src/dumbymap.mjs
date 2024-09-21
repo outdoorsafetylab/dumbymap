@@ -4,7 +4,7 @@ import MarkdownItFootnote from 'markdown-it-footnote'
 import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
-import { renderWith, parseConfigsFromYaml } from 'mapclay'
+import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import { onRemove, animateRectTransition, throttle } from './utils'
 import { Layout, OverlayLayout } from './Layout'
 
@@ -414,7 +414,14 @@ export const generateMaps = async (container, callback) => {
 
   // Render each code block with "language-map" class
   const elementsWithMapConfig = Array.from(container.querySelectorAll('pre:has(.language-map)') ?? [])
-  const render = renderWith(config => ({ width: "100%", ...config }))
+  const render = renderWith(config => ({
+    width: "100%",
+    ...config,
+    aliases: {
+      ...defaultAliases,
+      ...config.aliases ?? {}
+    },
+  }))
   const renderTargets = elementsWithMapConfig
     .map(async (target) => {
       // Get text in code block starts with '```map'
