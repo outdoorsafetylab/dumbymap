@@ -24,9 +24,11 @@
     "build-renderers": "rm -rf dist/renderers; cp -r node_modules/mapclay/dist/renderers dist",
     "build-resources": "cp node_modules/mapclay/assets/default.yml dist; cp node_modules/easymde/dist/easymde.min.js dist; cp node_modules/easymde/dist/easymde.min.css dist/css",
     "server": "live-server --port=8080 --ignore='**/src/**js' --wait=2000 --no-browser --cors",
-    "dev": "npm run build; npm run server",
+    "dev": "npm run server",
     "lint": "npx eslint src",
-    "style": "npx stylelint src/css/**"
+    "style": "scripts/stylelint.sh",
+    "prepack": "npm run build; npm run lint && npm run style",
+    "postpack": "rm -rf dist/css dist/renderers; ln -sf `pwd`/src/css dist/css; cp node_modules/easymde/dist/easymde.min.css src/css; ln -sf mapclay/dist/renderers dist/rendereres"
   },
   "devDependencies": {
     "@eslint/compat": "^1.1.1",
