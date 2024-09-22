@@ -161,11 +161,11 @@ export class Overlay extends Layout {
       // Plus/Minus font-size of content
       wrapper.querySelector('#plus-font-size').onclick = () => {
         const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
-        block.style.fontSize = `${fontSize + 0.1}rem`
+        block.style.fontSize = `${fontSize + 0.2}rem`
       }
       wrapper.querySelector('#minus-font-size').onclick = () => {
         const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
-        block.style.fontSize = `${fontSize - 0.1}rem`
+        block.style.fontSize = `${fontSize - 0.2}rem`
       }
     })
   }
