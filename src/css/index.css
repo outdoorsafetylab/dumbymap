@@ -11,7 +11,7 @@ body {
   width: 100%;
   height: 100vh;
 
-  &[data-layout="editing"] {
+  &[data-mode="editing"] {
     display: flex;
     align-items: stretch;
     gap: 0.5em;

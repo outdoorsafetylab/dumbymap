@@ -10,10 +10,10 @@ const HtmlContainer = document.querySelector(".DumbyMap")
 const textArea = document.querySelector(".editor textarea")
 
 const toggleEditing = () => {
-  if (document.body.getAttribute("data-layout") === "editing") {
-    document.body.removeAttribute("data-layout")
+  if (document.body.getAttribute("data-mode") === "editing") {
+    document.body.removeAttribute("data-mode")
   } else {
-    document.body.setAttribute("data-layout", "editing")
+    document.body.setAttribute("data-mode", "editing")
   }
   HtmlContainer.setAttribute("data-layout", "normal")
 }
@@ -560,7 +560,7 @@ document.onkeydown = (e) => {
 const layoutObserver = new MutationObserver(() => {
   const layout = HtmlContainer.getAttribute('data-layout')
   if (layout !== 'normal') {
-    document.body.removeAttribute('data-layout')
+    document.body.removeAttribute('data-mode')
   }
 })
 
