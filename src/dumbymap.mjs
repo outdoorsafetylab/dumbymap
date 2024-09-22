@@ -379,12 +379,6 @@ export const generateMaps = async (container, callback) => {
   // Render Maps {{{
 
   const afterEachMapLoaded = (mapContainer) => {
-    const focusClickedMap = () => {
-      container.querySelectorAll('.map-container')
-        .forEach(c => c.removeAttribute('data-focus'))
-      mapContainer.setAttribute('data-focus', true)
-    }
-    mapContainer.onclick = focusClickedMap
     mapContainer.setAttribute('tabindex', "-1")
 
     const observer = mapFocusObserver()
