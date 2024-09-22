@@ -1,5 +1,5 @@
 import PlainDraggable from 'plain-draggable'
-import { onRemove } from './utils'
+import { onRemove, animateRectTransition } from './utils'
 
 export class Layout {
   constructor(options = {}) {
@@ -32,6 +32,7 @@ export class SideBySide extends Layout {
       containment: { left: '25%', top: 0, right: '75%', height: 0 },
     })
     draggable.draggableCursor = "grab"
+
     draggable.onDrag = (pos) => {
       handle.style.transform = 'unset'
       resizeByLeft(pos.left)
@@ -51,16 +52,82 @@ export class SideBySide extends Layout {
 export class Overlay extends Layout {
   name = "overlay"
 
-  enterHandler = (dumbymap) => {
-    const container = dumbymap.htmlHolder
-    const moveIntoDraggable = (block) => {
+  saveLeftTopAsData = (element) => {
+    const { left, top } = element.getBoundingClientRect()
+    element.setAttribute('data-left', left)
+    element.setAttribute('data-top', top)
+  }
+
+  addDraggable = (element) => {
+    // Add draggable part
+    const draggablePart = document.createElement('div')
+    element.appendChild(draggablePart)
+    draggablePart.className = 'draggable-part'
+    draggablePart.innerHTML = '<div class="handle">\u2630</div>'
+    draggablePart.title = 'Use middle-click to remove block'
+    draggablePart.onmouseup = (e) => {
+      // Hide block with middle click
+      if (e.button === 1) {
+        element.classList.add('hide')
+      }
+    }
+
+    // Add draggable instance
+    const { left, top } = element.getBoundingClientRect()
+    const draggable = new PlainDraggable(element, {
+      top: top,
+      left: left,
+      handle: draggablePart,
+      snap: { x: { step: 20 }, y: { step: 20 } },
+    })
+
+    // FIXME use pure CSS to hide utils
+    const utils = element.querySelector('.utils')
+    const siblings = Array.from(element.parentElement.querySelectorAll(':scope > *'))
+    draggable.onDragStart = () => {
+      utils.style.opacity = 0
+      element.classList.add('drag')
+      // Remove z-index from previous dragged
+      siblings.forEach(e => e.style.removeProperty('z-index'))
+    }
+
+    draggable.onDragEnd = () => {
+      utils.style = ''
+      element.classList.remove('drag')
+      // Ensuer last dragged block always on top
+      element.style.zIndex = '9000'
+    }
+
+    // Reposition draggable instance when resized
+    new ResizeObserver(() => {
+      try {
+        draggable.position();
+      } catch (_) {
+        null
+      }
+    }).observe(element);
+
+    // Callback for remove
+    onRemove(element, () => {
+      draggable.remove()
+    })
+  }
+
+  enterHandler = ({ htmlHolder, blocks }) => {
+
+    // FIXME It is weird rect from this method and this scope are different...
+    blocks.forEach(this.saveLeftTopAsData)
+
+    // Create draggable blocks and set each position by previous one
+    let [left, top] = [20, 20]
+    blocks.forEach(block => {
+      const originLeft = Number(block.getAttribute('data-left'))
+      const originTop = Number(block.getAttribute('data-top'))
+
       // Create draggable block
-      const draggableBlock = document.createElement('div')
-      draggableBlock.classList.add('draggable-block')
-      draggableBlock.innerHTML = `
-        <div class="draggable">
-          <div class="handle">\u2630</div>
-        </div>
+      const wrapper = document.createElement('div')
+      wrapper.classList.add('draggable-block')
+      wrapper.innerHTML = `
         <div class="utils">
           <div id="close">\u274C</div>
           <div id="plus-font-size" ">\u2795</div>
@@ -68,82 +135,39 @@ export class Overlay extends Layout {
         </div>
       `
 
-      // Add draggable part
-      const draggablePart = draggableBlock.querySelector('.draggable')
-      draggablePart.title = 'Use middle-click to remove block'
-      draggablePart.onmouseup = (e) => {
-        if (e.button === 1) {
-          // Hide block with middle click
-          draggableBlock.setAttribute("data-state", "hide")
-        }
+      wrapper.appendChild(block)
+      htmlHolder.appendChild(wrapper)
+      wrapper.style.left = left + "px"
+      wrapper.style.top = top + "px"
+      const { width } = wrapper.getBoundingClientRect()
+      left += width + 30
+      if (left > window.innerWidth) {
+        top += 200
+        left = left % window.innerWidth
       }
 
-      // Set elements
-      draggableBlock.appendChild(draggablePart)
-      draggableBlock.appendChild(block)
-      container.appendChild(draggableBlock)
-
-      // Add draggable instance
-      const draggableInstance = new PlainDraggable(draggableBlock, {
-        handle: draggablePart,
-        snap: { x: { step: 20 }, y: { step: 20 } },
-      })
+      animateRectTransition(
+        wrapper,
+        { left: originLeft, top: originTop },
+        { resume: true, duration: 500 }
+      )
+        .finished
+        .finally(() => this.addDraggable(wrapper))
 
       // Close button
-      draggableBlock.querySelector('#close').onclick = () => {
-        draggableBlock.classList.add('hide')
+      wrapper.querySelector('#close').onclick = () => {
+        wrapper.classList.add('hide')
       }
       // Plus/Minus font-size of content
-      draggableBlock.querySelector('#plus-font-size').onclick = () => {
+      wrapper.querySelector('#plus-font-size').onclick = () => {
         const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
         block.style.fontSize = `${fontSize + 0.1}rem`
       }
-      draggableBlock.querySelector('#minus-font-size').onclick = () => {
+      wrapper.querySelector('#minus-font-size').onclick = () => {
         const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
         block.style.fontSize = `${fontSize - 0.1}rem`
       }
-
-      // FIXME use pure CSS to hide utils
-      const utils = draggableBlock.querySelector('.utils')
-      draggableInstance.onDragStart = () => {
-        utils.style.opacity = 0
-        draggableBlock.classList.add('drag')
-      }
-      draggableInstance.onDragEnd = () => {
-        utils.style = ''
-        draggableBlock.classList.remove('drag')
-      }
-
-      // Reposition draggable instance when resized
-      new ResizeObserver(() => {
-        try {
-          draggableInstance.position();
-        } catch (_) {
-          null
-        }
-      }).observe(draggableBlock);
-
-      // Callback for remove
-      onRemove(draggableBlock, () => {
-        draggableInstance.remove()
-      })
-
-      return draggableInstance
-    }
-
-    // Create draggable blocks and set each position by previous one
-    let [x, y] = [0, 0]
-    dumbymap.blocks.map(moveIntoDraggable)
-      .forEach(draggable => {
-        draggable.left = x
-        draggable.top = y
-        const rect = draggable.element.getBoundingClientRect()
-        x += rect.width + 30
-        if (x > window.innerWidth) {
-          y += 200
-          x = x % window.innerWidth
-        }
-      })
+    })
   }
 
   leaveHandler = ({ htmlHolder, blocks }) => {
