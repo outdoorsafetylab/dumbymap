@@ -66,6 +66,7 @@ export class Overlay extends Layout {
           <div class="handle">\u2630</div>
         </div>
         <div class="utils">
+          <div id="close">\u274C</div>
           <div id="plus-font-size" ">\u2795</div>
           <div id="minus-font-size">\u2796</div>
         </div>
@@ -92,24 +93,25 @@ export class Overlay extends Layout {
         snap: { x: { step: 20 }, y: { step: 20 } },
       })
 
+      // Close button
+      draggableBlock.querySelector('#close').onclick = () => {
+          draggableBlock.setAttribute("data-hide", "true")
+      }
       // Plus/Minus font-size of content
-      const plusButton = draggableBlock.querySelector('#plus-font-size')
-      plusButton.onclick = () => {
+      draggableBlock.querySelector('#plus-font-size').onclick = () => {
         const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
         block.style.fontSize = `${fontSize + 0.1}rem`
       }
-      const minusButton = draggableBlock.querySelector('#minus-font-size')
-      minusButton.onclick = () => {
+      draggableBlock.querySelector('#minus-font-size').onclick = () => {
         const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
         block.style.fontSize = `${fontSize - 0.1}rem`
       }
+      const utils = draggableBlock.querySelector('.utils')
       draggableInstance.onDragStart = () => {
-        plusButton.style.opacity = '0'
-        minusButton.style.opacity = '0'
+        utils.style.opacity = 0
       }
       draggableInstance.onDragEnd = () => {
-        plusButton.style = ''
-        minusButton.style = ''
+        utils.style = ''
       }
 
       // Reposition draggable instance when resized
