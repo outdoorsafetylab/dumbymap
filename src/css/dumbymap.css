@@ -248,6 +248,51 @@
   }
 }
 
+.utils {
+  display: flex;
+
+  position: absolute;
+  left: 100%;
+  top: calc(0% - 2rem);
+
+  font-size: 1.5rem;
+
+  visibility: hidden;
+
+  gap: 6px;
+  padding-inline: 1rem;
+  padding-block: 2rem;
+
+
+  &:hover {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  [id] {
+    padding: 0.2rem 0.4rem;
+
+    border: 3px gray solid;
+    border-radius: 5px;
+
+    background: white;
+
+    user-select: none;
+  }
+
+  #close {
+     cursor: pointer;
+  }
+
+   #plus-font-size {
+     cursor: zoom-in;
+   }
+
+   #minus-font-size {
+     cursor: zoom-out;
+   }
+}
+
 .draggable-block {
   overflow: visible;
   width: fit-content;
@@ -277,7 +322,6 @@
     padding-inline: 1em;
 
     /* allow random width/height after resize */
-
     &[style*="height"],
     &[style*="width"] {
       max-width: unset;
@@ -307,6 +351,7 @@
     display: block;
     overflow: clip;
     width: 100%;
+    padding-bottom: 1em;
 
     position: absolute;
     left: 0;
@@ -314,6 +359,7 @@
     z-index: 1;
     border-top-left-radius: 0.3rem;
     border-top-right-radius: 0.3rem;
+  }
 
     .handle {
       font-size: 1.1rem;
@@ -322,72 +368,32 @@
       transform: translate(0, -0.6rem);
       transition: all 0.3s ease-in-out;
     }
-  }
-
-  .utils {
-    display: none;
-  }
 
   &.hide {
-    animation: fade-out 0.3s;
-
     opacity: 0;
+    transition: all 0.5s;
     visibility: hidden;
   }
 
-  &:has(.draggable-part:hover, .utils:hover),
-  &.drag {
-    .dumby-block {
-      color: gray;
-
-      opacity: 0.7;
-    }
-
+  &.drag, &:has(.draggable-part:hover) {
     .handle {
       background: #e1e1e1;
 
       transform: unset;
     }
 
-    .utils {
-      display: flex;
+    .dumby-block {
+      color: gray;
 
-      position: absolute;
-      left: 100%;
-      top: 0;
-      top: -0.5rem;
-
-      font-size: 1.5rem;
-
-      gap: 6px;
-      animation: fade-in 1s;
-      padding-left: 1rem;
-
-      transition: opacity 0.5s;
-
-      > * {
-        padding: 0.2rem 0.4rem;
-
-        border: 3px gray solid;
-        border-radius: 5px;
-
-        background: white;
-
-        user-select: none;
-      }
-
-      #close {
-         cursor: pointer;
-      }
-
-       #plus-font-size {
-         cursor: zoom-in;
-       }
-
-       #minus-font-size {
-         cursor: zoom-out;
-       }
+      opacity: 0.7;
     }
+
+
+    .utils {
+      visibility: visible;
+      animation: fade-in 1s;
+    }
+
   }
 }
 

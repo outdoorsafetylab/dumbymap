@@ -157,9 +157,24 @@ export class Overlay extends Layout {
         .finished
         .finally(() => this.addDraggable(wrapper))
 
+      // Trivial case:
+      // This hack make sure utils remains at the same place even when wrapper resized
+      // Prevent DOMRect changes when user clicking plus/minus button many times
+      const utils = wrapper.querySelector('.utils')
+      utils.onmouseover = () => {
+        const { left, top } = utils.getBoundingClientRect()
+        utils.style.cssText = `visibility: visible; z-index: 9000; position: fixed; transition: unset; left: ${left}px; top: ${top}px;`
+        document.body.appendChild(utils)
+      }
+      utils.onmouseout = () => {
+        wrapper.appendChild(utils)
+        utils.removeAttribute('style')
+      }
+
       // Close button
       wrapper.querySelector('#close').onclick = () => {
         wrapper.classList.add('hide')
+        utils.removeAttribute('style')
       }
       // Plus/Minus font-size of content
       wrapper.querySelector('#plus-font-size').onclick = () => {
