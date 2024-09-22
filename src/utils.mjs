@@ -37,8 +37,8 @@ export const animateRectTransition = (element, rect, options = {}) => {
   const { width: w1, height: h1, left: x1, top: y1 } = rect
   const { width: w2, height: h2, left: x2, top: y2 } = element.getBoundingClientRect()
 
-  const rw = w1 / w2
-  const rh = h1 / h2
+  const rw = (w1 ?? w2) / w2
+  const rh = (h1 ?? h2) / h2
   const dx = x1 - x2;
   const dy = y1 - y2;
 
