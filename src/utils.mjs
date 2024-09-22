@@ -42,8 +42,8 @@ export const animateRectTransition = (element, rect, options = {}) => {
   const dx = x1 - x2;
   const dy = y1 - y2;
 
-  if (dx === 0 && dy === 0 || rw === Infinity || rh === Infinity) {
-    return new Animation()
+  if (dx === 0 && dy === 0 || !isFinite(rw) || !isFinite(rh)) {
+    return element.animate([], { duration: 0 })
   }
 
   const transform1 = `translate(0, 0) scale(1, 1)`;
