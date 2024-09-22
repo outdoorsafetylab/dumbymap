@@ -330,7 +330,7 @@
     display: none;
   }
 
-  &[data-state="hide"] {
+  &.hide {
     animation: fade-out 0.3s;
 
     opacity: 0;
@@ -338,7 +338,7 @@
   }
 
   &:has(.draggable:hover, .utils:hover),
-  &[data-state="on-drag"] {
+  &.drag {
     .dumby-block {
       color: gray;
 

@@ -91,7 +91,7 @@ export class Overlay extends Layout {
 
       // Close button
       draggableBlock.querySelector('#close').onclick = () => {
-        draggableBlock.setAttribute("data-state", "hide")
+        draggableBlock.classList.add('hide')
       }
       // Plus/Minus font-size of content
       draggableBlock.querySelector('#plus-font-size').onclick = () => {
@@ -107,11 +107,11 @@ export class Overlay extends Layout {
       const utils = draggableBlock.querySelector('.utils')
       draggableInstance.onDragStart = () => {
         utils.style.opacity = 0
-        draggableBlock.setAttribute('data-state', 'on-drag')
+        draggableBlock.classList.add('drag')
       }
       draggableInstance.onDragEnd = () => {
         utils.style = ''
-        draggableBlock.removeAttribute('data-state')
+        draggableBlock.classList.remove('drag')
       }
 
       // Reposition draggable instance when resized
