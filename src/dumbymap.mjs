@@ -138,6 +138,7 @@ export const markdown2HTML = (container, mdContent) => {
 }
 // FIXME Don't use hard-coded CSS selector
 export const generateMaps = async (container, callback) => {
+  container.classList.add('Dumby')
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   const showcase = document.createElement('div')
   container.appendChild(showcase)
@@ -150,7 +151,6 @@ export const generateMaps = async (container, callback) => {
     blocks: Array.from(htmlHolder.querySelectorAll('.dumby-block')),
   }
 
-  container.classList.add('DumbyMap')
   // LeaderLine {{{
 
   // Get anchors with "geo:" scheme

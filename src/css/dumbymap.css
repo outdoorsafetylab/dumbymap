@@ -79,7 +79,7 @@
   margin-bottom: 3rem;
 }
 
-.DumbyMap {
+.Dumby {
   width: 100%;
   height: 100%;
   margin: 0 auto;
@@ -150,11 +150,11 @@
 
 }
 
-.DumbyMap[data-layout="normal"] {
+.Dumby[data-layout="normal"] {
   max-width: 60em;
 }
 
-.DumbyMap[data-layout="side-by-side"] {
+.Dumby[data-layout="side-by-side"] {
   .SemanticHtml,
   .Showcase {
     width: 50%;
@@ -212,7 +212,7 @@
   }
 }
 
-.DumbyMap[data-layout="overlay"] {
+.Dumby[data-layout="overlay"] {
   .SemanticHtml,
   .Showcase {
     display: block;
