@@ -21,6 +21,7 @@ export class SideBySide extends Layout {
     const handle = bar.querySelector('.bar-handle')
     container.appendChild(bar)
 
+    // Resize views by value
     const resizeByLeft = (left) => {
       htmlHolder.style.width = (left) + "px"
       showcase.style.width = (parseFloat(getComputedStyle(container).width) - left) + "px"
@@ -39,9 +40,7 @@ export class SideBySide extends Layout {
       handle.removeAttribute('style')
     }
 
-    new ResizeObserver(() => {
-      if (draggable) resizeByLeft(draggable.left)
-    }).observe(container);
+    onRemove(bar, () => draggable.remove())
   }
 
   leaveHandler = ({ container }) => {
