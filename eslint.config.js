@@ -32,9 +32,8 @@ export default [
       // 'curly': ['warn', 'multi'],
       'prefer-const': 'error',
       'no-var': 'error',
-      'promise/catch-or-return': 'error',
       'array-callback-return': 'error',
-      'no-unexpected-multiline': 'warn'
+      'no-unexpected-multiline': 'warn',
     },
   }
 ];
