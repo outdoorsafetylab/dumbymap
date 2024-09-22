@@ -330,14 +330,15 @@
     display: none;
   }
 
-  &[data-hide="true"] {
+  &[data-state="hide"] {
     animation: fade-out 0.3s;
 
     opacity: 0;
     visibility: hidden;
   }
 
-  &:has(.draggable:hover, .utils:hover) {
+  &:has(.draggable:hover, .utils:hover),
+  &[data-state="on-drag"] {
     .dumby-block {
       color: gray;
 
@@ -346,8 +347,6 @@
 
     .handle {
       background: #e1e1e1;
-
-      /* border-bottom: solid gray; */
 
       transform: unset;
     }
@@ -362,10 +361,11 @@
 
       font-size: 1.5rem;
 
-      transition: opacity 1s linear;
       gap: 6px;
-      animation: fade-in 1.5s;
+      animation: fade-in 1s;
       padding-left: 1rem;
+
+      transition: opacity 0.5s;
 
       > * {
         padding: 0.2rem 0.4rem;

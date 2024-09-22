@@ -78,7 +78,7 @@ export class Overlay extends Layout {
       draggablePart.onmouseup = (e) => {
         if (e.button === 1) {
           // Hide block with middle click
-          draggableBlock.setAttribute("data-hide", "true")
+          draggableBlock.setAttribute("data-state", "hide")
         }
       }
 
@@ -95,7 +95,7 @@ export class Overlay extends Layout {
 
       // Close button
       draggableBlock.querySelector('#close').onclick = () => {
-          draggableBlock.setAttribute("data-hide", "true")
+          draggableBlock.setAttribute("data-state", "hide")
       }
       // Plus/Minus font-size of content
       draggableBlock.querySelector('#plus-font-size').onclick = () => {
@@ -106,12 +106,16 @@ export class Overlay extends Layout {
         const fontSize = parseFloat(getComputedStyle(block).fontSize) / 16
         block.style.fontSize = `${fontSize - 0.1}rem`
       }
+
+      // FIXME use pure CSS to hide utils
       const utils = draggableBlock.querySelector('.utils')
       draggableInstance.onDragStart = () => {
         utils.style.opacity = 0
+        draggableBlock.setAttribute('data-state', 'on-drag')
       }
       draggableInstance.onDragEnd = () => {
         utils.style = ''
+        draggableBlock.removeAttribute('data-state')
       }
 
       // Reposition draggable instance when resized
