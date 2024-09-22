@@ -267,8 +267,6 @@ export const generateMaps = async (container, callback) => {
       const placeholder = htmlHolder.querySelector(`[data-placeholder="${target.id}"]`)
       if (!placeholder) throw Error(`Cannot fine placeholder for map "${target.id}"`)
 
-        .catch(afterAnimation)
-
       // Consider animation may fail, write callback
       const afterAnimation = () => {
         placeholder.parentElement.replaceChild(target, placeholder)
