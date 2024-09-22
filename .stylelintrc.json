@@ -37,6 +37,7 @@
           "display",
           "overflow",
           "box-sizing",
+          "flex",
           "width",
           "height",
           "margin",
@@ -49,10 +50,10 @@
         "noEmptyLineBetween": true,
         "properties": [
           "position",
+          "left",
           "top",
           "right",
           "bottom",
-          "left",
           "z-index"
         ]
       },
@@ -96,15 +97,15 @@
         ]
       },
       {
-        "groupName": "Misc",
+        "groupName": "Visual",
         "emptyLineBefore": "always",
         "noEmptyLineBetween": true,
         "properties": [
+          "transform",
           "opacity",
-          "visibility",
-          "cursor",
           "transition",
-          "transform"
+          "visibility",
+          "cursor"
         ]
       }
     ]
