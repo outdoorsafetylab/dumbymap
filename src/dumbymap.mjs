@@ -140,15 +140,16 @@ export const markdown2HTML = (container, mdContent) => {
 export const generateMaps = async (container, callback) => {
   container.classList.add('Dumby')
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
+  const blocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
 
   const dumbymap = {
-    container: container,
-    htmlHolder: htmlHolder,
-    showcase: showcase,
-    blocks: Array.from(htmlHolder.querySelectorAll('.dumby-block')),
+    container,
+    htmlHolder,
+    showcase,
+    blocks,
   }
 
   // LeaderLine {{{
@@ -354,6 +355,11 @@ export const generateMaps = async (container, callback) => {
         ?.leaveHandler
         ?.call(this, dumbymap)
     }
+
+    Object.values(dumbymap)
+      .flat()
+      .forEach(e => e.removeAttribute('style'))
+
     if (newLayout) {
       layouts.find(l => l.name === newLayout)
         ?.enterHandler

@@ -44,10 +44,7 @@ export class SideBySide extends Layout {
     }).observe(container);
   }
 
-  leaveHandler = ({ container, htmlHolder, showcase }) => {
-    container.removeAttribute('style')
-    htmlHolder.removeAttribute('style')
-    showcase.removeAttribute('style')
+  leaveHandler = ({ container }) => {
     container.querySelector('.bar')?.remove()
   }
 }
@@ -95,7 +92,7 @@ export class Overlay extends Layout {
 
       // Close button
       draggableBlock.querySelector('#close').onclick = () => {
-          draggableBlock.setAttribute("data-state", "hide")
+        draggableBlock.setAttribute("data-state", "hide")
       }
       // Plus/Minus font-size of content
       draggableBlock.querySelector('#plus-font-size').onclick = () => {
@@ -149,16 +146,15 @@ export class Overlay extends Layout {
         }
       })
   }
-  leaveHandler = (dumbymap) => {
-    const container = dumbymap.htmlHolder
+
+  leaveHandler = ({ htmlHolder, blocks }) => {
     const resumeFromDraggable = (block) => {
       const draggableContainer = block.closest('.draggable-block')
       if (!draggableContainer) return
-      container.appendChild(block)
-      block.removeAttribute('style')
+      htmlHolder.appendChild(block)
       draggableContainer.remove()
     }
-    dumbymap.blocks.forEach(resumeFromDraggable)
+    blocks.forEach(resumeFromDraggable)
   }
 }
 
