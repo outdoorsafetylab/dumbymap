@@ -59,6 +59,13 @@ export class Overlay extends Layout {
   }
 
   addDraggable = (element) => {
+    // Make sure current element always on top
+    const siblings = Array.from(element.parentElement?.querySelectorAll(':scope > *') ?? [])
+    element.onmouseover = () => {
+      siblings.forEach(e => e.style.removeProperty('z-index'))
+      element.style.zIndex = '9000'
+    }
+
     // Add draggable part
     const draggablePart = document.createElement('div')
     element.appendChild(draggablePart)
@@ -83,18 +90,14 @@ export class Overlay extends Layout {
 
     // FIXME use pure CSS to hide utils
     const utils = element.querySelector('.utils')
-    const siblings = Array.from(element.parentElement.querySelectorAll(':scope > *'))
     draggable.onDragStart = () => {
-      utils.style.opacity = 0
+      utils.style.display = 'none'
       element.classList.add('drag')
-      // Remove z-index from previous dragged
-      siblings.forEach(e => e.style.removeProperty('z-index'))
     }
 
     draggable.onDragEnd = () => {
       utils.style = ''
       element.classList.remove('drag')
-      // Ensuer last dragged block always on top
       element.style.zIndex = '9000'
     }
 
