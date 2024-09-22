@@ -267,8 +267,7 @@ export const generateMaps = async (container, callback) => {
       const placeholder = htmlHolder.querySelector(`[data-placeholder="${target.id}"]`)
       if (!placeholder) throw Error(`Cannot fine placeholder for map "${target.id}"`)
 
-      // animation from Showcase to placeholder
-      const animation = animateRectTransition(target, placeholder.getBoundingClientRect(), { duration: 300 })
+        .catch(afterAnimation)
 
       // Consider animation may fail, write callback
       const afterAnimation = () => {
@@ -276,13 +275,11 @@ export const generateMaps = async (container, callback) => {
         target.style = placeholder.style.cssText
         placeholder.remove()
       }
-      if (animation) {
-        animation.finished
-          .then(afterAnimation)
-          .catch(afterAnimation)
-      } else {
-        afterAnimation()
-      }
+
+      // animation from Showcase to placeholder
+      animateRectTransition(target, placeholder.getBoundingClientRect(), { duration: 300 })
+        .finished
+        .finally(afterAnimation)
     }
   })
   // }}}

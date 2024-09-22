@@ -29,7 +29,7 @@ export const onRemove = (element, callback) => {
  * @param {Object}      options
  * @param {Boolean}     options.resume          If true, transition starts from rect to DOMRect of element
  * @param {Number}      options.duration        Duration of animation in milliseconds
- * @returns {Animation|null} https://developer.mozilla.org/en-US/docs/Web/API/Animation
+ * @returns {Animation} https://developer.mozilla.org/en-US/docs/Web/API/Animation
  */
 export const animateRectTransition = (element, rect, options = {}) => {
   if (!element.parentElement) throw new Error("The node must already be attached");
@@ -43,7 +43,7 @@ export const animateRectTransition = (element, rect, options = {}) => {
   const dy = y1 - y2;
 
   if (dx === 0 && dy === 0 || rw === Infinity || rh === Infinity) {
-    return null;
+    return new Animation()
   }
 
   const transform1 = `translate(0, 0) scale(1, 1)`;
