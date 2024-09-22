@@ -397,6 +397,16 @@
   }
 }
 
+.dumby-block:has(pre:only-child [data-placeholder]:only-child) {
+  overflow: clip;
+
+  [data-placeholder] {
+    height: 50px !important;
+    scale: .9;
+    transition-duration: .4s;
+    transition-timing-function: ease-out;
+  }
+}
 
 .bold-options {
   font-weight: bold;

@@ -250,8 +250,14 @@ export const generateMaps = async (container, callback) => {
       // Placeholder for map in Showcase, it should has the same DOMRect
       const placeholder = target.cloneNode(true)
       placeholder.classList.remove('map-container')
-      placeholder.setAttribute('data-placeholder', target.id)
       target.parentElement.replaceChild(placeholder, target)
+
+      // HACK Trigger CSS transition, if placeholde is the olny chil element in block,
+      // reduce its height to zero.
+      // To make sure the original height of placeholder is applied, callBoundingClientRect() seems work(Why?).
+      // then set data-attribute for CSS selector to change height to 0
+      placeholder.getBoundingClientRect()
+      placeholder.setAttribute('data-placeholder', target.id)
 
       // To fit showcase, remove all inline style
       target.removeAttribute('style')
