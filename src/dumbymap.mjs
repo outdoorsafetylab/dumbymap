@@ -16,6 +16,7 @@ const layouts = [
   new SideBySide({ name: "side-by-side" }),
   new Overlay({ name: "overlay" }),
 ]
+const mapCache = {}
 
 // FUNCTION: Get DocLinks from special anchor element {{{
 /**
@@ -285,7 +286,11 @@ export const generateMaps = (container, callback) => {
     const mutation = mutations.at(-1)
     const target = mutation.target
     const focus = target.getAttribute(mutation.attributeName) === 'true'
-    const shouldBeInShowcase = focus && getComputedStyle(showcase).display !== 'none'
+    const shouldBeInShowcase = focus && showcase.checkVisibility({
+      contentVisibilityAuto: true,
+      opacityProperty: true,
+      visibilityProperty: true,
+    })
 
     if (shouldBeInShowcase) {
       if (showcase.contains(target)) return
@@ -378,7 +383,9 @@ export const generateMaps = (container, callback) => {
   //}}}
   // Render Maps {{{
 
-  const afterEachMapLoaded = (mapContainer) => {
+  const afterEachMapLoaded = (renderMap) => {
+    const mapContainer = renderMap.target
+    mapCache[mapContainer.id] = renderMap
     mapContainer.setAttribute('tabindex', "-1")
     mapContainer.setAttribute('data-state', "rendered")
 
@@ -410,7 +417,8 @@ export const generateMaps = (container, callback) => {
 
   // Render each code block with "language-map" class
   const elementsWithMapConfig = Array.from(container.querySelectorAll('pre:has(.language-map)') ?? [])
-  const render = renderWith(config => ({
+  // Add default aliases into each config
+  const configConverter = (config => ({
     width: "100%",
     ...config,
     aliases: {
@@ -418,9 +426,10 @@ export const generateMaps = (container, callback) => {
       ...config.aliases ?? {}
     },
   }))
+  const render = renderWith(configConverter)
   elementsWithMapConfig
-    .map(async (target) => {
-      // Get text in code block starts with '```map'
+    .forEach(target => {
+      // Get text in code block starts with markdown text '```map'
       const configText = target.querySelector('.language-map')
         .textContent
         // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
@@ -434,14 +443,22 @@ export const generateMaps = (container, callback) => {
         console.warn('Fail to parse yaml config for element', target)
       }
 
+      // If map in cache has the same ID, and its config is the same,
+      // then don't render them again
+      configList.forEach(config => {
+        const cache = mapCache[config.id]
+        if (cache && JSON.stringify(cache.config) === JSON.stringify(configConverter(config))) {
+          target.appendChild(cache.target)
+          config.render = () => null
+        }
+      })
+
       // Render maps
-      return render(target, configList).map(renderMap => {
+      render(target, configList).forEach(renderMap => {
         renderMaps.push(renderMap)
         renderMap.promise
-          .then(_ => afterEachMapLoaded(renderMap.target))
+          .then(_ => afterEachMapLoaded(renderMap))
           .catch(err => console.error('Fail to render target element with ID:', renderMap.target.id, err))
-
-        return renderMap.promise
       })
     })
 

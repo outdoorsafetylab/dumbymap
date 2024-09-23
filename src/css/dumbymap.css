@@ -120,7 +120,6 @@
       border: 3px solid transparent;
 
       background: white;
-      animation: map-fade-in 1s;
 
       &[data-focus="true"] {
         border: 3px solid gray;
