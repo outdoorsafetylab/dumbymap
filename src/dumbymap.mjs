@@ -139,21 +139,24 @@ export const markdown2HTML = (container, mdContent) => {
 // FIXME Don't use hard-coded CSS selector
 // TODO Use UI to switch layouts
 function focusNextMap(reverse = false) {
-  const mapNum = this.renderedMaps.length
+  const renderedList = this.renderMaps
+    .map(render => render.target)
+    .filter(ele => ele.getAttribute('data-state') === 'rendered')
+  const mapNum = renderedList.length
   if (mapNum === 0) return
+
   // Get current focused map element
   const currentFocus = this.container.querySelector('.map-container[data-focus]')
 
   // Remove class name of focus for ALL candidates
   // This may trigger animation
-  Array.from(this.container.querySelectorAll('.map-container'))
-    .forEach(ele => ele.removeAttribute('data-focus'))
+  renderedList.forEach(ele => ele.removeAttribute('data-focus'))
 
   // Get next existing map element
   const padding = reverse ? -1 : 1
-  let nextIndex = currentFocus ? this.renderedMaps.indexOf(currentFocus) + padding : 0
+  let nextIndex = currentFocus ? renderedList.indexOf(currentFocus) + padding : 0
   nextIndex = (nextIndex + mapNum) % mapNum
-  const nextFocus = this.renderedMaps[nextIndex]
+  const nextFocus = renderedList[nextIndex]
   nextFocus.setAttribute('data-focus', "true")
 
   return nextFocus
@@ -162,10 +165,11 @@ function focusDelay() {
   return window.getComputedStyle(this.showcase).display === 'none' ? 50 : 300
 }
 
-function switchToNextLayout() {
+function switchToNextLayout(reverse = false) {
   const currentLayoutName = this.container.getAttribute('data-layout')
   const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
-  const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % layouts.length
+  const padding = reverse ? -1 : 1
+  const nextIndex = currentIndex === -1 ? 0 : (currentIndex + padding + layouts.length) % layouts.length
   const nextLayout = layouts[nextIndex]
   this.container.setAttribute("data-layout", nextLayout.name)
 }
@@ -177,14 +181,14 @@ export const generateMaps = (container, callback) => {
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
-  const renderedMaps = []
+  const renderMaps = []
 
   const dumbymap = {
     container,
     htmlHolder,
     showcase,
     blocks,
-    renderedMaps,
+    renderMaps: renderMaps,
   }
   dumbymap.utils = {
     focusNextMap: throttle(focusNextMap.bind(dumbymap), focusDelay.bind(dumbymap)),
@@ -346,10 +350,9 @@ export const generateMaps = (container, callback) => {
     }
 
     Object.values(dumbymap)
-      .filter(e => e instanceof HTMLElement)
-      .forEach(e => e.removeAttribute('style'))
-    dumbymap.blocks
-      .forEach(e => e.removeAttribute('style'))
+      .flat()
+      .filter(ele => ele instanceof HTMLElement)
+      .forEach(ele => ele.removeAttribute('style'))
 
     if (newLayout) {
       layouts.find(l => l.name === newLayout)
@@ -376,9 +379,8 @@ export const generateMaps = (container, callback) => {
   // Render Maps {{{
 
   const afterEachMapLoaded = (mapContainer) => {
-    renderedMaps.push(mapContainer)
-    renderedMaps.sort((a, b) => mapIdList.indexOf(a.id) - mapIdList.indexOf(b.id))
     mapContainer.setAttribute('tabindex', "-1")
+    mapContainer.setAttribute('data-state', "rendered")
 
     const observer = mapFocusObserver()
     mapFocusObserver().observe(mapContainer, {
@@ -416,7 +418,7 @@ export const generateMaps = (container, callback) => {
       ...config.aliases ?? {}
     },
   }))
-  const renderTargets = elementsWithMapConfig
+  elementsWithMapConfig
     .map(async (target) => {
       // Get text in code block starts with '```map'
       const configText = target.querySelector('.language-map')
@@ -433,25 +435,23 @@ export const generateMaps = (container, callback) => {
       }
 
       // Render maps
-      return render(target, configList)
-        .then(results => {
-          results.forEach((mapByConfig) => {
-            if (mapByConfig.status === 'fulfilled') {
-              afterEachMapLoaded(mapByConfig.value)
-              return mapByConfig.value
-            } else {
-              console.error('Fail to render target element', mapByConfig.reason)
-            }
-          })
-        })
+      return render(target, configList).map(renderMap => {
+        renderMaps.push(renderMap)
+        renderMap.promise
+          .then(_ => afterEachMapLoaded(renderMap.target))
+          .catch(err => console.error('Fail to render target element with ID:', renderMap.target.id, err))
+
+        return renderMap.promise
+      })
     })
 
-  Promise.all(renderTargets)
+  Promise.allSettled(renderMaps.map(r => r.promise))
     .then(() => {
       console.info('Finish Rendering')
 
-      const maps = htmlHolder.querySelectorAll('.map-container') ?? []
-      Array.from(maps)
+      renderMaps
+        .map(r => r.target)
+        .filter(target => target.getAttribute('data-state') === 'rendered')
         .forEach(ele => {
           callback(ele)
           const markers = geoLinks
@@ -465,10 +465,8 @@ export const generateMaps = (container, callback) => {
 
       htmlHolder.querySelectorAll('.marker')
         .forEach(marker => htmlHolder.anchors.push(marker))
-
-      return maps
     })
 
   //}}}
-  return dumbymap
+  return Object.seal(dumbymap)
 }
