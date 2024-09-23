@@ -169,7 +169,9 @@ const afterMapRendered = (_) => {
 const updateDumbyMap = () => {
   markdown2HTML(HtmlContainer, editor.value())
   createDocLinks(HtmlContainer)
-  debounceForMap(HtmlContainer, afterMapRendered)
+  // TODO Test if generate maps intantly is OK with map cache
+  // debounceForMap(HtmlContainer, afterMapRendered)
+  dumbymap = generateMaps(HtmlContainer, afterMapRendered)
 }
 
 updateDumbyMap()
