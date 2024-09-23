@@ -137,19 +137,58 @@ export const markdown2HTML = (container, mdContent) => {
   //}}}
 }
 // FIXME Don't use hard-coded CSS selector
-export const generateMaps = async (container, callback) => {
+// TODO Use UI to switch layouts
+function focusNextMap(reverse = false) {
+  const mapNum = this.renderedMaps.length
+  if (mapNum === 0) return
+  // Get current focused map element
+  const currentFocus = this.container.querySelector('.map-container[data-focus]')
+
+  // Remove class name of focus for ALL candidates
+  // This may trigger animation
+  Array.from(this.container.querySelectorAll('.map-container'))
+    .forEach(ele => ele.removeAttribute('data-focus'))
+
+  // Get next existing map element
+  const padding = reverse ? -1 : 1
+  let nextIndex = currentFocus ? this.renderedMaps.indexOf(currentFocus) + padding : 0
+  nextIndex = (nextIndex + mapNum) % mapNum
+  const nextFocus = this.renderedMaps[nextIndex]
+  nextFocus.setAttribute('data-focus', "true")
+
+  return nextFocus
+}
+function focusDelay() {
+  return window.getComputedStyle(this.showcase).display === 'none' ? 50 : 300
+}
+
+function switchToNextLayout() {
+  const currentLayoutName = this.container.getAttribute('data-layout')
+  const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
+  const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % layouts.length
+  const nextLayout = layouts[nextIndex]
+  this.container.setAttribute("data-layout", nextLayout.name)
+}
+
+export const generateMaps = (container, callback) => {
   container.classList.add('Dumby')
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   const blocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
+  const renderedMaps = []
 
   const dumbymap = {
     container,
     htmlHolder,
     showcase,
     blocks,
+    renderedMaps,
+  }
+  dumbymap.utils = {
+    focusNextMap: throttle(focusNextMap.bind(dumbymap), focusDelay.bind(dumbymap)),
+    switchToNextLayout: throttle(switchToNextLayout.bind(dumbymap), 300),
   }
 
   // LeaderLine {{{
@@ -249,7 +288,8 @@ export const generateMaps = async (container, callback) => {
 
       // Placeholder for map in Showcase, it should has the same DOMRect
       const placeholder = target.cloneNode(true)
-      placeholder.classList.remove('map-container')
+      placeholder.removeAttribute('id')
+      placeholder.classList.remove('map-container', 'data-focus')
       target.parentElement.replaceChild(placeholder, target)
 
       // HACK Trigger CSS transition, if placeholde is the olny chil element in block,
@@ -292,58 +332,6 @@ export const generateMaps = async (container, callback) => {
   const defaultLayout = layouts[0]
   container.setAttribute("data-layout", defaultLayout.name)
 
-  const switchToNextLayout = throttle(() => {
-    const currentLayoutName = container.getAttribute('data-layout')
-    const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
-    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % layouts.length
-    const nextLayout = layouts[nextIndex]
-    container.setAttribute("data-layout", nextLayout.name)
-  }, 300)
-
-  // TODO Use UI to switch layouts
-  const focusNextMap = (reverse = false) => {
-    // Decide how many candidates could be focused
-    const selector = '.map-container, [data-placeholder]'
-    const candidates = Array.from(htmlHolder.querySelectorAll(selector))
-    if (candidates.length <= 1) return
-
-    // Get current focused element
-    const currentFocus = htmlHolder.querySelector('.map-container[data-focus=true]')
-      ?? htmlHolder.querySelector('[data-placeholder]')
-
-    // Remove class name of focus for ALL candidates
-    // This may trigger animation
-    Array.from(container.querySelectorAll('.map-container'))
-      .forEach(ele => ele.removeAttribute('data-focus'));
-
-    // Focus next focus element
-    const nextIndex = currentFocus
-      ? (candidates.indexOf(currentFocus) + (reverse ? -1 : 1)) % candidates.length
-      : 0
-    const nextFocus = candidates.at(nextIndex)
-    nextFocus.setAttribute('data-focus', "true")
-  }
-  const focusDelay = () => getComputedStyle(showcase).display === 'none' ? 50 : 300
-  const focusNextMapWithThrottle = throttle(focusNextMap, focusDelay)
-
-  const originalKeyDown = document.onkeydown
-  document.onkeydown = (e) => {
-    const event = originalKeyDown(e)
-    if (!event) return
-
-    // Switch to next layout
-    if (event.key === 'x' && container.querySelector('.map-container')) {
-      e.preventDefault()
-      switchToNextLayout()
-    }
-
-    // Use Tab to change focus map
-    if (event.key === 'Tab') {
-      e.preventDefault()
-      focusNextMapWithThrottle(event.shiftKey)
-    }
-  }
-
   // observe layout change
   const layoutObserver = new MutationObserver((mutations) => {
     const mutation = mutations.at(-1)
@@ -358,7 +346,9 @@ export const generateMaps = async (container, callback) => {
     }
 
     Object.values(dumbymap)
-      .flat()
+      .filter(e => e instanceof HTMLElement)
+      .forEach(e => e.removeAttribute('style'))
+    dumbymap.blocks
       .forEach(e => e.removeAttribute('style'))
 
     if (newLayout) {
@@ -386,6 +376,8 @@ export const generateMaps = async (container, callback) => {
   // Render Maps {{{
 
   const afterEachMapLoaded = (mapContainer) => {
+    renderedMaps.push(mapContainer)
+    renderedMaps.sort((a, b) => mapIdList.indexOf(a.id) - mapIdList.indexOf(b.id))
     mapContainer.setAttribute('tabindex', "-1")
 
     const observer = mapFocusObserver()
@@ -454,12 +446,11 @@ export const generateMaps = async (container, callback) => {
         })
     })
 
-  const renderAllTargets = Promise.all(renderTargets)
+  Promise.all(renderTargets)
     .then(() => {
       console.info('Finish Rendering')
 
       const maps = htmlHolder.querySelectorAll('.map-container') ?? []
-      focusNextMap()
       Array.from(maps)
         .forEach(ele => {
           callback(ele)
@@ -479,5 +470,5 @@ export const generateMaps = async (container, callback) => {
     })
 
   //}}}
-  return renderAllTargets
+  return dumbymap
 }

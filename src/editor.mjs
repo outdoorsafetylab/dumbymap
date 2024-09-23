@@ -8,6 +8,7 @@ import { createDocLinks } from './dumbymap.mjs'
 
 const HtmlContainer = document.querySelector(".DumbyMap")
 const textArea = document.querySelector(".editor textarea")
+let dumbymap
 
 const toggleEditing = () => {
   if (document.body.getAttribute("data-mode") === "editing") {
@@ -152,7 +153,7 @@ const debounceForMap = (() => {
   return function(...args) {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      generateMaps.apply(this, args)
+      dumbymap = generateMaps.apply(this, args)
     }, 1000);
   }
 })()
@@ -548,10 +549,16 @@ document.onkeydown = (e) => {
     e.preventDefault()
     return null
   }
-  if (cm.hasFocus()) {
-    return null
-  } else {
-    return e
+  if (!cm.hasFocus()) {
+    e.preventDefault()
+    if (!dumbymap) return
+
+    if (e.key === 'Tab') {
+      dumbymap.utils.focusNextMap(e.shiftKey)
+    }
+    if (e.key === 'x') {
+      dumbymap.utils.switchToNextLayout()
+    }
   }
 }
 
