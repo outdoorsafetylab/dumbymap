@@ -307,6 +307,10 @@
   font-size: 0.8rem;
   pointer-events: auto;
 
+  &:has(pre:only-child [data-placeholder]:only-child) {
+    visibility: hidden;
+  }
+
   .dumby-block {
     overflow: auto;
     margin: 0;
