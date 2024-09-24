@@ -121,7 +121,7 @@
 
       background: white;
 
-      &[data-focus="true"] {
+      &.focus {
         border: 3px solid gray;
       }
     }
@@ -152,7 +152,7 @@
       top: 0;
     }
 
-    [data-focus="true"] {
+    .focus {
       z-index: 1;
     }
   }

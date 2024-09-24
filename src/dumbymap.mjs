@@ -147,18 +147,18 @@ function focusNextMap(reverse = false) {
   if (mapNum === 0) return
 
   // Get current focused map element
-  const currentFocus = this.container.querySelector('.map-container[data-focus]')
+  const currentFocus = this.container.querySelector('.map-container.focus')
 
   // Remove class name of focus for ALL candidates
   // This may trigger animation
-  renderedList.forEach(ele => ele.removeAttribute('data-focus'))
+  renderedList.forEach(ele => ele.classList.remove('focus'))
 
   // Get next existing map element
   const padding = reverse ? -1 : 1
   let nextIndex = currentFocus ? renderedList.indexOf(currentFocus) + padding : 0
   nextIndex = (nextIndex + mapNum) % mapNum
   const nextFocus = renderedList[nextIndex]
-  nextFocus.setAttribute('data-focus', "true")
+  nextFocus.classList.add("focus")
 
   return nextFocus
 }
@@ -210,6 +210,7 @@ export const generateMaps = (container, callback) => {
   dumbymap.utils = {
     focusNextMap: throttle(focusNextMap.bind(dumbymap), focusDelay.bind(dumbymap)),
     switchToNextLayout: throttle(switchToNextLayout.bind(dumbymap), 300),
+    focusNextBlock: focusNextBlock.bind(dumbymap),
   }
 
   // LeaderLine {{{
@@ -301,7 +302,7 @@ export const generateMaps = (container, callback) => {
   const mapFocusObserver = () => new MutationObserver((mutations) => {
     const mutation = mutations.at(-1)
     const target = mutation.target
-    const focus = target.getAttribute(mutation.attributeName) === 'true'
+    const focus = target.getAttribute(mutation.attributeName).includes('focus')
     const shouldBeInShowcase = focus && showcase.checkVisibility({
       contentVisibilityAuto: true,
       opacityProperty: true,
@@ -314,7 +315,7 @@ export const generateMaps = (container, callback) => {
       // Placeholder for map in Showcase, it should has the same DOMRect
       const placeholder = target.cloneNode(true)
       placeholder.removeAttribute('id')
-      placeholder.classList.remove('map-container', 'data-focus')
+      placeholder.classList.remove('map-container', 'focus')
       target.parentElement.replaceChild(placeholder, target)
 
       // HACK Trigger CSS transition, if placeholde is the olny chil element in block,
@@ -383,9 +384,9 @@ export const generateMaps = (container, callback) => {
 
     // Since layout change may show/hide showcase, the current focused map should do something
     // Reset attribute triggers MutationObserver which is observing it
-    const focusMap = container.querySelector('.map-container[data-focus=true]')
+    const focusMap = container.querySelector('.map-container.focus')
       ?? container.querySelector('.map-container')
-    focusMap?.setAttribute('data-focus', 'true')
+    focusMap?.classList?.add('focus')
   });
   layoutObserver.observe(container, {
     attributes: true,
@@ -408,7 +409,7 @@ export const generateMaps = (container, callback) => {
     const observer = mapFocusObserver()
     mapFocusObserver().observe(mapContainer, {
       attributes: true,
-      attributeFilter: ["data-focus"],
+      attributeFilter: ["class"],
       attributeOldValue: true
     });
     onRemove(mapContainer, () => observer.disconnect())
