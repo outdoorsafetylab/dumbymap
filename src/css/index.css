@@ -45,10 +45,10 @@ body {
 .EasyMDEContainer {
   display: flex;
   box-sizing: border-box;
+  flex-direction: column;
   height: 100%;
   align-items: stretch;
   gap: 0.5em;
-  flex-direction: column;
 
   .CodeMirror {
     order: 1;

@@ -34,10 +34,12 @@
         "emptyLineBefore": "always",
         "noEmptyLineBetween": true,
         "properties": [
+          "content",
           "display",
-          "overflow",
           "box-sizing",
           "flex",
+          "flex-direction",
+          "overflow",
           "width",
           "height",
           "margin",
@@ -101,10 +103,10 @@
         "emptyLineBefore": "always",
         "noEmptyLineBetween": true,
         "properties": [
-          "transform",
-          "opacity",
           "transition",
+          "transform",
           "visibility",
+          "opacity",
           "cursor"
         ]
       }
