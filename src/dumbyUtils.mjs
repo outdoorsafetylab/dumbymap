@@ -49,7 +49,10 @@ export function focusNextBlock(reverse = false) {
   const nextBlock = blocks[nextIndex]
   blocks.forEach(b => b.classList.remove('focus'))
   nextBlock?.classList?.add('focus')
-  nextBlock.scrollIntoView({ behavior: 'smooth', block: "nearest" })
+  const scrollBlock = nextBlock.getBoundingClientRect().height > nextBlock.parentElement.getBoundingClientRect().height * 0.8
+    ? 'nearest'
+    : 'center'
+  nextBlock.scrollIntoView({ behavior: 'smooth', block: scrollBlock })
 }
 
 export function removeBlockFocus() {

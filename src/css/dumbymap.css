@@ -101,12 +101,17 @@
     left: 0.8rem;
 
     border-left: 0.5em solid #e0e0e0;
+    transition: border-color .5s linear;
   }
 
   &.focus {
-    background: var(--block-focus-color);
+    /* background: var(--block-focus-color); */
+    &::before {
+      border-color: chocolate;
+    }
 
     &::after {
+      z-index: 9999;
       content: counter(block) "/" attr(data-total);
       padding: .3rem .5rem;
 
@@ -126,7 +131,7 @@
       font-weight: bold;
 
       opacity: 0;
-      animation: 1s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+      animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
     }
   }
 }
@@ -400,9 +405,9 @@
       background: linear-gradient(0deg, rgb(255 255 255 / 0%), white 60%);
     }
 
-    &.focus::before {
-      background: linear-gradient(0deg, rgb(255 255 255 / 0%), var(--block-focus-color) 60%);
-    }
+    /* &.focus::before { */
+    /*   background: linear-gradient(0deg, rgb(255 255 255 / 0%), var(--block-focus-color) 60%); */
+    /* } */
 
     .map-container {
       min-width: 200px;
