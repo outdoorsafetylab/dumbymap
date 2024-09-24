@@ -1,6 +1,7 @@
 :root {
   --content-border: solid lightgray 2px;
   --content-border-radius: 5px;
+  --content-focus-border: solid gray 2px;
 }
 
 .editor {
@@ -27,6 +28,11 @@ body {
 
       border: var(--content-border);
       border-radius: var(--content-border-radius);
+
+      &.focus {
+        border: var(--content-focus-border);
+        outline: var(--content-focus-border);
+      }
     }
 
     .editor {
@@ -61,6 +67,11 @@ body {
 
     font-family: monospace;
     font-size: 1.0rem;
+
+    &.focus {
+      border: var(--content-focus-border);
+      outline: var(--content-focus-border);
+    }
 
     span {
       white-space: pre;

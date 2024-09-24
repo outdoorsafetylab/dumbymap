@@ -183,6 +183,12 @@ cm.on("change", (_, change) => {
   completeForCodeBlock(change)
 })
 
+// Set class for focus
+cm.on("focus", () => {
+  cm.getWrapperElement().classList.add('focus')
+  HtmlContainer.classList.remove('focus')
+})
+
 cm.on("beforeChange", (_, change) => {
   const line = change.to.line
   // Don't allow more content after YAML doc separator
@@ -507,6 +513,8 @@ cm.on("cursorActivity", (_) => {
 });
 cm.on("blur", () => {
   suggestionsEle.style.display = 'none'
+  cm.getWrapperElement().classList.remove('focus')
+  HtmlContainer.classList.add('focus')
 })
 // }}}
 // EVENT: keydown for suggestions {{{
