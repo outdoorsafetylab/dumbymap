@@ -1,6 +1,6 @@
 /*global EasyMDE*/
 /*eslint no-undef: "error"*/
-import { markdown2HTML, generateMaps, createDocLinks } from './dumbymap'
+import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import { Suggestion } from './MenuItem'
 
@@ -88,11 +88,17 @@ if (contentFromHash) {
   editor.cleanup()
   editor.value(contentFromHash)
 }
-
 // }}}
 // Set up logic about editor content {{{
+const afterMapRendered = (_) => {
+  // mapHolder.oncontextmenu = (event) => {
+  //   event.preventDefault()
+  //   const lonLat = mapHolder.renderer.unproject([event.x, event.y])
+  //   // TODO...
+  // }
+}
 markdown2HTML(HtmlContainer, editor.value())
-createDocLinks(HtmlContainer)
+dumbymap = generateMaps(HtmlContainer, afterMapRendered)
 
 // Quick hack to style lines inside code block
 const addClassToCodeLines = () => {
@@ -159,17 +165,8 @@ const debounceForMap = (() => {
   }
 })()
 
-const afterMapRendered = (_) => {
-  // mapHolder.oncontextmenu = (event) => {
-  //   event.preventDefault()
-  //   const lonLat = mapHolder.renderer.unproject([event.x, event.y])
-  //   // TODO...
-  // }
-}
-
 const updateDumbyMap = () => {
   markdown2HTML(HtmlContainer, editor.value())
-  createDocLinks(HtmlContainer)
   // TODO Test if generate maps intantly is OK with map cache
   // debounceForMap(HtmlContainer, afterMapRendered)
   dumbymap = generateMaps(HtmlContainer, afterMapRendered)

@@ -21,70 +21,69 @@ const mapCache = {}
 
 // FUNCTION: Get DocLinks from special anchor element {{{
 /**
- * CreateDocLinks.
+ * CreateDocLink.
  *
  * @param {HTMLElement} Elements contains anchor elements for doclinks
- * @returns {Array} List of doclinks just created
  */
-export const createDocLinks = (container) => Array.from(container.querySelectorAll(docLinkSelector))
-  .map(link => {
-    link.classList.add('with-leader-line', 'doclink')
-    link.lines = []
+export const createDocLink = (link) => {
+  link.classList.add('with-leader-line', 'doclink')
+  link.lines = []
 
-    link.onmouseover = () => {
-      const label = decodeURIComponent(link.href.split('#')[1])
-      const selector = link.title.split('=>')[1] ?? '#' + label
-      const target = document.querySelector(selector)
-      if (!target?.checkVisibility()) return
+  link.onmouseover = () => {
+    const label = decodeURIComponent(link.href.split('#')[1])
+    const selector = link.title.split('=>')[1] ?? '#' + label
+    const target = document.querySelector(selector)
+    if (!target?.checkVisibility()) return
 
-      const line = new LeaderLine({
-        start: link,
-        end: target,
-        middleLabel: LeaderLine.pathLabel({
-          text: label,
-          fontWeight: 'bold',
-        }),
-        hide: true,
-        path: "magnet"
-      })
-      link.lines.push(line)
-      line.show('draw', { duration: 300, })
-    }
-    link.onmouseout = () => {
-      link.lines.forEach(line => line.remove())
-      link.lines.length = 0
-    }
-
-    return link
-  })
+    const line = new LeaderLine({
+      start: link,
+      end: target,
+      middleLabel: LeaderLine.pathLabel({
+        text: label,
+        fontWeight: 'bold',
+      }),
+      hide: true,
+      path: "magnet"
+    })
+    link.lines.push(line)
+    line.show('draw', { duration: 300, })
+  }
+  link.onmouseout = () => {
+    link.lines.forEach(line => line.remove())
+    link.lines.length = 0
+  }
+}
 // }}}
 // FUNCTION: Get GeoLinks from special anchor element {{{
 /**
  * Create geolinks, which points to map by geo schema and id
  *
  * @param {HTMLElement} Elements contains anchor elements for doclinks
- * @returns {Array} List of doclinks just created
+ * @returns {Boolean} ture is link is created, false if coordinates are invalid
  */
-export const createGeoLinks = (container, callback) => Array.from(container.querySelectorAll(geoLinkSelector))
-  .filter(link => {
-    const url = new URL(link.href)
-    const xy = url?.href?.match(/^geo:([0-9.,]+)/)?.at(1)?.split(',')?.reverse()?.map(Number)
+export const createGeoLink = (link, callback = null) => {
+  const url = new URL(link.href)
+  const xyInParams = url.searchParams.get('xy')
+  const xy = xyInParams
+    ? xyInParams.split(',')?.map(Number)
+    : url?.href?.match(/^geo:([0-9.,]+)/)?.at(1)?.split(',')?.reverse()?.map(Number)
 
-    if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false
+  if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false
 
-    // Geo information in link
-    link.url = url
-    link.xy = xy
-    link.classList.add('with-leader-line', 'geolink')
-    link.targets = link.url.searchParams.get('id')?.split(',') ?? null
+  // Geo information in link
+  link.url = url
+  link.xy = xy
+  link.classList.add('with-leader-line', 'geolink')
+  link.targets = link.url.searchParams.get('id')?.split(',') ?? null
 
-    // LeaderLine
-    link.lines = []
-    callback(link)
+  // LeaderLine
+  link.lines = []
+  callback?.call(this, link)
 
-    return true
-  })
+  return true
+}
 // }}}
+
 export const markdown2HTML = (container, mdContent) => {
   // Render: Markdown -> HTML {{{
   Array.from(container.children).map(e => e.remove())
@@ -171,9 +170,12 @@ export const generateMaps = (container, callback) => {
 
   // LeaderLine {{{
 
+  Array.from(container.querySelectorAll(docLinkSelector))
+    .filter(createDocLink)
+
   // Get anchors with "geo:" scheme
   htmlHolder.anchors = []
-  const geoLinks = createGeoLinks(htmlHolder, (link) => {
+  const geoLinkCallback = (link) => {
     link.onmouseover = () => addLeaderLines(link)
     link.onmouseout = () => removeLeaderLines(link)
     link.onclick = (event) => {
@@ -184,7 +186,9 @@ export const generateMaps = (container, callback) => {
       // TODO Just hide leader line and show it again
       removeLeaderLines(link)
     }
-  })
+  }
+  const geoLinks = Array.from(container.querySelectorAll(geoLinkSelector))
+    .filter(l => createGeoLink(l, geoLinkCallback))
 
   const isAnchorPointedBy = (link) => (anchor) => {
     const mapContainer = anchor.closest('.map-container')
