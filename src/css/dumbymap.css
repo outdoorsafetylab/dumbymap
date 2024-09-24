@@ -325,10 +325,6 @@
   font-size: 0.8rem;
   pointer-events: auto;
 
-  p:first-child {
-    margin-top: 0;
-  }
-
   &:has(.dumby-block.focus) {
     outline: solid #505050 1px;
     border-color: #505050
