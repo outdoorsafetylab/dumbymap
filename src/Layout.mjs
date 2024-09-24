@@ -123,7 +123,6 @@ export class Overlay extends Layout {
   }
 
   enterHandler = ({ htmlHolder, blocks }) => {
-
     // FIXME It is weird rect from this method and this scope are different...
     blocks.forEach(this.saveLeftTopAsData)
 
@@ -144,10 +143,11 @@ export class Overlay extends Layout {
         </div>
       `
 
+      // Set DOMRect for wrapper
       wrapper.appendChild(block)
-      htmlHolder.appendChild(wrapper)
       wrapper.style.left = left + "px"
       wrapper.style.top = top + "px"
+      htmlHolder.appendChild(wrapper)
       const { width } = wrapper.getBoundingClientRect()
       left += width + 30
       if (left > window.innerWidth) {
@@ -155,10 +155,11 @@ export class Overlay extends Layout {
         left = left % window.innerWidth
       }
 
+      // Animation for DOMRect
       animateRectTransition(
         wrapper,
         { left: originLeft, top: originTop },
-        { resume: true, duration: 500 }
+        { resume: true, duration: 300 }
       )
         .finished
         .finally(() => this.addDraggable(wrapper))

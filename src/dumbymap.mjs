@@ -274,9 +274,10 @@ export const generateMaps = (container, callback) => {
       placeholder.classList.remove('map-container', 'focus')
       target.parentElement.replaceChild(placeholder, target)
 
-      // HACK Trigger CSS transition, if placeholde is the olny chil element in block,
+      // FIXME Maybe use @start-style for CSS
+      // Trigger CSS transition, if placeholde is the olny chil element in block,
       // reduce its height to zero.
-      // To make sure the original height of placeholder is applied, callBoundingClientRect() seems work(Why?).
+      // To make sure the original height of placeholder is applied, DOM changes seems needed
       // then set data-attribute for CSS selector to change height to 0
       placeholder.getBoundingClientRect()
       placeholder.setAttribute('data-placeholder', target.id)

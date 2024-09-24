@@ -57,7 +57,7 @@ export const animateRectTransition = (element, rect, options = {}) => {
   return element.animate(
     keyframes,
     {
-      duration: options.duration ?? 300,
+      duration: options.duration ?? 500,
       easing: 'ease-in-out',
     }
   );

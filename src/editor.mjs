@@ -151,10 +151,11 @@ const debounceForMap = (() => {
   let timer = null;
 
   return function(...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
       dumbymap = generateMaps.apply(this, args)
-    }, 1000);
+    // clearTimeout(timer);
+    // timer = setTimeout(() => {
+    //   dumbymap = generateMaps.apply(this, args)
+    // }, 10);
   }
 })()
 
@@ -542,9 +543,9 @@ document.onkeydown = (e) => {
       e.preventDefault()
       dumbymap.utils.focusNextMap(e.shiftKey)
     }
-    if (e.key === 'x') {
+    if (e.key === 'x' || e.key === 'X') {
       e.preventDefault()
-      dumbymap.utils.switchToNextLayout()
+      dumbymap.utils.switchToNextLayout(e.shiftKey)
     }
     if (e.key === 'n') {
       e.preventDefault()
@@ -563,6 +564,7 @@ document.onkeydown = (e) => {
 
 // }}}
 // }}}
+// Layout Switch {{{
 const layoutObserver = new MutationObserver(() => {
   const layout = HtmlContainer.getAttribute('data-layout')
   if (layout !== 'normal') {
@@ -575,5 +577,6 @@ layoutObserver.observe(HtmlContainer, {
   attributeFilter: ["data-layout"],
   attributeOldValue: true
 });
+// }}}
 
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
