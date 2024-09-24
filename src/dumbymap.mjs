@@ -175,6 +175,22 @@ function switchToNextLayout(reverse = false) {
   this.container.setAttribute("data-layout", nextLayout.name)
 }
 
+function focusNextBlock(reverse = false) {
+  const blocks = this.blocks.filter(b=>b.checkVisibility({
+    contentVisibilityAuto: true,
+    opacityProperty: true,
+    visibilityProperty: true,
+  }))
+  const currentBlock = blocks.find(b=>b.classList.contains('focus'))
+  const currentIndex = blocks.indexOf(currentBlock)
+  const padding = reverse ? -1 : 1
+  const nextIndex = currentIndex === -1 ? 0 : (currentIndex + padding + blocks.length) % blocks.length
+  const nextBlock = blocks[nextIndex]
+  blocks.forEach(b=>b.classList.remove('focus'))
+  nextBlock?.classList?.add('focus')
+  nextBlock.scrollIntoView({behavior: 'smooth', block: "nearest"})
+}
+
 export const generateMaps = (container, callback) => {
   container.classList.add('Dumby')
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container

@@ -552,14 +552,23 @@ document.onkeydown = (e) => {
     return null
   }
   if (!cm.hasFocus()) {
-    e.preventDefault()
     if (!dumbymap) return
 
     if (e.key === 'Tab') {
+      e.preventDefault()
       dumbymap.utils.focusNextMap(e.shiftKey)
     }
     if (e.key === 'x') {
+      e.preventDefault()
       dumbymap.utils.switchToNextLayout()
+    }
+    if (e.key === 'n') {
+      e.preventDefault()
+      dumbymap.utils.focusNextBlock()
+    }
+    if (e.key === 'p') {
+      e.preventDefault()
+      dumbymap.utils.focusNextBlock(true)
     }
   }
 }
