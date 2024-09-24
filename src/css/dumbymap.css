@@ -311,7 +311,7 @@
   pointer-events: auto;
 
   &:has(pre:only-child [data-placeholder]:only-child) {
-    visibility: hidden;
+    display: none;
   }
 
   .dumby-block {
@@ -320,7 +320,8 @@
 
     position: relative;
 
-    border: none;
+    border: solid transparent 3px;
+    border-radius: 0.5rem;
     resize: both;
     min-width: 5rem;
     max-width: 25vw;
