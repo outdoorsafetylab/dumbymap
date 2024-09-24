@@ -570,6 +570,10 @@ document.onkeydown = (e) => {
       e.preventDefault()
       dumbymap.utils.focusNextBlock(true)
     }
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      dumbymap.utils.removeBlockFocus()
+    }
   }
 }
 

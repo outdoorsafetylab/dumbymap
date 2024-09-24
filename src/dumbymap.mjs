@@ -191,6 +191,10 @@ function focusNextBlock(reverse = false) {
   nextBlock.scrollIntoView({behavior: 'smooth', block: "nearest"})
 }
 
+function removeBlockFocus() {
+  this.blocks.forEach(b=>b.classList.remove('focus'))
+}
+
 export const generateMaps = (container, callback) => {
   container.classList.add('Dumby')
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
@@ -211,6 +215,7 @@ export const generateMaps = (container, callback) => {
     focusNextMap: throttle(focusNextMap.bind(dumbymap), focusDelay.bind(dumbymap)),
     switchToNextLayout: throttle(switchToNextLayout.bind(dumbymap), 300),
     focusNextBlock: focusNextBlock.bind(dumbymap),
+    removeBlockFocus: removeBlockFocus.bind(dumbymap),
   }
 
   // LeaderLine {{{
