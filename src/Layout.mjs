@@ -61,9 +61,15 @@ export class Overlay extends Layout {
   addDraggable = (element) => {
     // Make sure current element always on top
     const siblings = Array.from(element.parentElement?.querySelectorAll(':scope > *') ?? [])
+    let popTimer = null
     element.onmouseover = () => {
-      siblings.forEach(e => e.style.removeProperty('z-index'))
-      element.style.zIndex = '9000'
+      popTimer = setTimeout(() => {
+        siblings.forEach(e => e.style.removeProperty('z-index'))
+        element.style.zIndex = '9000'
+      }, 200)
+    }
+    element.onmouseout = () => {
+      clearTimeout(popTimer)
     }
 
     // Add draggable part
