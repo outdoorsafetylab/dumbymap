@@ -144,7 +144,6 @@
 
   position: relative;
   overflow-x: auto;
-  padding-block: 1em;
 
   .SemanticHtml {
     display: flex;
@@ -303,7 +302,7 @@
 
   position: absolute;
   left: 100%;
-  top: calc(0% - 2rem);
+  top: calc(-1rem - 3px);
 
   font-size: 1.5rem;
 
@@ -366,8 +365,24 @@
     display: none;
   }
 
+  &::before {
+    content: '';
+    display: block;
+    height: 1.5rem;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    border: none;
+
+    z-index: 1;
+    background: linear-gradient(0deg, rgb(255 255 255 / 0%), white 60%);
+  }
+
   .dumby-block {
-    overflow: auto;
+    overflow: scroll;
     margin: 0;
 
     position: relative;
@@ -380,7 +395,11 @@
     min-height: 5rem;
     max-height: 50vh;
     padding-inline: 1rem;
-    padding-block: 0;
+    padding-block: 1rem 0;
+
+    &::before {
+      display: none;
+    }
 
     /* allow random width/height after resize */
     &[style*="height"],
@@ -390,20 +409,6 @@
     }
 
     /* gray out top of content, make draggable part easy to be seen */
-
-    &::before {
-      content: '';
-      display: block;
-      width: 120%;
-      height: 1.5rem;
-
-      position: sticky;
-      top: 0;
-
-      border: none;
-
-      background: linear-gradient(0deg, rgb(255 255 255 / 0%), white 60%);
-    }
 
     /* &.focus::before { */
     /*   background: linear-gradient(0deg, rgb(255 255 255 / 0%), var(--block-focus-color) 60%); */
