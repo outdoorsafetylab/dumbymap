@@ -1,6 +1,6 @@
 /*global EasyMDE*/
 /*eslint no-undef: "error"*/
-import { markdown2HTML, generateMaps } from './dumbymap'
+import { markdown2HTML, generateMaps, createGeoLink } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import { Suggestion } from './MenuItem'
 
@@ -574,6 +574,55 @@ layoutObserver.observe(HtmlContainer, {
   attributeFilter: ["data-layout"],
   attributeOldValue: true
 });
+// }}}
+// ContextMenu {{{
+const addGeoLinkbyRange = (range) => {
+  const content = range.toString()
+  const match = content.match(/(^\D*[\d\.]+)\D+([\d\.]+)\D*$/)
+  // TODO add more suggestion
+  if (!match) return false
+
+  const [x, y] = match.slice(1)
+  const anchor = document.createElement('a')
+  anchor.textContent = content
+  // FIXME apply WGS84
+  anchor.href = `geo:${y},${x}?xy=${x},${y}`
+
+  if (createGeoLink(anchor)) {
+    range.deleteContents()
+    range.insertNode(anchor)
+  }
+
+}
+document.oncontextmenu = (e) => {
+  const selection = document.getSelection()
+  const range = selection.getRangeAt(0)
+  if (!cm.hasFocus() && selection) {
+    e.preventDefault()
+    menu.innerHTML = ''
+    menu.style.cssText = `display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px; width: 100px; height: 100px;`
+    menu.innerHTML = '<div style="cursor: pointer;">Create Geo-Link</div>'
+    menu.firstChild.onclick = () => {
+      // menu.style.display = 'none'
+      addGeoLinkbyRange(range)
+    }
+  }
+}
+
+const actionOutsideMenu = (e) => {
+  if (menu.style.display === 'none' || cm.hasFocus()) return
+  const rect = menu.getBoundingClientRect()
+  if (e.clientX < rect.left
+    || e.clientX > rect.left + rect.width
+    || e.clientY < rect.top
+    || e.clientY > rect.top + rect.height
+  ) {
+    menu.style.display = 'none'
+  }
+}
+
+document.addEventListener('click', actionOutsideMenu)
+
 // }}}
 
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
