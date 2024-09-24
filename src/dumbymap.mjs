@@ -7,6 +7,7 @@ import LeaderLine from 'leader-line'
 import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import { onRemove, animateRectTransition, throttle } from './utils'
 import { Layout, SideBySide, Overlay } from './Layout'
+import * as utils from './dumbyUtils'
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
 const geoLinkSelector = 'a[href^="geo:"]'
@@ -140,64 +141,6 @@ export const markdown2HTML = (container, mdContent) => {
   return container
   //}}}
 }
-// FIXME Don't use hard-coded CSS selector
-// TODO Use UI to switch layouts
-function focusNextMap(reverse = false) {
-  const renderedList = this.renderMaps
-    .map(render => render.target)
-    .filter(ele => ele.getAttribute('data-state') === 'rendered')
-  const mapNum = renderedList.length
-  if (mapNum === 0) return
-
-  // Get current focused map element
-  const currentFocus = this.container.querySelector('.map-container.focus')
-
-  // Remove class name of focus for ALL candidates
-  // This may trigger animation
-  renderedList.forEach(ele => ele.classList.remove('focus'))
-
-  // Get next existing map element
-  const padding = reverse ? -1 : 1
-  let nextIndex = currentFocus ? renderedList.indexOf(currentFocus) + padding : 0
-  nextIndex = (nextIndex + mapNum) % mapNum
-  const nextFocus = renderedList[nextIndex]
-  nextFocus.classList.add("focus")
-
-  return nextFocus
-}
-function focusDelay() {
-  return window.getComputedStyle(this.showcase).display === 'none' ? 50 : 300
-}
-
-function switchToNextLayout(reverse = false) {
-  const currentLayoutName = this.container.getAttribute('data-layout')
-  const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
-  const padding = reverse ? -1 : 1
-  const nextIndex = currentIndex === -1 ? 0 : (currentIndex + padding + layouts.length) % layouts.length
-  const nextLayout = layouts[nextIndex]
-  this.container.setAttribute("data-layout", nextLayout.name)
-}
-
-function focusNextBlock(reverse = false) {
-  const blocks = this.blocks.filter(b => b.checkVisibility({
-    contentVisibilityAuto: true,
-    opacityProperty: true,
-    visibilityProperty: true,
-  }))
-  const currentBlock = blocks.find(b => b.classList.contains('focus'))
-  const currentIndex = blocks.indexOf(currentBlock)
-  const padding = reverse ? -1 : 1
-  const nextIndex = currentIndex === -1 ? 0 : (currentIndex + padding + blocks.length) % blocks.length
-  const nextBlock = blocks[nextIndex]
-  blocks.forEach(b => b.classList.remove('focus'))
-  nextBlock?.classList?.add('focus')
-  nextBlock.scrollIntoView({ behavior: 'smooth', block: "nearest" })
-}
-
-function removeBlockFocus() {
-  this.blocks.forEach(b => b.classList.remove('focus'))
-}
-
 export const generateMaps = (container, callback) => {
   container.classList.add('Dumby')
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
@@ -208,18 +151,23 @@ export const generateMaps = (container, callback) => {
   const renderMaps = []
 
   const dumbymap = {
+    layouts,
     container,
     htmlHolder,
     showcase,
     blocks,
     renderMaps: renderMaps,
+    utils: {
+      focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
+      switchToNextLayout: throttle(utils.switchToNextLayout, 300),
+      focusNextBlock: utils.focusNextBlock,
+      removeBlockFocus: utils.removeBlockFocus,
+    }
   }
-  dumbymap.utils = {
-    focusNextMap: throttle(focusNextMap.bind(dumbymap), focusDelay.bind(dumbymap)),
-    switchToNextLayout: throttle(switchToNextLayout.bind(dumbymap), 300),
-    focusNextBlock: focusNextBlock.bind(dumbymap),
-    removeBlockFocus: removeBlockFocus.bind(dumbymap),
-  }
+  Object.entries(dumbymap.utils)
+    .forEach(([util, func]) => {
+      dumbymap.utils[util] = func.bind(dumbymap)
+    })
 
   // LeaderLine {{{
 

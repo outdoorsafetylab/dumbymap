@@ -74,14 +74,15 @@ export const animateRectTransition = (element, rect, options = {}) => {
 export function throttle(func, delay) {
   let timerFlag = null;
 
-  return (...args) => {
+  return function(...args) {
+    const context = this
     if (timerFlag !== null) return null
 
     timerFlag = setTimeout(
       () => timerFlag = null,
-      typeof delay === 'function' ? delay() : delay
+      typeof delay === 'function' ? delay.call(context) : delay
     );
 
-    return func(...args);
+    return func.call(context, ...args);
   };
 }
