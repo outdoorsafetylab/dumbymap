@@ -559,9 +559,12 @@ document.onkeydown = (e) => {
     e.preventDefault()
     return null
   }
-  if (!cm.hasFocus()) {
-    if (!dumbymap) return
 
+  if (!cm.hasFocus()) {
+    if (e.key === 'F1') {
+      e.preventDefault()
+      cm.focus()
+    }
     if (e.key === 'Tab') {
       e.preventDefault()
       dumbymap.utils.focusNextMap(e.shiftKey)
