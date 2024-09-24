@@ -131,8 +131,11 @@ export const markdown2HTML = (container, mdContent) => {
   htmlHolder.innerHTML = md.render(contentWithToc);
 
   // TODO Do this in markdown-it
-  htmlHolder.querySelectorAll(':scope > div:not(:has(nav))')
-    .forEach(b => b.classList.add('dumby-block'))
+  const blocks = htmlHolder.querySelectorAll(':scope > div:not(:has(nav))')
+  blocks.forEach(b => {
+    b.classList.add('dumby-block')
+    b.setAttribute('data-total', blocks.length)
+  })
 
   return container
   //}}}

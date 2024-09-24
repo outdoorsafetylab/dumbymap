@@ -1,5 +1,6 @@
 .Dumby {
   --block-focus-color: lightyellow;
+  counter-reset: block;
 }
 
 [class^="leader-line"] {
@@ -13,7 +14,7 @@
 
 @keyframes fade-out {
   from { opacity: 1; }
-  to { opacity: 0; }
+  to { opacity: 0; visibility: hidden; }
 }
 
 @keyframes map-fade-in {
@@ -90,11 +91,13 @@
 
   position: relative;
 
+  counter-increment: block;
+
   &::before {
     content: "";
     height: calc(100% - 2rem);
-
     position: absolute;
+
     left: 0.8rem;
 
     border-left: 0.5em solid #e0e0e0;
@@ -102,6 +105,29 @@
 
   &.focus {
     background: var(--block-focus-color);
+
+    &::after {
+      content: counter(block) "/" attr(data-total);
+      padding: .3rem .5rem;
+
+      position: absolute;
+      left: 0;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+
+      border: solid transparent;
+      border-radius: 5px;
+
+      background: gray;
+
+      color: white;
+      font-size: 1.5em;
+      font-weight: bold;
+
+      opacity: 0;
+      animation: 1s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+    }
   }
 }
 
