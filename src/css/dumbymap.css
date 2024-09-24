@@ -372,6 +372,7 @@
     .handle {
       font-size: 1.1rem;
       text-align: center;
+    background: white;
 
       transform: translate(0, -0.6rem);
       transition: all 0.3s ease-in-out;
@@ -399,7 +400,7 @@
 
     .utils {
       visibility: visible;
-      animation: fade-in 1s;
+      animation: fade-in .5s;
     }
 
   }
