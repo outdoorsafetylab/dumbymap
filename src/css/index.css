@@ -106,14 +106,14 @@ body {
   }
 }
 
-.container__suggestions {
+#menu {
   display: none;
   width: fit-content;
 
   position: absolute;
   z-index: 100;
 
-  border: 2px solid lightgray;
+  border: 2px solid gray;
   border-radius: 0.5rem;
 
   background: white;

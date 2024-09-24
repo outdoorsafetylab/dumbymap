@@ -1,8 +1,8 @@
 /*global EasyMDE*/
 /*eslint no-undef: "error"*/
-import { markdown2HTML, generateMaps } from './dumbymap'
+import { markdown2HTML, generateMaps, createDocLinks } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
-import { createDocLinks } from './dumbymap.mjs'
+import { Suggestion } from './MenuItem'
 
 // Set up Containers {{{
 
@@ -214,18 +214,13 @@ window.onhashchange = () => {
 // }}}
 // Completion in Code Blok {{{
 // Elements about suggestions {{{
-const suggestionsEle = document.createElement('div')
-suggestionsEle.classList.add('container__suggestions');
-document.body.append(suggestionsEle)
+const menu = document.createElement('div')
+menu.id = 'menu'
+menu.onclick = () => menu.style.display = 'none'
+document.body.append(menu)
 
 const rendererOptions = {}
 
-class Suggestion {
-  constructor({ text, replace }) {
-    this.text = text
-    this.replace = replace
-  }
-}
 // }}}
 // Aliases for map options {{{
 const aliasesForMapOptions = {}
@@ -460,51 +455,29 @@ const getSuggestions = (anchor) => {
 const addSuggestions = (anchor, suggestions) => {
 
   if (suggestions.length === 0) {
-    suggestionsEle.style.display = 'none';
+    menu.style.display = 'none';
     return
   } else {
-    suggestionsEle.style.display = 'block';
+    menu.style.display = 'block';
   }
 
-  suggestionsEle.innerHTML = ''
-  suggestions.forEach((suggestion) => {
-    const option = document.createElement('div');
-    if (suggestion.text.startsWith('<')) {
-      option.innerHTML = suggestion.text;
-    } else {
-      option.innerText = suggestion.text;
-    }
-    option.classList.add('container__suggestion');
-    option.onmouseover = () => {
-      Array.from(suggestionsEle.children).forEach(s => s.classList.remove('focus'))
-      option.classList.add('focus')
-    }
-    option.onmouseout = () => {
-      option.classList.remove('focus')
-    }
-    option.onclick = () => {
-      cm.setSelection(anchor, { ...anchor, ch: 0 })
-      cm.replaceSelection(suggestion.replace)
-      cm.focus();
-      const newAnchor = { ...anchor, ch: suggestion.replace.length }
-      cm.setCursor(newAnchor);
-    };
-    suggestionsEle.appendChild(option);
-  });
+  menu.innerHTML = ''
+  suggestions
+    .map(s => s.createElement(cm))
+    .forEach(option => menu.appendChild(option))
 
   const widgetAnchor = document.createElement('div')
   cm.addWidget(anchor, widgetAnchor, true)
   const rect = widgetAnchor.getBoundingClientRect()
-  suggestionsEle.style.left = `calc(${rect.left}px + 2rem)`;
-  suggestionsEle.style.top = `calc(${rect.bottom}px + 1rem)`;
-  suggestionsEle.style.maxWidth = `calc(${window.innerWidth}px - ${rect.x}px - 3rem)`;
-  suggestionsEle.style.display = 'block'
+  menu.style.left = `calc(${rect.left}px + 2rem)`;
+  menu.style.top = `calc(${rect.bottom}px + 1rem)`;
+  menu.style.maxWidth = `calc(${window.innerWidth}px - ${rect.x}px - 3rem)`;
+  menu.style.display = 'block'
 }
 // }}}
 // EVENT: Suggests for current selection {{{
 // FIXME Dont show suggestion when selecting multiple chars
 cm.on("cursorActivity", (_) => {
-  suggestionsEle.style.display = 'none'
   const anchor = cm.getCursor()
 
   if (insideCodeblockForMap(anchor)) {
@@ -512,7 +485,7 @@ cm.on("cursorActivity", (_) => {
   }
 });
 cm.on("blur", () => {
-  suggestionsEle.style.display = 'none'
+  menu.style.display = 'none'
   cm.getWrapperElement().classList.remove('focus')
   HtmlContainer.classList.add('focus')
 })
@@ -520,25 +493,25 @@ cm.on("blur", () => {
 // EVENT: keydown for suggestions {{{
 const keyForSuggestions = ['Tab', 'Enter', 'Escape']
 cm.on('keydown', (_, e) => {
-  if (!cm.hasFocus || !keyForSuggestions.includes(e.key) || suggestionsEle.style.display === 'none') return;
+  if (!cm.hasFocus || !keyForSuggestions.includes(e.key) || menu.style.display === 'none') return;
 
   // Directly add a newline when no suggestion is selected
-  const currentSuggestion = suggestionsEle.querySelector('.container__suggestion.focus')
+  const currentSuggestion = menu.querySelector('.container__suggestion.focus')
   if (!currentSuggestion && e.key === 'Enter') return
 
   // Override default behavior
   e.preventDefault();
 
   // Suggestion when pressing Tab or Shift + Tab
-  const nextSuggestion = currentSuggestion?.nextSibling ?? suggestionsEle.querySelector('.container__suggestion:first-child')
-  const previousSuggestion = currentSuggestion?.previousSibling ?? suggestionsEle.querySelector('.container__suggestion:last-child')
+  const nextSuggestion = currentSuggestion?.nextSibling ?? menu.querySelector('.container__suggestion:first-child')
+  const previousSuggestion = currentSuggestion?.previousSibling ?? menu.querySelector('.container__suggestion:last-child')
   const focusSuggestion = e.shiftKey ? previousSuggestion : nextSuggestion
 
   // Current editor selection state
   const anchor = cm.getCursor()
   switch (e.key) {
     case 'Tab':
-      Array.from(suggestionsEle.children).forEach(s => s.classList.remove('focus'))
+      Array.from(menu.children).forEach(s => s.classList.remove('focus'))
       focusSuggestion.classList.add('focus')
       focusSuggestion.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       break;
@@ -546,7 +519,7 @@ cm.on('keydown', (_, e) => {
       currentSuggestion.onclick()
       break;
     case 'Escape':
-      suggestionsEle.style.display = 'none';
+      menu.style.display = 'none';
       // Focus editor again
       setTimeout(() => cm.focus() && cm.setCursor(anchor), 100)
       break;
