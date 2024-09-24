@@ -87,6 +87,10 @@
 
   border-left: #f0f0f0 0.5em solid;
   margin-bottom: 3rem;
+
+  &.focus {
+    background: lightyellow;
+  }
 }
 
 .Dumby {
