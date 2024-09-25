@@ -65,7 +65,7 @@ export class Overlay extends Layout {
     element.onmouseover = () => {
       popTimer = setTimeout(() => {
         siblings.forEach(e => e.style.removeProperty('z-index'))
-        element.style.zIndex = '9000'
+        element.style.zIndex = '9001'
       }, 200)
     }
     element.onmouseout = () => {

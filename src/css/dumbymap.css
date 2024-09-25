@@ -14,7 +14,7 @@
 
 @keyframes fade-out {
   from { opacity: 1; }
-  to { opacity: 0; visibility: hidden; }
+  to { visibility: hidden; opacity: 0; }
 }
 
 @keyframes map-fade-in {
@@ -28,7 +28,32 @@
 }
 
 .map-container {
+  position: relative;
   transform-origin: top left;
+
+  &.focus::after {
+    content: "Map-ID: " attr(id);
+    padding: .3rem .5rem;
+
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 9999;
+
+    border: solid transparent;
+    border-radius: 5px;
+
+    background: gray;
+
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    line-height: 1.2;
+
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+  }
 }
 
 .with-leader-line:not(:has(> *)) {
@@ -96,30 +121,32 @@
   &::before {
     content: "";
     height: calc(100% - 2rem);
-    position: absolute;
 
+    position: absolute;
     left: 0.8rem;
 
     border-left: 0.5em solid #e0e0e0;
+
     transition: border-color .5s linear;
   }
 
   &.focus {
+
+    /* Dress up when block is focus */
+
     /* background: var(--block-focus-color); */
     &::before {
       border-color: chocolate;
     }
 
     &::after {
-      z-index: 9999;
       content: counter(block) "/" attr(data-total);
       padding: .3rem .5rem;
 
       position: absolute;
-      left: 0;
-      top: 10px;
       left: 50%;
-      transform: translateX(-50%);
+      top: 50%;
+      z-index: 9999;
 
       border: solid transparent;
       border-radius: 5px;
@@ -130,6 +157,7 @@
       font-size: 1.5em;
       font-weight: bold;
 
+      transform: translate(-50%, -50%);
       opacity: 0;
       animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
     }
@@ -152,23 +180,18 @@
     overflow-y: auto;
     gap: 1rem;
 
-    pre {
-      width: 100%;
+    justify-content: flex-start;
 
-      &:has(.map-container) {
-        display: flex;
-        justify-content: flex-start;
+    :has(.map-container, [data-placeholder]) {
+      display: flex;
+      gap: 0.5em;
 
-        background-color: inherit;
-      }
+      background-color: white;
     }
 
+    /* if Map not in showcase, add border when focused */
     .map-container {
-      margin: 2px;
-
       border: 3px solid transparent;
-
-      background: white;
 
       &.focus {
         border: 3px solid gray;
@@ -176,12 +199,13 @@
     }
 
     [data-placeholder] {
-      margin: 2px;
-
       border: 3px solid gray;
+      flex-grow: 0;
 
-      opacity: 0.3;
-      animation: map-fade-out 1s;
+      & > * {
+        opacity: 0.3;
+      }
+      /* animation: map-fade-out 1s; */
     }
   }
 
@@ -206,13 +230,43 @@
     }
   }
 
+  &::after {
+    content: "Layout: " attr(data-layout);
+    padding: .3rem .5rem;
+
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 9999;
+
+    border: solid transparent;
+    border-radius: 5px;
+
+    background: gray;
+
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    line-height: 1.2;
+
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
 }
 
 .Dumby[data-layout="normal"] {
   max-width: 60em;
+
+  &::after {
+    animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+  }
 }
 
 .Dumby[data-layout="side-by-side"] {
+  &::after {
+    animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+  }
+
   .SemanticHtml,
   .Showcase {
     width: 50%;
@@ -273,6 +327,10 @@
 }
 
 .Dumby[data-layout="overlay"] {
+  &::after {
+    animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+  }
+
   .SemanticHtml,
   .Showcase {
     display: block;
@@ -357,6 +415,7 @@
   pointer-events: auto;
 
   &:has(.dumby-block.focus) {
+    z-index: 9001;
     outline: solid #505050 1px;
     border-color: #505050
   }
@@ -365,19 +424,20 @@
     display: none;
   }
 
+  /* Fade out top of contents scrolling */
   &::before {
     content: '';
     display: block;
     height: 1.5rem;
 
     position: absolute;
-    top: 0;
     left: 0;
+    top: 0;
     right: 0;
-
-    border: none;
-
     z-index: 1;
+
+    border-radius: 5px;
+
     background: linear-gradient(0deg, rgb(255 255 255 / 0%), white 60%);
   }
 
@@ -387,8 +447,10 @@
 
     position: relative;
 
-    border: solid transparent 3px;
+    /* Don't make corner overflow! */
+    border: solid transparent 2px;
     border-radius: 0.5rem;
+
     resize: both;
     min-width: 5rem;
     max-width: 25vw;
@@ -397,6 +459,7 @@
     padding-inline: 1rem;
     padding-block: 1rem 0;
 
+    /* Remove indicator when inside draggable-block */
     &::before {
       display: none;
     }
@@ -407,12 +470,6 @@
       max-width: unset;
       max-height: unset;
     }
-
-    /* gray out top of content, make draggable part easy to be seen */
-
-    /* &.focus::before { */
-    /*   background: linear-gradient(0deg, rgb(255 255 255 / 0%), var(--block-focus-color) 60%); */
-    /* } */
 
     .map-container {
       min-width: 200px;
@@ -448,6 +505,10 @@
     transition: all 0.5s;
     visibility: hidden;
     opacity: 0;
+
+    .utils {
+      visibility: hidden !important;
+    }
   }
 
   &.drag, &:has(.draggable-part:hover) {

@@ -66,6 +66,10 @@ a:hover {
   text-decoration: underline;
 }
 
+pre {
+  width: 100%;
+}
+
 pre:has(code) {
   display: block;
   margin: 0 0 10px;
