@@ -163,3 +163,8 @@ body {
     }
   }
 }
+
+.menu-item-add-geolink {
+  padding: 0.5rem;
+  cursor: pointer;
+}

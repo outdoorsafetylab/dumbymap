@@ -1,8 +1,8 @@
 /*global EasyMDE*/
 /*eslint no-undef: "error"*/
-import { markdown2HTML, generateMaps, createGeoLink } from './dumbymap'
+import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
-import { Suggestion } from './MenuItem'
+import { GeoLink, Suggestion } from './MenuItem'
 
 // Set up Containers {{{
 
@@ -157,7 +157,7 @@ const debounceForMap = (() => {
   let timer = null;
 
   return function(...args) {
-      dumbymap = generateMaps.apply(this, args)
+    dumbymap = generateMaps.apply(this, args)
     // clearTimeout(timer);
     // timer = setTimeout(() => {
     //   dumbymap = generateMaps.apply(this, args)
@@ -576,36 +576,15 @@ layoutObserver.observe(HtmlContainer, {
 });
 // }}}
 // ContextMenu {{{
-const addGeoLinkbyRange = (range) => {
-  const content = range.toString()
-  const match = content.match(/(^\D*[\d\.]+)\D+([\d\.]+)\D*$/)
-  // TODO add more suggestion
-  if (!match) return false
-
-  const [x, y] = match.slice(1)
-  const anchor = document.createElement('a')
-  anchor.textContent = content
-  // FIXME apply WGS84
-  anchor.href = `geo:${y},${x}?xy=${x},${y}`
-
-  if (createGeoLink(anchor)) {
-    range.deleteContents()
-    range.insertNode(anchor)
-  }
-
-}
 document.oncontextmenu = (e) => {
   const selection = document.getSelection()
   const range = selection.getRangeAt(0)
   if (!cm.hasFocus() && selection) {
     e.preventDefault()
     menu.innerHTML = ''
-    menu.style.cssText = `display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px; width: 100px; height: 100px;`
-    menu.innerHTML = '<div style="cursor: pointer;">Create Geo-Link</div>'
-    menu.firstChild.onclick = () => {
-      // menu.style.display = 'none'
-      addGeoLinkbyRange(range)
-    }
+    menu.style.cssText = `display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`
+    const addGeoLink = new GeoLink({ range })
+    menu.appendChild(addGeoLink.createElement())
   }
 }
 
