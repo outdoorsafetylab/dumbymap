@@ -1,5 +1,32 @@
 import { createGeoLink } from './dumbymap'
 
+export function nextMap() {
+  const element = document.createElement('div')
+  element.className = 'menu-item'
+  element.innerHTML = 'Next Map <span class="info">(Tab)</span>'
+  element.onclick = () => this.utils.focusNextMap()
+
+  return element
+}
+
+export function nextBlock() {
+  const element = document.createElement('div')
+  element.className = 'menu-item'
+  element.innerHTML = 'Next Block <span class="info">(n)</span>'
+  element.onclick = () => this.utils.focusNextBlock()
+
+  return element
+}
+
+export function nextLayout() {
+  const element = document.createElement('div')
+  element.className = 'menu-item'
+  element.innerHTML = 'Next Layout <span class="info">(x)</span>'
+  element.onclick = () => this.utils.switchToNextLayout()
+
+  return element
+}
+
 export class GeoLink {
 
   constructor({ range }) {
@@ -8,7 +35,7 @@ export class GeoLink {
 
   createElement = () => {
     const element = document.createElement('div')
-    element.className = 'menu-item-add-geolink'
+    element.className = 'menu-item'
     element.innerText = "Add GeoLink"
     element.onclick = this.addGeoLinkbyRange
 

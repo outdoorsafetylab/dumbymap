@@ -2,7 +2,7 @@
 /*eslint no-undef: "error"*/
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
-import { GeoLink, Suggestion } from './MenuItem'
+import * as menuItem from './MenuItem'
 
 // Set up Containers {{{
 
@@ -300,7 +300,7 @@ const getSuggestionsForOptions = (optionTyped, validOptions) => {
   }
 
   return suggestOptions
-    .map(o => new Suggestion({
+    .map(o => new menuItem.Suggestion({
       text: `<span>${o.valueOf()}</span><span class='info' title="${o.desc ?? ''}">ⓘ</span>`,
       replace: `${o.valueOf()}: `,
     }))
@@ -314,7 +314,7 @@ const getSuggestionFromMapOption = (option) => {
     ? `<span>${option.example_desc}</span><span class="truncate"style="color: gray">${option.example}</span>`
     : `<span>${option.example}</span>`
 
-  return new Suggestion({
+  return new menuItem.Suggestion({
     text: text,
     replace: `${option.valueOf()}: ${option.example ?? ""}`,
   })
@@ -325,7 +325,7 @@ const getSuggestionsFromAliases = (option) => Object.entries(aliasesForMapOption
   ?.map(record => {
     const [alias, value] = record
     const valueString = JSON.stringify(value).replaceAll('"', '')
-    return new Suggestion({
+    return new menuItem.Suggestion({
       text: `<span>${alias}</span><span class="truncate" style="color: gray">${valueString}</span>`,
       replace: `${option.valueOf()}: ${valueString}`,
     })
@@ -420,7 +420,7 @@ const getSuggestions = (anchor) => {
         return [
           getSuggestionFromMapOption(matchedOption),
           ...getSuggestionsFromAliases(matchedOption)
-        ].filter(s => s instanceof Suggestion)
+        ].filter(s => s instanceof menuItem.Suggestion)
       }
       if (valueTyped && !isValidValue) {
         markInputIsInvalid()
@@ -439,7 +439,7 @@ const getSuggestions = (anchor) => {
           (suggestionPattern.includes(textPattern))
       })
       .map(([renderer, info]) =>
-        new Suggestion({
+        new menuItem.Suggestion({
           text: `<span>use: ${renderer}</span><span class='info' title="${info.desc}">ⓘ</span>`,
           replace: `use: ${renderer}`,
         })
@@ -577,15 +577,20 @@ layoutObserver.observe(HtmlContainer, {
 // }}}
 // ContextMenu {{{
 document.oncontextmenu = (e) => {
+  if (cm.hasFocus()) return
+
   const selection = document.getSelection()
   const range = selection.getRangeAt(0)
-  if (!cm.hasFocus() && selection) {
+  if (selection) {
     e.preventDefault()
     menu.innerHTML = ''
     menu.style.cssText = `display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`
-    const addGeoLink = new GeoLink({ range })
+    const addGeoLink = new menuItem.GeoLink({ range })
     menu.appendChild(addGeoLink.createElement())
   }
+  menu.appendChild(menuItem.nextMap.bind(dumbymap)())
+  menu.appendChild(menuItem.nextBlock.bind(dumbymap)())
+  menu.appendChild(menuItem.nextLayout.bind(dumbymap)())
 }
 
 const actionOutsideMenu = (e) => {

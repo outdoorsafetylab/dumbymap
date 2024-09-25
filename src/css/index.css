@@ -114,7 +114,7 @@ body {
   z-index: 100;
 
   border: 2px solid gray;
-  border-radius: 0.5rem;
+  border-radius: 6px;
 
   background: white;
   min-width: 10rem;
@@ -164,8 +164,21 @@ body {
   }
 }
 
-.menu-item-add-geolink {
+.menu-item {
+  display: flex;
   padding: 0.5rem;
 
+  z-index: 9999;
+
   cursor: pointer;
+  justify-content: space-between;
+
+  &:hover {
+    background: rgb(226 232 240);
+  }
+
+  .info {
+    color: steelblue;
+    font-weight: bold;
+  }
 }
