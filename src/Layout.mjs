@@ -77,13 +77,6 @@ export class Overlay extends Layout {
     element.appendChild(draggablePart)
     draggablePart.className = 'draggable-part'
     draggablePart.innerHTML = '<div class="handle">\u2630</div>'
-    draggablePart.title = 'Use middle-click to remove block'
-    draggablePart.onmouseup = (e) => {
-      // Hide block with middle click
-      if (e.button === 1) {
-        element.classList.add('hide')
-      }
-    }
 
     // Add draggable instance
     const { left, top } = element.getBoundingClientRect()
@@ -142,6 +135,13 @@ export class Overlay extends Layout {
           <div id="minus-font-size">\u2796</div>
         </div>
       `
+      wrapper.title = 'Middle-click to hide block'
+      wrapper.onmouseup = (e) => {
+        // Hide block with middle click
+        if (e.button === 1) {
+          wrapper.classList.add('hide')
+        }
+      }
 
       // Set DOMRect for wrapper
       wrapper.appendChild(block)
