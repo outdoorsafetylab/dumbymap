@@ -186,6 +186,14 @@ root {
 
     justify-content: flex-start;
 
+    /* Trivial: gray out text not focused */
+    &:has(.dumby-block.focus) {
+      color: gray;
+      .dumby-block.focus {
+        color: initial;
+      }
+    }
+
     :has( > .map-container,  > [data-placeholder]) {
       display: flex;
       gap: 0.5em;
