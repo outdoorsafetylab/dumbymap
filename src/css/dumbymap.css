@@ -186,7 +186,7 @@ root {
 
     justify-content: flex-start;
 
-    :has(.map-container, [data-placeholder]) {
+    :has( > .map-container,  > [data-placeholder]) {
       display: flex;
       gap: 0.5em;
 
@@ -301,7 +301,7 @@ root {
     position: absolute;
     left: 50%;
     top: 0;
-    z-index: 9999;
+    z-index: 5;
 
     border: 2px black solid;
 
@@ -486,7 +486,7 @@ root {
     display: block;
     overflow: clip;
     width: 100%;
-    padding-bottom: 1em;
+    padding-bottom: 0.5em;
 
     position: absolute;
     left: 0;

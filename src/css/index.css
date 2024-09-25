@@ -24,7 +24,6 @@ body {
 
       flex: 1 0 calc(50% - 0.5em);
       height: 100%;
-      overflow-y: scroll;
 
       border: var(--content-border);
       border-radius: var(--content-border-radius);
