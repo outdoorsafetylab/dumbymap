@@ -49,4 +49,7 @@ After `generateMaps()`, the container has the following structure:
 - Editor
   - Reduce fontawesome resources
   - Better way to edit table in markdown
-- Add favicon
+- Export
+  - Executable HTML file with data URI
+- Misc
+  - Add favicon
