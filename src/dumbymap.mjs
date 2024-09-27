@@ -140,7 +140,7 @@ export const markdown2HTML = (container, mdContent) => {
   return container
   //}}}
 }
-export const generateMaps = (container, callback) => {
+export const generateMaps = (container, {delay, mapCallback}) => {
   container.classList.add('Dumby')
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   const blocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
@@ -448,7 +448,7 @@ export const generateMaps = (container, callback) => {
         .map(r => r.target)
         .filter(target => target.getAttribute('data-state') === 'rendered')
         .forEach(ele => {
-          callback(ele)
+          mapCallback(ele)
           const markers = geoLinks
             .filter(link => !link.targets || link.targets.includes(ele.id))
             .map(link => ({
