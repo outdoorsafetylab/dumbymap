@@ -31,7 +31,7 @@ root {
   to { opacity: 0.3; }
 }
 
-.map-container {
+.mapclay {
   position: relative;
   transform-origin: top left;
 
@@ -194,7 +194,7 @@ root {
       }
     }
 
-    :has( > .map-container,  > [data-placeholder]) {
+    :has( > .mapclay,  > [data-placeholder]) {
       display: flex;
       gap: 0.5em;
 
@@ -202,7 +202,7 @@ root {
     }
 
     /* if Map not in showcase, add border when focused */
-    .map-container {
+    .mapclay {
       border: 3px solid transparent;
 
       &.focus {
@@ -230,7 +230,7 @@ root {
 
     position: relative;
 
-    .map-container {
+    .mapclay {
       width: 100%;
       height: 100%;
 
@@ -485,7 +485,7 @@ root {
       max-height: unset;
     }
 
-    .map-container {
+    .mapclay {
       min-width: 200px;
     }
   }
