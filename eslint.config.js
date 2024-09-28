@@ -3,6 +3,7 @@ import js from "@eslint/js";
 import importPlugin from "eslint-plugin-import";
 import promisePlugin from "eslint-plugin-promise";
 import nodePlugin from "eslint-plugin-node";
+import jsdoc from 'eslint-plugin-jsdoc';
 
 export default [
   js.configs.recommended,
@@ -35,5 +36,14 @@ export default [
       'array-callback-return': 'error',
       'no-unexpected-multiline': 'warn',
     },
-  }
+  },
+  {
+    files: ['src/*js'],
+    plugins: {
+      jsdoc,
+    },
+    rules: {
+      'jsdoc/require-description': 'warn'
+    }
+  },
 ];

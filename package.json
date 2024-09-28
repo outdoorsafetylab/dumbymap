@@ -39,6 +39,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "eslint": "^9.10.0",
     "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-jsdoc": "^50.3.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^7.1.0",
     "globals": "^15.9.0",
