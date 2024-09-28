@@ -5,6 +5,7 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 
 const production = !process.env.ROLLUP_WATCH;
+
 const general = {
   output: [
     {
@@ -19,6 +20,18 @@ const general = {
   },
   context: "window",
   plugins: [
+    {
+      name: 'watch-mapclay',
+      buildStart() {
+        const mapclayPath = join(process.cwd(), 'mapclay', 'dist', 'mapclay.mjs');
+        console.log('Watching:', mapclayPath);
+        if (existsSync(mapclayPath)) {
+          this.addWatchFile(mapclayPath);
+        } else {
+          console.log('mapclay.mjs not found at:', mapclayPath);
+        }
+      }
+    },
     {
       name: 'leader-line',
       transform(code, id) {
