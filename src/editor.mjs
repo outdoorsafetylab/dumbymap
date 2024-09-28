@@ -476,6 +476,7 @@ const addSuggestions = (anchor, suggestions) => {
 // EVENT: Suggests for current selection {{{
 // FIXME Dont show suggestion when selecting multiple chars
 cm.on("cursorActivity", (_) => {
+  menu.style.display = 'none'
   const anchor = cm.getCursor()
 
   if (insideCodeblockForMap(anchor)) {
