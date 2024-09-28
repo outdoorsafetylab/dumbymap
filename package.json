@@ -65,6 +65,10 @@
     "url": "https://github.com/outdoorsafetylab/dumbymap"
   },
   "prettier": {
-    "arrowParens": "avoid"
+    "arrowParens": "avoid",
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5"
   }
 }
