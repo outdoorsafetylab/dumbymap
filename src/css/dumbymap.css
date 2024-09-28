@@ -8,12 +8,18 @@ root {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fade-out {
-  from { opacity: 1; }
+  from {
+    opacity: 1;
+  }
 
   to {
     visibility: hidden;
@@ -22,13 +28,21 @@ root {
 }
 
 @keyframes map-fade-in {
-  from { opacity: 0.3; }
-  to { opacity: 1; }
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes map-fade-out {
-  from { opacity: 1; }
-  to { opacity: 0.3; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.3;
+  }
 }
 
 .mapclay {
@@ -37,7 +51,7 @@ root {
 
   &.focus::after {
     content: "Map-ID: " attr(id);
-    padding: .3rem .5rem;
+    padding: 0.3rem 0.5rem;
 
     position: absolute;
     left: 50%;
@@ -56,7 +70,7 @@ root {
 
     transform: translate(-50%, -50%);
     opacity: 0;
-    animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+    animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
   }
 }
 
@@ -89,7 +103,6 @@ root {
 }
 
 *:has(> nav) {
-
   /* FIXME Hide nav at proper time */
   display: none;
   padding: 0.5rem;
@@ -131,11 +144,10 @@ root {
 
     border-left: 0.5em solid #e0e0e0;
 
-    transition: border-color .5s linear;
+    transition: border-color 0.5s linear;
   }
 
   &.focus {
-
     /* Dress up when block is focus */
 
     /* background: var(--block-focus-color); */
@@ -145,7 +157,7 @@ root {
 
     &::after {
       content: counter(block) "/" attr(data-total);
-      padding: .3rem .5rem;
+      padding: 0.3rem 0.5rem;
 
       position: absolute;
       left: 50%;
@@ -163,7 +175,7 @@ root {
 
       transform: translate(-50%, -50%);
       opacity: 0;
-      animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+      animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
     }
   }
 }
@@ -194,7 +206,7 @@ root {
       }
     }
 
-    :has( > .mapclay,  > [data-placeholder]) {
+    :has(> .mapclay, > [data-placeholder]) {
       display: flex;
       gap: 0.5em;
 
@@ -225,7 +237,7 @@ root {
   .Showcase {
     display: none;
     overflow: visible;
-      width: 100%;
+    width: 100%;
     height: 100%;
 
     position: relative;
@@ -246,7 +258,7 @@ root {
 
   &::after {
     content: "Layout: " attr(data-layout);
-    padding: .3rem .5rem;
+    padding: 0.3rem 0.5rem;
 
     position: absolute;
     left: 50%;
@@ -272,13 +284,13 @@ root {
   max-width: 60em;
 
   &::after {
-    animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+    animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
   }
 }
 
 .Dumby[data-layout="side-by-side"] {
   &::after {
-    animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+    animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
   }
 
   .SemanticHtml,
@@ -336,13 +348,12 @@ root {
         transform: unset;
       }
     }
-
   }
 }
 
 .Dumby[data-layout="overlay"] {
   &::after {
-    animation: 1.5s forwards fade-out cubic-bezier(.44,.18,.86,-0.21);
+    animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
   }
 
   .SemanticHtml,
@@ -384,7 +395,6 @@ root {
   padding-inline: 1rem;
   padding-block: 1rem;
 
-
   &:hover {
     visibility: visible;
     opacity: 1;
@@ -402,16 +412,16 @@ root {
   }
 
   #close {
-     cursor: pointer;
+    cursor: pointer;
   }
 
-   #plus-font-size {
-     cursor: zoom-in;
-   }
+  #plus-font-size {
+    cursor: zoom-in;
+  }
 
-   #minus-font-size {
-     cursor: zoom-out;
-   }
+  #minus-font-size {
+    cursor: zoom-out;
+  }
 }
 
 .draggable-block {
@@ -431,7 +441,7 @@ root {
   &:has(.dumby-block.focus) {
     z-index: 9001;
     outline: solid #505050 1px;
-    border-color: #505050
+    border-color: #505050;
   }
 
   &:has(pre:only-child [data-placeholder]:only-child) {
@@ -440,7 +450,7 @@ root {
 
   /* Fade out top of contents scrolling */
   &::before {
-    content: '';
+    content: "";
     display: block;
     height: 1.5rem;
 
@@ -504,7 +514,7 @@ root {
     border-top-right-radius: 0.3rem;
   }
 
-    .handle {
+  .handle {
     font-size: 1.1rem;
     text-align: center;
 
@@ -525,7 +535,8 @@ root {
     }
   }
 
-  &.drag, &:has(.draggable-part:hover) {
+  &.drag,
+  &:has(.draggable-part:hover) {
     .handle {
       background: #e1e1e1;
 
@@ -534,7 +545,7 @@ root {
 
     .utils {
       visibility: visible;
-      animation: fade-in .5s;
+      animation: fade-in 0.5s;
     }
 
     > *:not(.draggable-part, .utils) {
@@ -550,8 +561,8 @@ root {
 
   [data-placeholder] {
     height: 50px !important;
-    scale: .9;
-    transition-duration: .4s;
+    scale: 0.9;
+    transition-duration: 0.4s;
     transition-timing-function: ease-out;
   }
 }

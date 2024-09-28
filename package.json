@@ -63,5 +63,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/outdoorsafetylab/dumbymap"
+  },
+  "prettier": {
+    "arrowParens": "avoid"
   }
 }

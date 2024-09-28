@@ -1,5 +1,7 @@
 /* CSS Reset */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -9,15 +11,28 @@
   line-height: calc(1em + 0.5rem);
 }
 
-img, picture, video, canvas, svg {
+img,
+picture,
+video,
+canvas,
+svg {
   display: block;
 }
 
-input, button, textarea, select {
+input,
+button,
+textarea,
+select {
   font: inherit;
 }
 
-p, h1, h2, h3, h4, h5, h6 {
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   overflow-wrap: break-word;
   hyphens: auto;
 }
@@ -29,7 +44,12 @@ body {
   line-height: 1.6;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: bold;
   margin-bottom: 0.5em;
 }
@@ -102,7 +122,8 @@ pre:has(code) {
   }
 }
 
-ul, ol {
+ul,
+ol {
   margin-top: 1em;
   margin-bottom: 1em;
   padding-left: 20px;
@@ -118,7 +139,8 @@ table {
   width: 100%;
 }
 
-th, td {
+th,
+td {
   padding: 8px;
 
   border: 1px solid #ddd;
