@@ -191,13 +191,13 @@ export const generateMaps = (container, {delay, mapCallback}) => {
     .filter(l => createGeoLink(l, geoLinkCallback))
 
   const isAnchorPointedBy = (link) => (anchor) => {
-    const mapContainer = anchor.closest('.map-container')
+    const mapContainer = anchor.closest('.mapclay')
     const isTarget = !link.targets || link.targets.includes(mapContainer.id)
     return anchor.title === link.url.pathname && isTarget
   }
 
   const isAnchorVisible = (anchor) => {
-    const mapContainer = anchor.closest('.map-container')
+    const mapContainer = anchor.closest('.mapclay')
     return insideWindow(anchor) && insideParent(anchor, mapContainer)
   }
 
@@ -227,7 +227,7 @@ export const generateMaps = (container, {delay, mapCallback}) => {
   }
 
   const updateMapByMarker = (xy) => (marker) => {
-    const renderer = marker.closest('.map-container')?.renderer
+    const renderer = marker.closest('.mapclay')?.renderer
     renderer.updateCamera({ center: xy }, true)
   }
 
@@ -275,7 +275,7 @@ export const generateMaps = (container, {delay, mapCallback}) => {
       // Placeholder for map in Showcase, it should has the same DOMRect
       const placeholder = target.cloneNode(true)
       placeholder.removeAttribute('id')
-      placeholder.classList.remove('map-container', 'focus')
+      placeholder.classList.remove('mapclay', 'focus')
       target.parentElement.replaceChild(placeholder, target)
 
       // FIXME Maybe use @start-style for CSS
@@ -345,8 +345,8 @@ export const generateMaps = (container, {delay, mapCallback}) => {
 
     // Since layout change may show/hide showcase, the current focused map should do something
     // Reset attribute triggers MutationObserver which is observing it
-    const focusMap = container.querySelector('.map-container.focus')
-      ?? container.querySelector('.map-container')
+    const focusMap = container.querySelector('.mapclay.focus')
+      ?? container.querySelector('.mapclay')
     focusMap?.classList?.add('focus')
   });
   layoutObserver.observe(container, {
@@ -361,19 +361,32 @@ export const generateMaps = (container, {delay, mapCallback}) => {
   //}}}
   // Render Maps {{{
 
-  const afterEachMapLoaded = (renderMap) => {
-    const mapContainer = renderMap.target
-    mapCache[mapContainer.id] = renderMap
-    mapContainer.setAttribute('tabindex', "-1")
-    mapContainer.setAttribute('data-state', "rendered")
+  const afterMapRendered = (renderer) => {
+    const mapElement = renderer.target
+    mapElement.setAttribute('tabindex', "-1")
+    if (mapElement.getAttribute('data-render') === 'fulfilled') {
+      mapCache[mapElement.id] = renderer
+    }
 
+    // Execute callback from caller
+    mapCallback?.call(this, mapElement)
+    const markers = geoLinks
+      .filter(link => !link.targets || link.targets.includes(mapElement.id))
+      .map(link => ({ xy: link.xy, title: link.url.pathname }))
+
+    // Add markers with Geolinks
+    renderer.addMarkers(markers)
+    mapElement.querySelectorAll('.marker')
+      .forEach(marker => htmlHolder.anchors.push(marker))
+
+    // Work with Mutation Observer
     const observer = mapFocusObserver()
-    mapFocusObserver().observe(mapContainer, {
+    mapFocusObserver().observe(mapElement, {
       attributes: true,
       attributeFilter: ["class"],
       attributeOldValue: true
     });
-    onRemove(mapContainer, () => observer.disconnect())
+    onRemove(mapElement, () => observer.disconnect())
   }
 
   // Set unique ID for map container
@@ -397,6 +410,7 @@ export const generateMaps = (container, {delay, mapCallback}) => {
   const elementsWithMapConfig = Array.from(container.querySelectorAll('pre:has(.language-map)') ?? [])
   // Add default aliases into each config
   const configConverter = (config => ({
+    use: config.use ?? 'Leaflet',
     width: "100%",
     ...config,
     aliases: {
@@ -419,47 +433,36 @@ export const generateMaps = (container, {delay, mapCallback}) => {
         configList = parseConfigsFromYaml(configText).map(assignMapId)
       } catch (_) {
         console.warn('Fail to parse yaml config for element', target)
+        return
       }
 
-      // If map in cache has the same ID, and its config is the same,
-      // then don't render them again
+      // If map in cache has the same ID, just put it into target
+      // So user won't feel anything changes when editing markdown
       configList.forEach(config => {
         const cache = mapCache[config.id]
-        if (cache && JSON.stringify(cache.config) === JSON.stringify(configConverter(config))) {
-          target.appendChild(cache.target)
-          config.render = () => null
-        }
+        if (!cache) return;
+
+        target.appendChild(cache.target)
+        config.target = cache.target
       })
 
-      // Render maps
-      render(target, configList).forEach(renderMap => {
-        renderMaps.push(renderMap)
-        renderMap.promise
-          .then(_ => afterEachMapLoaded(renderMap))
-          .catch(err => console.error('Fail to render target element with ID:', renderMap.target.id, err))
+      // trivial: if map cache is applied, do not show yaml text
+      if (target.querySelector('.mapclay')) {
+        target.querySelectorAll(':scope > :not([data-render=fulfilled])')
+          .forEach(e => e.remove())
+      }
+
+      // Render maps with delay
+      const timer = setTimeout(() =>
+        render(target, configList).forEach(renderMap => {
+          renderMaps.push(renderMap)
+          renderMap.then(afterMapRendered)
+        }),
+        delay ?? 1000
+      )
+      onRemove(htmlHolder, () => {
+        clearTimeout(timer)
       })
-    })
-
-  Promise.allSettled(renderMaps.map(r => r.promise))
-    .then(() => {
-      console.info('Finish Rendering')
-
-      renderMaps
-        .map(r => r.target)
-        .filter(target => target.getAttribute('data-state') === 'rendered')
-        .forEach(ele => {
-          mapCallback(ele)
-          const markers = geoLinks
-            .filter(link => !link.targets || link.targets.includes(ele.id))
-            .map(link => ({
-              xy: link.xy,
-              title: link.url.pathname
-            }))
-          ele?.renderer?.addMarkers(markers)
-        })
-
-      htmlHolder.querySelectorAll('.marker')
-        .forEach(marker => htmlHolder.anchors.push(marker))
     })
 
   //}}}

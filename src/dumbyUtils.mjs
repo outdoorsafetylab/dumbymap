@@ -1,12 +1,10 @@
 export function focusNextMap(reverse = false) {
-  const renderedList = this.renderMaps
-    .map(render => render.target)
-    .filter(ele => ele.getAttribute('data-state') === 'rendered')
+  const renderedList = Array.from(this.htmlHolder.querySelectorAll('[data-render=fulfilled]'))
   const mapNum = renderedList.length
   if (mapNum === 0) return
 
   // Get current focused map element
-  const currentFocus = this.container.querySelector('.map-container.focus')
+  const currentFocus = this.container.querySelector('.mapclay.focus')
 
   // Remove class name of focus for ALL candidates
   // This may trigger animation
