@@ -36,13 +36,23 @@
           "content",
           "display",
           "box-sizing",
+          "overflow",
           "flex",
           "flex-direction",
-          "overflow",
+          "justify-content",
+          "align-items",
           "width",
           "height",
           "margin",
-          "padding"
+          "margin-top",
+          "margin-right",
+          "margin-bottom",
+          "margin-left",
+          "padding",
+          "padding-top",
+          "padding-right",
+          "padding-bottom",
+          "padding-left"
         ]
       },
       {
