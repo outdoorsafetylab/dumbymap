@@ -31,6 +31,7 @@ class Folder {
     element.innerHTML = this.innerHTML;
     element.style.cssText = 'position: relative; overflow: visible;';
     element.onmouseover = () => {
+      if (element.querySelector('.sub-menu')) return;
       // Prepare submenu
       this.submenu = document.createElement('div');
       this.submenu.className = 'sub-menu';
