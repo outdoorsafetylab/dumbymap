@@ -6,7 +6,7 @@
  */
 export const onRemove = (element, callback) => {
   const parent = element.parentNode;
-  if (!parent) throw new Error("The node must already be attached");
+  if (!parent) throw new Error('The node must already be attached');
 
   const obs = new MutationObserver(mutations => {
     for (const mutation of mutations) {
@@ -33,7 +33,7 @@ export const onRemove = (element, callback) => {
  */
 export const animateRectTransition = (element, rect, options = {}) => {
   if (!element.parentElement)
-    throw new Error("The node must already be attached");
+    throw new Error('The node must already be attached');
 
   const { width: w1, height: h1, left: x1, top: y1 } = rect;
   const {
@@ -62,7 +62,7 @@ export const animateRectTransition = (element, rect, options = {}) => {
 
   return element.animate(keyframes, {
     duration: options.duration ?? 500,
-    easing: "ease-in-out",
+    easing: 'ease-in-out',
   });
 };
 
@@ -82,7 +82,7 @@ export function throttle(func, delay) {
 
     timerFlag = setTimeout(
       () => (timerFlag = null),
-      typeof delay === "function" ? delay.call(context) : delay,
+      typeof delay === 'function' ? delay.call(context) : delay,
     );
 
     return func.call(context, ...args);

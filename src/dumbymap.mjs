@@ -1,21 +1,21 @@
-import MarkdownIt from "markdown-it";
-import MarkdownItAnchor from "markdown-it-anchor";
-import MarkdownItFootnote from "markdown-it-footnote";
-import MarkdownItFrontMatter from "markdown-it-front-matter";
-import MarkdownItTocDoneRight from "markdown-it-toc-done-right";
-import LeaderLine from "leader-line";
-import { renderWith, defaultAliases, parseConfigsFromYaml } from "mapclay";
-import { onRemove, animateRectTransition, throttle } from "./utils";
-import { Layout, SideBySide, Overlay } from "./Layout";
-import * as utils from "./dumbyUtils";
+import MarkdownIt from 'markdown-it';
+import MarkdownItAnchor from 'markdown-it-anchor';
+import MarkdownItFootnote from 'markdown-it-footnote';
+import MarkdownItFrontMatter from 'markdown-it-front-matter';
+import MarkdownItTocDoneRight from 'markdown-it-toc-done-right';
+import LeaderLine from 'leader-line';
+import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay';
+import { onRemove, animateRectTransition, throttle } from './utils';
+import { Layout, SideBySide, Overlay } from './Layout';
+import * as utils from './dumbyUtils';
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]';
 const geoLinkSelector = 'a[href^="geo:"]';
 
 const layouts = [
-  new Layout({ name: "normal" }),
-  new SideBySide({ name: "side-by-side" }),
-  new Overlay({ name: "overlay" }),
+  new Layout({ name: 'normal' }),
+  new SideBySide({ name: 'side-by-side' }),
+  new Overlay({ name: 'overlay' }),
 ];
 const mapCache = {};
 
@@ -26,12 +26,12 @@ const mapCache = {};
  * @param {HTMLElement} Elements contains anchor elements for doclinks
  */
 export const createDocLink = link => {
-  link.classList.add("with-leader-line", "doclink");
+  link.classList.add('with-leader-line', 'doclink');
   link.lines = [];
 
   link.onmouseover = () => {
-    const label = decodeURIComponent(link.href.split("#")[1]);
-    const selector = link.title.split("=>")[1] ?? "#" + label;
+    const label = decodeURIComponent(link.href.split('#')[1]);
+    const selector = link.title.split('=>')[1] ?? '#' + label;
     const target = document.querySelector(selector);
     if (!target?.checkVisibility()) return;
 
@@ -40,13 +40,13 @@ export const createDocLink = link => {
       end: target,
       middleLabel: LeaderLine.pathLabel({
         text: label,
-        fontWeight: "bold",
+        fontWeight: 'bold',
       }),
       hide: true,
-      path: "magnet",
+      path: 'magnet',
     });
     link.lines.push(line);
-    line.show("draw", { duration: 300 });
+    line.show('draw', { duration: 300 });
   };
   link.onmouseout = () => {
     link.lines.forEach(line => line.remove());
@@ -63,13 +63,13 @@ export const createDocLink = link => {
  */
 export const createGeoLink = (link, callback = null) => {
   const url = new URL(link.href);
-  const xyInParams = url.searchParams.get("xy");
+  const xyInParams = url.searchParams.get('xy');
   const xy = xyInParams
-    ? xyInParams.split(",")?.map(Number)
+    ? xyInParams.split(',')?.map(Number)
     : url?.href
         ?.match(/^geo:([0-9.,]+)/)
         ?.at(1)
-        ?.split(",")
+        ?.split(',')
         ?.reverse()
         ?.map(Number);
 
@@ -78,8 +78,8 @@ export const createGeoLink = (link, callback = null) => {
   // Geo information in link
   link.url = url;
   link.xy = xy;
-  link.classList.add("with-leader-line", "geolink");
-  link.targets = link.url.searchParams.get("id")?.split(",") ?? null;
+  link.classList.add('with-leader-line', 'geolink');
+  link.targets = link.url.searchParams.get('id')?.split(',') ?? null;
 
   // LeaderLine
   link.lines = [];
@@ -94,7 +94,7 @@ export const markdown2HTML = (container, mdContent) => {
   Array.from(container.children).map(e => e.remove());
 
   container.innerHTML = '<div class="SemanticHtml"></div>';
-  const htmlHolder = container.querySelector(".SemanticHtml");
+  const htmlHolder = container.querySelector('.SemanticHtml');
 
   const md = MarkdownIt({
     html: true,
@@ -102,7 +102,7 @@ export const markdown2HTML = (container, mdContent) => {
   })
     .use(MarkdownItAnchor, {
       permalink: MarkdownItAnchor.permalink.linkInsideHeader({
-        placement: "before",
+        placement: 'before',
       }),
     })
     .use(MarkdownItFootnote)
@@ -110,49 +110,49 @@ export const markdown2HTML = (container, mdContent) => {
     .use(MarkdownItTocDoneRight);
 
   // FIXME A better way to generate blocks
-  md.renderer.rules.dumby_block_open = () => "<div>";
-  md.renderer.rules.dumby_block_close = () => "</div>";
+  md.renderer.rules.dumby_block_open = () => '<div>';
+  md.renderer.rules.dumby_block_close = () => '</div>';
 
-  md.core.ruler.before("block", "dumby_block", state => {
-    state.tokens.push(new state.Token("dumby_block_open", "", 1));
+  md.core.ruler.before('block', 'dumby_block', state => {
+    state.tokens.push(new state.Token('dumby_block_open', '', 1));
   });
 
   // Add close tag for block with more than 2 empty lines
-  md.block.ruler.before("table", "dumby_block", (state, startLine) => {
+  md.block.ruler.before('table', 'dumby_block', (state, startLine) => {
     if (
-      state.src[state.bMarks[startLine - 1]] === "\n" &&
-      state.src[state.bMarks[startLine - 2]] === "\n" &&
-      state.tokens.at(-1).type !== "list_item_open" // Quick hack for not adding tag after "::marker" for <li>
+      state.src[state.bMarks[startLine - 1]] === '\n' &&
+      state.src[state.bMarks[startLine - 2]] === '\n' &&
+      state.tokens.at(-1).type !== 'list_item_open' // Quick hack for not adding tag after "::marker" for <li>
     ) {
-      state.push("dumby_block_close", "", -1);
-      state.push("dumby_block_open", "", 1);
+      state.push('dumby_block_close', '', -1);
+      state.push('dumby_block_open', '', 1);
     }
   });
 
-  md.core.ruler.after("block", "dumby_block", state => {
-    state.tokens.push(new state.Token("dumby_block_close", "", -1));
+  md.core.ruler.after('block', 'dumby_block', state => {
+    state.tokens.push(new state.Token('dumby_block_close', '', -1));
   });
 
-  const contentWithToc = "${toc}\n\n\n" + mdContent;
+  const contentWithToc = '${toc}\n\n\n' + mdContent;
   htmlHolder.innerHTML = md.render(contentWithToc);
 
   // TODO Do this in markdown-it
-  const blocks = htmlHolder.querySelectorAll(":scope > div:not(:has(nav))");
+  const blocks = htmlHolder.querySelectorAll(':scope > div:not(:has(nav))');
   blocks.forEach(b => {
-    b.classList.add("dumby-block");
-    b.setAttribute("data-total", blocks.length);
+    b.classList.add('dumby-block');
+    b.setAttribute('data-total', blocks.length);
   });
 
   return container;
   //}}}
 };
 export const generateMaps = (container, { delay, mapCallback }) => {
-  container.classList.add("Dumby");
-  const htmlHolder = container.querySelector(".SemanticHtml") ?? container;
-  const blocks = Array.from(htmlHolder.querySelectorAll(".dumby-block"));
-  const showcase = document.createElement("div");
+  container.classList.add('Dumby');
+  const htmlHolder = container.querySelector('.SemanticHtml') ?? container;
+  const blocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'));
+  const showcase = document.createElement('div');
   container.appendChild(showcase);
-  showcase.classList.add("Showcase");
+  showcase.classList.add('Showcase');
   const renderMaps = [];
 
   const dumbymap = {
@@ -196,13 +196,13 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   ).filter(l => createGeoLink(l, geoLinkCallback));
 
   const isAnchorPointedBy = link => anchor => {
-    const mapContainer = anchor.closest(".mapclay");
+    const mapContainer = anchor.closest('.mapclay');
     const isTarget = !link.targets || link.targets.includes(mapContainer.id);
     return anchor.title === link.url.pathname && isTarget;
   };
 
   const isAnchorVisible = anchor => {
-    const mapContainer = anchor.closest(".mapclay");
+    const mapContainer = anchor.closest('.mapclay');
     return insideWindow(anchor) && insideParent(anchor, mapContainer);
   };
 
@@ -211,10 +211,10 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       start: link,
       end: anchor,
       hide: true,
-      middleLabel: link.url.searchParams.get("text"),
-      path: "magnet",
+      middleLabel: link.url.searchParams.get('text'),
+      path: 'magnet',
     });
-    line.show("draw", { duration: 300 });
+    line.show('draw', { duration: 300 });
     return line;
   };
 
@@ -232,7 +232,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   };
 
   const updateMapByMarker = xy => marker => {
-    const renderer = marker.closest(".mapclay")?.renderer;
+    const renderer = marker.closest('.mapclay')?.renderer;
     renderer.updateCamera({ center: xy }, true);
   };
 
@@ -273,7 +273,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       const target = mutation.target;
       const focus = target
         .getAttribute(mutation.attributeName)
-        .includes("focus");
+        .includes('focus');
       const shouldBeInShowcase =
         focus &&
         showcase.checkVisibility({
@@ -287,8 +287,8 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
         // Placeholder for map in Showcase, it should has the same DOMRect
         const placeholder = target.cloneNode(true);
-        placeholder.removeAttribute("id");
-        placeholder.classList.remove("mapclay", "focus");
+        placeholder.removeAttribute('id');
+        placeholder.classList.remove('mapclay', 'focus');
         target.parentElement.replaceChild(placeholder, target);
 
         // FIXME Maybe use @start-style for CSS
@@ -297,10 +297,10 @@ export const generateMaps = (container, { delay, mapCallback }) => {
         // To make sure the original height of placeholder is applied, DOM changes seems needed
         // then set data-attribute for CSS selector to change height to 0
         placeholder.getBoundingClientRect();
-        placeholder.setAttribute("data-placeholder", target.id);
+        placeholder.setAttribute('data-placeholder', target.id);
 
         // To fit showcase, remove all inline style
-        target.removeAttribute("style");
+        target.removeAttribute('style');
         showcase.appendChild(target);
 
         // Resume rect from Semantic HTML to Showcase, with animation
@@ -333,7 +333,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   // Layout {{{
   // press key to switch layout
   const defaultLayout = layouts[0];
-  container.setAttribute("data-layout", defaultLayout.name);
+  container.setAttribute('data-layout', defaultLayout.name);
 
   // observe layout change
   const layoutObserver = new MutationObserver(mutations => {
@@ -351,7 +351,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     Object.values(dumbymap)
       .flat()
       .filter(ele => ele instanceof HTMLElement)
-      .forEach(ele => ele.removeAttribute("style"));
+      .forEach(ele => ele.removeAttribute('style'));
 
     if (newLayout) {
       layouts
@@ -362,13 +362,13 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     // Since layout change may show/hide showcase, the current focused map should do something
     // Reset attribute triggers MutationObserver which is observing it
     const focusMap =
-      container.querySelector(".mapclay.focus") ??
-      container.querySelector(".mapclay");
-    focusMap?.classList?.add("focus");
+      container.querySelector('.mapclay.focus') ??
+      container.querySelector('.mapclay');
+    focusMap?.classList?.add('focus');
   });
   layoutObserver.observe(container, {
     attributes: true,
-    attributeFilter: ["data-layout"],
+    attributeFilter: ['data-layout'],
     attributeOldValue: true,
     characterDataOldValue: true,
   });
@@ -380,8 +380,10 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
   const afterMapRendered = renderer => {
     const mapElement = renderer.target;
-    mapElement.setAttribute("tabindex", "-1");
-    if (mapElement.getAttribute("data-render") === "fulfilled") {
+    //FIXME
+    mapElement.renderer = renderer;
+    mapElement.setAttribute('tabindex', '-1');
+    if (mapElement.getAttribute('data-render') === 'fulfilled') {
       mapCache[mapElement.id] = renderer;
     }
 
@@ -394,14 +396,14 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     // Add markers with Geolinks
     renderer.addMarkers(markers);
     mapElement
-      .querySelectorAll(".marker")
+      .querySelectorAll('.marker')
       .forEach(marker => htmlHolder.anchors.push(marker));
 
     // Work with Mutation Observer
     const observer = mapFocusObserver();
     mapFocusObserver().observe(mapElement, {
       attributes: true,
-      attributeFilter: ["class"],
+      attributeFilter: ['class'],
       attributeOldValue: true,
     });
     onRemove(mapElement, () => observer.disconnect());
@@ -412,10 +414,10 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   const assignMapId = config => {
     let mapId = config.id;
     if (!mapId) {
-      mapId = config.use?.split("/")?.at(-1);
+      mapId = config.use?.split('/')?.at(-1);
       let counter = 1;
       while (!mapId || mapIdList.includes(mapId)) {
-        mapId = `${config.use ?? "unnamed"}-${counter}`;
+        mapId = `${config.use ?? 'unnamed'}-${counter}`;
         counter++;
       }
       config.id = mapId;
@@ -426,21 +428,21 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
   // Render each code block with "language-map" class
   const elementsWithMapConfig = Array.from(
-    container.querySelectorAll('pre:has(.language-map)') ?? []
-  )
+    container.querySelectorAll('pre:has(.language-map)') ?? [],
+  );
   /**
    * updateAttributeByStep.
    *
    * @param {Object} -- renderer which is running steps
    */
   const updateAttributeByStep = ({ results, target, steps }) => {
-    let passNum = results
-      .filter(r => r.type === 'step' && r.state.match(/success|skip/))
-      .length
+    let passNum = results.filter(
+      r => r.type === 'step' && r.state.match(/success|skip/),
+    ).length;
     const total = steps.length;
-    passNum  += `/${total}`;
-    if (results.filter(r=>r.type === 'step').length === total) {
-      passNum += '\u0020'
+    passNum += `/${total}`;
+    if (results.filter(r => r.type === 'step').length === total) {
+      passNum += '\u0020';
     }
 
     // FIXME HACK use MutationObserver for animation
@@ -449,7 +451,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       await new Promise(resolve => setTimeout(resolve, 150));
       target.setAttribute('data-report', passNum);
     });
-  }
+  };
   /**
    * config converter for mapclay.renderWith()
    *
@@ -465,21 +467,21 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       ...(config.aliases ?? {}),
     },
     stepCallback: updateAttributeByStep,
-  })
-  const render = renderWith(configConverter)
+  });
+  const render = renderWith(configConverter);
   elementsWithMapConfig.forEach(target => {
     // Get text in code block starts with markdown text '```map'
     const configText = target
-      .querySelector(".language-map")
+      .querySelector('.language-map')
       .textContent // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
       // replace it by normal space
-      .replace(/\u00A0/g, "\u0020");
+      .replace(/\u00A0/g, '\u0020');
 
     let configList = [];
     try {
       configList = parseConfigsFromYaml(configText).map(assignMapId);
     } catch (_) {
-      console.warn("Fail to parse yaml config for element", target);
+      console.warn('Fail to parse yaml config for element', target);
       return;
     }
 
@@ -494,9 +496,9 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     });
 
     // trivial: if map cache is applied, do not show yaml text
-    if (target.querySelector(".mapclay")) {
+    if (target.querySelector('.mapclay')) {
       target
-        .querySelectorAll(":scope > :not([data-render=fulfilled])")
+        .querySelectorAll(':scope > :not([data-render=fulfilled])')
         .forEach(e => e.remove());
     }
 

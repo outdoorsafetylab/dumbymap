@@ -1,22 +1,22 @@
 /*global EasyMDE*/
 /*eslint no-undef: "error"*/
-import { markdown2HTML, generateMaps } from "./dumbymap";
-import { defaultAliases, parseConfigsFromYaml } from "mapclay";
-import * as menuItem from "./MenuItem";
+import { markdown2HTML, generateMaps } from './dumbymap';
+import { defaultAliases, parseConfigsFromYaml } from 'mapclay';
+import * as menuItem from './MenuItem';
 
 // Set up Containers {{{
 
-const HtmlContainer = document.querySelector(".DumbyMap");
-const textArea = document.querySelector(".editor textarea");
+const HtmlContainer = document.querySelector('.DumbyMap');
+const textArea = document.querySelector('.editor textarea');
 let dumbymap;
 
 const toggleEditing = () => {
-  if (document.body.getAttribute("data-mode") === "editing") {
-    document.body.removeAttribute("data-mode");
+  if (document.body.getAttribute('data-mode') === 'editing') {
+    document.body.removeAttribute('data-mode');
   } else {
-    document.body.setAttribute("data-mode", "editing");
+    document.body.setAttribute('data-mode', 'editing');
   }
-  HtmlContainer.setAttribute("data-layout", "normal");
+  HtmlContainer.setAttribute('data-layout', 'normal');
 };
 // }}}
 // Set up EasyMDE {{{
@@ -30,37 +30,37 @@ const editor = new EasyMDE({
   initialValue: defaultContent,
   autosave: {
     enabled: true,
-    uniqueId: "dumbymap",
+    uniqueId: 'dumbymap',
   },
   indentWithTabs: false,
   lineNumbers: true,
   promptURLs: true,
   uploadImage: true,
   spellChecker: false,
-  toolbarButtonClassPrefix: "mde",
+  toolbarButtonClassPrefix: 'mde',
   status: false,
   shortcuts: {
-    map: "Ctrl-Alt-M",
-    debug: "Ctrl-Alt-D",
+    map: 'Ctrl-Alt-M',
+    debug: 'Ctrl-Alt-D',
     toggleUnorderedList: null,
     toggleOrderedList: null,
   },
   toolbar: [
     {
-      name: "map",
-      title: "Toggle Map Generation",
-      text: "🌏",
+      name: 'map',
+      title: 'Toggle Map Generation',
+      text: '🌏',
       action: () => toggleEditing(),
     },
     {
-      name: "debug",
-      title: "Save content as URL",
-      text: "🤔",
+      name: 'debug',
+      title: 'Save content as URL',
+      text: '🤔',
       action: () => {
         const state = { content: editor.value() };
         window.location.hash = encodeURIComponent(JSON.stringify(state));
         navigator.clipboard.writeText(window.location.href);
-        alert("URL copied to clipboard");
+        alert('URL copied to clipboard');
       },
     },
     "undo",
@@ -103,7 +103,7 @@ const getContentFromHash = hash => {
 };
 
 const initialState = getStateFromHash(window.location.hash);
-window.location.hash = "";
+window.location.hash = '';
 const contentFromHash = initialState.content;
 
 // Seems like autosave would overwrite initialValue, set content from hash here
@@ -131,9 +131,9 @@ const addClassToCodeLines = () => {
     if (line.text.match(/^[\u0060]{3}/)) {
       insideCodeBlock = !insideCodeBlock;
     } else if (insideCodeBlock) {
-      cm.addLineClass(index, "text", "inside-code-block");
+      cm.addLineClass(index, 'text', 'inside-code-block');
     } else {
-      cm.removeLineClass(index, "text", "inside-code-block");
+      cm.removeLineClass(index, 'text', 'inside-code-block');
     }
   });
 };
@@ -141,29 +141,29 @@ addClassToCodeLines();
 
 const completeForCodeBlock = change => {
   const line = change.to.line;
-  if (change.origin === "+input") {
+  if (change.origin === '+input') {
     const text = change.text[0];
 
     // Completion for YAML doc separator
     if (
-      text === "-" &&
+      text === '-' &&
       change.to.ch === 0 &&
       insideCodeblockForMap(cm.getCursor())
     ) {
       cm.setSelection({ line: line, ch: 0 }, { line: line, ch: 1 });
-      cm.replaceSelection(text.repeat(3) + "\n");
+      cm.replaceSelection(text.repeat(3) + '\n');
     }
 
     // Completion for Code fence
-    if (text === "`" && change.to.ch === 0) {
+    if (text === '`' && change.to.ch === 0) {
       cm.setSelection({ line: line, ch: 0 }, { line: line, ch: 1 });
       cm.replaceSelection(text.repeat(3));
       const numberOfFences = cm
         .getValue()
-        .split("\n")
+        .split('\n')
         .filter(line => line.match(/[\u0060]{3}/)).length;
       if (numberOfFences % 2 === 1) {
-        cm.replaceSelection("map\n\n```");
+        cm.replaceSelection('map\n\n```');
         cm.setCursor({ line: line + 1 });
       }
     }
@@ -171,11 +171,11 @@ const completeForCodeBlock = change => {
 
   // For YAML doc separator, <hr> and code fence
   // Auto delete to start of line
-  if (change.origin === "+delete") {
+  if (change.origin === '+delete') {
     const match = change.removed[0].match(/^[-\u0060]$/)?.at(0);
     if (match && cm.getLine(line) === match.repeat(2) && match) {
       cm.setSelection({ line: line, ch: 0 }, { line: line, ch: 2 });
-      cm.replaceSelection("");
+      cm.replaceSelection('');
     }
   }
 };
@@ -202,23 +202,23 @@ const updateDumbyMap = () => {
 updateDumbyMap();
 
 // Re-render HTML by editor content
-cm.on("change", (_, change) => {
+cm.on('change', (_, change) => {
   updateDumbyMap();
   addClassToCodeLines();
   completeForCodeBlock(change);
 });
 
 // Set class for focus
-cm.on("focus", () => {
-  cm.getWrapperElement().classList.add("focus");
-  HtmlContainer.classList.remove("focus");
+cm.on('focus', () => {
+  cm.getWrapperElement().classList.add('focus');
+  HtmlContainer.classList.remove('focus');
 });
 
-cm.on("beforeChange", (_, change) => {
+cm.on('beforeChange', (_, change) => {
   const line = change.to.line;
   // Don't allow more content after YAML doc separator
   if (change.origin.match(/^(\+input|paste)$/)) {
-    if (cm.getLine(line) === "---" && change.text[0] !== "") {
+    if (cm.getLine(line) === '---' && change.text[0] !== '') {
       change.cancel();
     }
   }
@@ -239,9 +239,9 @@ window.onhashchange = () => {
 // }}}
 // Completion in Code Blok {{{
 // Elements about suggestions {{{
-const menu = document.createElement("div");
-menu.id = "menu";
-menu.onclick = () => (menu.style.display = "none");
+const menu = document.createElement('div');
+menu.id = 'menu';
+menu.onclick = () => (menu.style.display = 'none');
 document.body.append(menu);
 
 const rendererOptions = {};
@@ -249,7 +249,7 @@ const rendererOptions = {};
 // }}}
 // Aliases for map options {{{
 const aliasesForMapOptions = {};
-const defaultApply = "./dist/default.yml";
+const defaultApply = './dist/default.yml';
 fetch(defaultApply)
   .then(res => res.text())
   .then(rawText => {
@@ -269,9 +269,9 @@ const insideCodeblockForMap = anchor => {
   let line = anchor.line - 1;
   while (line >= 0) {
     const content = cm.getLine(line);
-    if (content === "```map") {
+    if (content === '```map') {
       return true;
-    } else if (content === "```") {
+    } else if (content === '```') {
       return false;
     }
     line = line - 1;
@@ -331,7 +331,7 @@ const getSuggestionsForOptions = (optionTyped, validOptions) => {
   return suggestOptions.map(
     o =>
       new menuItem.Suggestion({
-        text: `<span>${o.valueOf()}</span><span class='info' title="${o.desc ?? ""}">ⓘ</span>`,
+        text: `<span>${o.valueOf()}</span><span class='info' title="${o.desc ?? ''}">ⓘ</span>`,
         replace: `${o.valueOf()}: `,
       }),
   );
@@ -347,7 +347,7 @@ const getSuggestionFromMapOption = option => {
 
   return new menuItem.Suggestion({
     text: text,
-    replace: `${option.valueOf()}: ${option.example ?? ""}`,
+    replace: `${option.valueOf()}: ${option.example ?? ''}`,
   });
 };
 // }}}
@@ -355,7 +355,7 @@ const getSuggestionFromMapOption = option => {
 const getSuggestionsFromAliases = option =>
   Object.entries(aliasesForMapOptions[option.valueOf()] ?? {})?.map(record => {
     const [alias, value] = record;
-    const valueString = JSON.stringify(value).replaceAll('"', "");
+    const valueString = JSON.stringify(value).replaceAll('"', '');
     return new menuItem.Suggestion({
       text: `<span>${alias}</span><span class="truncate" style="color: gray">${valueString}</span>`,
       replace: `${option.valueOf()}: ${valueString}`,
@@ -391,17 +391,17 @@ const getSuggestions = anchor => {
       .markText(
         { ...anchor, ch: 0 },
         { ...anchor, ch: text.length },
-        { className: "invalid-input" },
+        { className: 'invalid-input' },
       );
 
   // Check if "use: <renderer>" is set
   const lineWithRenderer = getLineWithRenderer(anchor);
   const renderer = lineWithRenderer
-    ? cm.getLine(lineWithRenderer).split(" ")[1]
+    ? cm.getLine(lineWithRenderer).split(' ')[1]
     : null;
   if (renderer && anchor.line !== lineWithRenderer) {
     // Do not check properties
-    if (text.startsWith("  ")) return [];
+    if (text.startsWith('  ')) return [];
 
     // If no valid options for current used renderer, go get it!
     const validOptions = rendererOptions[renderer];
@@ -426,7 +426,7 @@ const getSuggestions = anchor => {
     }
 
     // If input is "key:value" (no space left after colon), then it is invalid
-    const isKeyFinished = text.includes(":");
+    const isKeyFinished = text.includes(':');
     const isValidKeyValue = text.match(/^[^:]+:\s+/);
     if (isKeyFinished && !isValidKeyValue) {
       markInputIsInvalid();
@@ -434,7 +434,7 @@ const getSuggestions = anchor => {
     }
 
     // If user is typing option
-    const keyTyped = text.split(":")[0].trim();
+    const keyTyped = text.split(':')[0].trim();
     if (!isKeyFinished) {
       markInputIsInvalid();
       return getSuggestionsForOptions(keyTyped, validOptions);
@@ -447,7 +447,7 @@ const getSuggestions = anchor => {
     }
 
     if (isKeyFinished && matchedOption) {
-      const valueTyped = text.substring(text.indexOf(":") + 1).trim();
+      const valueTyped = text.substring(text.indexOf(':') + 1).trim();
       const isValidValue = matchedOption.isValid(valueTyped);
       if (!valueTyped) {
         return [
@@ -465,8 +465,8 @@ const getSuggestions = anchor => {
     const rendererSuggestions = Object.entries(defaultAliases.use)
       .filter(([renderer]) => {
         const suggestion = `use: ${renderer}`;
-        const suggestionPattern = suggestion.replace(" ", "").toLowerCase();
-        const textPattern = text.replace(" ", "").toLowerCase();
+        const suggestionPattern = suggestion.replace(' ', '').toLowerCase();
+        const textPattern = text.replace(' ', '').toLowerCase();
         return suggestion !== text && suggestionPattern.includes(textPattern);
       })
       .map(
@@ -484,55 +484,55 @@ const getSuggestions = anchor => {
 // {{{ FUNCTION: Show element about suggestions
 const addSuggestions = (anchor, suggestions) => {
   if (suggestions.length === 0) {
-    menu.style.display = "none";
+    menu.style.display = 'none';
     return;
   } else {
-    menu.style.display = "block";
+    menu.style.display = 'block';
   }
 
-  menu.innerHTML = "";
+  menu.innerHTML = '';
   suggestions
     .map(s => s.createElement(cm))
     .forEach(option => menu.appendChild(option));
 
-  const widgetAnchor = document.createElement("div");
+  const widgetAnchor = document.createElement('div');
   cm.addWidget(anchor, widgetAnchor, true);
   const rect = widgetAnchor.getBoundingClientRect();
   menu.style.left = `calc(${rect.left}px + 2rem)`;
   menu.style.top = `calc(${rect.bottom}px + 1rem)`;
   menu.style.maxWidth = `calc(${window.innerWidth}px - ${rect.x}px - 3rem)`;
-  menu.style.display = "block";
+  menu.style.display = 'block';
 };
 // }}}
 // EVENT: Suggests for current selection {{{
 // FIXME Dont show suggestion when selecting multiple chars
-cm.on("cursorActivity", _ => {
-  menu.style.display = "none";
+cm.on('cursorActivity', _ => {
+  menu.style.display = 'none';
   const anchor = cm.getCursor();
 
   if (insideCodeblockForMap(anchor)) {
     handleTypingInCodeBlock(anchor);
   }
 });
-cm.on("blur", () => {
-  menu.style.display = "none";
-  cm.getWrapperElement().classList.remove("focus");
-  HtmlContainer.classList.add("focus");
+cm.on('blur', () => {
+  menu.style.display = 'none';
+  cm.getWrapperElement().classList.remove('focus');
+  HtmlContainer.classList.add('focus');
 });
 // }}}
 // EVENT: keydown for suggestions {{{
-const keyForSuggestions = ["Tab", "Enter", "Escape"];
-cm.on("keydown", (_, e) => {
+const keyForSuggestions = ['Tab', 'Enter', 'Escape'];
+cm.on('keydown', (_, e) => {
   if (
     !cm.hasFocus ||
     !keyForSuggestions.includes(e.key) ||
-    menu.style.display === "none"
+    menu.style.display === 'none'
   )
     return;
 
   // Directly add a newline when no suggestion is selected
-  const currentSuggestion = menu.querySelector(".container__suggestion.focus");
-  if (!currentSuggestion && e.key === "Enter") return;
+  const currentSuggestion = menu.querySelector('.container__suggestion.focus');
+  if (!currentSuggestion && e.key === 'Enter') return;
 
   // Override default behavior
   e.preventDefault();
@@ -540,25 +540,25 @@ cm.on("keydown", (_, e) => {
   // Suggestion when pressing Tab or Shift + Tab
   const nextSuggestion =
     currentSuggestion?.nextSibling ??
-    menu.querySelector(".container__suggestion:first-child");
+    menu.querySelector('.container__suggestion:first-child');
   const previousSuggestion =
     currentSuggestion?.previousSibling ??
-    menu.querySelector(".container__suggestion:last-child");
+    menu.querySelector('.container__suggestion:last-child');
   const focusSuggestion = e.shiftKey ? previousSuggestion : nextSuggestion;
 
   // Current editor selection state
   const anchor = cm.getCursor();
   switch (e.key) {
-    case "Tab":
-      Array.from(menu.children).forEach(s => s.classList.remove("focus"));
-      focusSuggestion.classList.add("focus");
-      focusSuggestion.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    case 'Tab':
+      Array.from(menu.children).forEach(s => s.classList.remove('focus'));
+      focusSuggestion.classList.add('focus');
+      focusSuggestion.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       break;
-    case "Enter":
+    case 'Enter':
       currentSuggestion.onclick();
       break;
-    case "Escape":
-      menu.style.display = "none";
+    case 'Escape':
+      menu.style.display = 'none';
       // Focus editor again
       setTimeout(() => cm.focus() && cm.setCursor(anchor), 100);
       break;
@@ -566,34 +566,34 @@ cm.on("keydown", (_, e) => {
 });
 
 document.onkeydown = e => {
-  if (e.altKey && e.ctrlKey && e.key === "m") {
+  if (e.altKey && e.ctrlKey && e.key === 'm') {
     toggleEditing();
     e.preventDefault();
     return null;
   }
 
   if (!cm.hasFocus()) {
-    if (e.key === "F1") {
+    if (e.key === 'F1') {
       e.preventDefault();
       cm.focus();
     }
-    if (e.key === "Tab") {
+    if (e.key === 'Tab') {
       e.preventDefault();
       dumbymap.utils.focusNextMap(e.shiftKey);
     }
-    if (e.key === "x" || e.key === "X") {
+    if (e.key === 'x' || e.key === 'X') {
       e.preventDefault();
       dumbymap.utils.switchToNextLayout(e.shiftKey);
     }
-    if (e.key === "n") {
+    if (e.key === 'n') {
       e.preventDefault();
       dumbymap.utils.focusNextBlock();
     }
-    if (e.key === "p") {
+    if (e.key === 'p') {
       e.preventDefault();
       dumbymap.utils.focusNextBlock(true);
     }
-    if (e.key === "Escape") {
+    if (e.key === 'Escape') {
       e.preventDefault();
       dumbymap.utils.removeBlockFocus();
     }
@@ -604,15 +604,15 @@ document.onkeydown = e => {
 // }}}
 // Layout Switch {{{
 const layoutObserver = new MutationObserver(() => {
-  const layout = HtmlContainer.getAttribute("data-layout");
-  if (layout !== "normal") {
-    document.body.removeAttribute("data-mode");
+  const layout = HtmlContainer.getAttribute('data-layout');
+  if (layout !== 'normal') {
+    document.body.removeAttribute('data-mode');
   }
 });
 
 layoutObserver.observe(HtmlContainer, {
   attributes: true,
-  attributeFilter: ["data-layout"],
+  attributeFilter: ['data-layout'],
   attributeOldValue: true,
 });
 // }}}
@@ -624,7 +624,7 @@ document.oncontextmenu = e => {
   const range = selection.getRangeAt(0);
   if (selection) {
     e.preventDefault();
-    menu.innerHTML = "";
+    menu.innerHTML = '';
     menu.style.cssText = `display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`;
     const addGeoLink = new menuItem.GeoLink({ range });
     menu.appendChild(addGeoLink.createElement());
@@ -635,7 +635,7 @@ document.oncontextmenu = e => {
 };
 
 const actionOutsideMenu = e => {
-  if (menu.style.display === "none" || cm.hasFocus()) return;
+  if (menu.style.display === 'none' || cm.hasFocus()) return;
   const rect = menu.getBoundingClientRect();
   if (
     e.clientX < rect.left ||
@@ -643,11 +643,11 @@ const actionOutsideMenu = e => {
     e.clientY < rect.top ||
     e.clientY > rect.top + rect.height
   ) {
-    menu.style.display = "none";
+    menu.style.display = 'none';
   }
 };
 
-document.addEventListener("click", actionOutsideMenu);
+document.addEventListener('click', actionOutsideMenu);
 
 // }}}
 

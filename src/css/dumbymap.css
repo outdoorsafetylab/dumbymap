@@ -101,12 +101,12 @@ root {
       transform: translate(-50%, -50%);
     }
 
-    &[data-render='fulfilled'][data-report$="\20"]::after {
+    &[data-render='fulfilled'][data-report$='\20']::after {
       content: '\2714  ' attr(data-report);
       animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
     }
 
-    &[data-render='unfulfilled'][data-report$="\20"]::after {
+    &[data-render='unfulfilled'][data-report$='\20']::after {
       content: '\2716  ' attr(data-report);
       animation: 2.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
     }

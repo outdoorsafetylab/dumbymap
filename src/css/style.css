@@ -84,7 +84,7 @@ a {
   color: #007bff;
   text-decoration: none;
 
-  &[href^=http]::after {
+  &[href^='http']::after {
     content: '';
     display: inline-block;
     width: 11px;
