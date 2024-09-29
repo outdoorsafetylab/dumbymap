@@ -52,6 +52,8 @@ root {
   position: relative;
   transform-origin: top left;
 
+  transition: flex-basis 300ms ease-in-out;
+
   &.focus::after {
     content: 'Map-ID: ' attr(id);
     padding: 0.3rem 0.5rem;
@@ -75,18 +77,52 @@ root {
     opacity: 0;
     animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
   }
+
+  &[data-report*='/'] {
+    &::after {
+      content: attr(data-report);
+      padding: 0.3rem 0.5rem;
+
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 9999;
+
+      border: solid transparent;
+      border-radius: 5px;
+
+      background: gray;
+
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      line-height: 1.2;
+
+      transform: translate(-50%, -50%);
+    }
+
+    &[data-render='fulfilled'][data-report$="\20"]::after {
+      content: '\2714  ' attr(data-report);
+      animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
+    }
+
+    &[data-render='unfulfilled'][data-report$="\20"]::after {
+      content: '\2716  ' attr(data-report);
+      animation: 2.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
+    }
+  }
 }
 
 .with-leader-line:not(:has(> *)) {
   display: inline-block;
+  padding-right: 15px;
+  padding-left: 6px;
 
   background-image: url('data:image/svg+xml;charset=utf-8;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cG9seWdvbiBwb2ludHM9IjI0LDAgMCw4IDgsMTEgMCwxOSA1LDI0IDEzLDE2IDE2LDI0IiBmaWxsPSJjb3JhbCIvPjwvc3ZnPg==');
   background-repeat: no-repeat;
   background-position: right 2px top 2px;
 
   color: #555;
-  padding-right: 15px;
-  padding-left: 6px;
   background-size: 12px 12px;
 
   &.geolink {
@@ -219,9 +255,9 @@ root {
 .SemanticHtml {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   height: 100%;
   gap: 1rem;
-  justify-content: flex-start;
   overflow-y: auto;
 
   /* Trivial: gray out text not focused */

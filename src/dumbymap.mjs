@@ -426,19 +426,47 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
   // Render each code block with "language-map" class
   const elementsWithMapConfig = Array.from(
-    container.querySelectorAll("pre:has(.language-map)") ?? [],
-  );
-  // Add default aliases into each config
+    container.querySelectorAll('pre:has(.language-map)') ?? []
+  )
+  /**
+   * updateAttributeByStep.
+   *
+   * @param {Object} -- renderer which is running steps
+   */
+  const updateAttributeByStep = ({ results, target, steps }) => {
+    let passNum = results
+      .filter(r => r.type === 'step' && r.state.match(/success|skip/))
+      .length
+    const total = steps.length;
+    passNum  += `/${total}`;
+    if (results.filter(r=>r.type === 'step').length === total) {
+      passNum += '\u0020'
+    }
+
+    // FIXME HACK use MutationObserver for animation
+    if (!target.animations) target.animations = Promise.resolve();
+    target.animations = target.animations.then(async () => {
+      await new Promise(resolve => setTimeout(resolve, 150));
+      target.setAttribute('data-report', passNum);
+    });
+  }
+  /**
+   * config converter for mapclay.renderWith()
+   *
+   * @param {Object} config
+   * @return {Object} -- converted config
+   */
   const configConverter = config => ({
-    use: config.use ?? "Leaflet",
-    width: "100%",
+    use: config.use ?? 'Leaflet',
+    width: '100%',
     ...config,
     aliases: {
       ...defaultAliases,
       ...(config.aliases ?? {}),
     },
-  });
-  const render = renderWith(configConverter);
+    stepCallback: updateAttributeByStep,
+  })
+  const render = renderWith(configConverter)
   elementsWithMapConfig.forEach(target => {
     // Get text in code block starts with markdown text '```map'
     const configText = target
