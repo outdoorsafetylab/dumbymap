@@ -1,16 +1,11 @@
 export function focusNextMap(reverse = false) {
-  const renderedList = Array.from(
-    this.htmlHolder.querySelectorAll('[data-render=fulfilled]'),
-  );
+  const renderedList = this.utils.renderedMaps();
+
   const mapNum = renderedList.length;
   if (mapNum === 0) return;
 
   // Get current focused map element
   const currentFocus = this.container.querySelector('.mapclay.focus');
-
-  // Remove class name of focus for ALL candidates
-  // This may trigger animation
-  renderedList.forEach(ele => ele.classList.remove('focus'));
 
   // Get next existing map element
   const padding = reverse ? -1 : 1;

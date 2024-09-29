@@ -10,13 +10,17 @@ const HtmlContainer = document.querySelector('.DumbyMap');
 const textArea = document.querySelector('.editor textarea');
 let dumbymap;
 
-const toggleEditing = () => {
+new MutationObserver(() => {
   if (document.body.getAttribute('data-mode') === 'editing') {
-    document.body.removeAttribute('data-mode');
-  } else {
-    document.body.setAttribute('data-mode', 'editing');
+    HtmlContainer.setAttribute('data-layout', 'normal');
   }
-  HtmlContainer.setAttribute('data-layout', 'normal');
+}).observe(document.body, {
+  attributes: true,
+  attributeFilter: ['data-mode'],
+});
+const toggleEditing = () => {
+  const mode = document.body.getAttribute('data-mode');
+  document.body.setAttribute('data-mode', mode === 'editing' ? '' : 'editing');
 };
 // }}}
 // Set up EasyMDE {{{
@@ -274,6 +278,15 @@ window.onhashchange = () => {
 const menu = document.createElement('div');
 menu.id = 'menu';
 menu.onclick = () => (menu.style.display = 'none');
+new MutationObserver(() => {
+  if (menu.style.display === 'none') {
+    menu.style.cssText = '';
+    menu.replaceChildren();
+  }
+}).observe(menu, {
+  attributes: true,
+  attributeFilter: ['style'],
+});
 document.body.append(menu);
 
 const rendererOptions = {};
@@ -657,13 +670,13 @@ document.oncontextmenu = e => {
   if (selection) {
     e.preventDefault();
     menu.innerHTML = '';
-    menu.style.cssText = `display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`;
     const addGeoLink = new menuItem.GeoLink({ range });
     menu.appendChild(addGeoLink.createElement());
   }
-  menu.appendChild(menuItem.nextMap.bind(dumbymap)());
-  menu.appendChild(menuItem.nextBlock.bind(dumbymap)());
-  menu.appendChild(menuItem.nextLayout.bind(dumbymap)());
+  menu.style.cssText = `overflow: visible; display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`;
+  menu.appendChild(menuItem.pickMapItem(dumbymap));
+  menu.appendChild(menuItem.pickBlockItem(dumbymap));
+  menu.appendChild(menuItem.pickLayoutItem(dumbymap));
 };
 
 const actionOutsideMenu = e => {

@@ -1,31 +1,94 @@
 import { createGeoLink } from './dumbymap';
 
-export function nextMap() {
-  const element = document.createElement('div');
-  element.className = 'menu-item';
-  element.innerHTML = 'Next Map <span class="info">(Tab)</span>';
-  element.onclick = () => this.utils.focusNextMap();
+class Item {
+  constructor({ text, innerHTML, onclick }) {
+    this.text = text;
+    this.innerHTML = innerHTML;
+    this.onclick = onclick;
+  }
 
-  return element;
+  get element() {
+    const element = document.createElement('div');
+    element.innerHTML = this.innerHTML ? this.innerHTML : this.text;
+    element.classList.add('menu-item');
+    element.onclick = this.onclick;
+    return element;
+  }
 }
 
-export function nextBlock() {
-  const element = document.createElement('div');
-  element.className = 'menu-item';
-  element.innerHTML = 'Next Block <span class="info">(n)</span>';
-  element.onclick = () => this.utils.focusNextBlock();
+class Folder {
+  constructor({ text, innerHTML, items }) {
+    this.text = text;
+    this.innerHTML = innerHTML;
+    this.items = items;
+    this.utils;
+  }
 
-  return element;
+  get element() {
+    const element = document.createElement('div');
+    element.classList.add(this.className);
+    element.className = 'menu-item folder';
+    element.innerHTML = this.innerHTML;
+    element.style.cssText = 'position: relative; overflow: visible;';
+    element.onmouseover = () => {
+      // Prepare submenu
+      this.submenu = document.createElement('div');
+      this.submenu.className = 'sub-menu';
+      this.submenu.style.cssText = `position: absolute; left: 105%; top: 0px;`;
+      this.items.forEach(item => this.submenu.appendChild(item));
+
+      // hover effect
+      element.parentElement
+        .querySelectorAll('.sub-menu')
+        .forEach(sub => sub.remove());
+      element.appendChild(this.submenu);
+    };
+    return element;
+  }
 }
 
-export function nextLayout() {
-  const element = document.createElement('div');
-  element.className = 'menu-item';
-  element.innerHTML = 'Next Layout <span class="info">(x)</span>';
-  element.onclick = () => this.utils.switchToNextLayout();
+export const pickMapItem = dumbymap =>
+  new Folder({
+    innerHTML: '<span>Focus a Map<span><span class="info">(Tab)</span>',
+    items: dumbymap.utils.renderedMaps().map(
+      map =>
+        new Item({
+          text: map.id,
+          onclick: () => map.classList.add('focus'),
+        }).element,
+    ),
+  }).element;
 
-  return element;
-}
+export const pickBlockItem = dumbymap =>
+  new Folder({
+    innerHTML: '<span>Focus Block<span><span class="info">(n/p)</span>',
+    items: dumbymap.blocks.map(
+      (block, index) =>
+        new Item({
+          text: `Block ${index}`,
+          onclick: () => block.classList.add('focus'),
+        }).element,
+    ),
+  }).element;
+
+export const pickLayoutItem = dumbymap =>
+  new Folder({
+    innerHTML: '<span>Switch Layout<span><span class="info">(x)</span>',
+    items: [
+      new Item({
+        text: 'EDIT',
+        onclick: () => document.body.setAttribute('data-mode', 'editing'),
+      }).element,
+      ...dumbymap.layouts.map(
+        layout =>
+          new Item({
+            text: layout.name,
+            onclick: () =>
+              dumbymap.container.setAttribute('data-layout', layout.name),
+          }).element,
+      ),
+    ],
+  }).element;
 
 export class GeoLink {
   constructor({ range }) {

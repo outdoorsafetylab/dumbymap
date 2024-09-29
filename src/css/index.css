@@ -52,7 +52,6 @@ body {
   box-sizing: border-box;
   flex-direction: column;
   align-items: stretch;
-
   height: 100%;
   gap: 0.5em;
 
@@ -124,10 +123,9 @@ body {
 
 .container__suggestion {
   display: flex;
+  overflow: hidden;
   justify-content: space-between;
   align-items: center;
-
-  overflow: hidden;
   height: fit-content;
 
   cursor: pointer;
@@ -167,13 +165,16 @@ body {
 
 .menu-item {
   display: flex;
+  box-sizing: border-box;
   justify-content: space-between;
-
   padding: 0.5rem;
 
   z-index: 9999;
+  text-wrap: nowrap;
 
   cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 5px;
 
   &:hover {
     background: rgb(226 232 240);
@@ -181,6 +182,30 @@ body {
 
   .info {
     color: steelblue;
+    padding-inline: 1em;
     font-weight: bold;
+  }
+}
+
+.folder::after {
+  content: '⏵';
+}
+
+.sub-menu {
+  width: fit-content;
+
+  position: absolute;
+  z-index: 100;
+
+  border: 2px solid gray;
+  border-radius: 6px;
+
+  background: white;
+  min-width: 6rem;
+  max-height: 40vh;
+  .menu-item {
+    margin: 0 auto;
+    padding-inline: 0.5em;
+    min-width: 5em;
   }
 }

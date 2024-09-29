@@ -153,7 +153,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   const showcase = document.createElement('div');
   container.appendChild(showcase);
   showcase.classList.add('Showcase');
-  const renderMaps = [];
+  const renderPromises = [];
 
   const dumbymap = {
     layouts,
@@ -161,8 +161,11 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     htmlHolder,
     showcase,
     blocks,
-    renderMaps: renderMaps,
     utils: {
+      renderedMaps: () =>
+        Array.from(
+          container.querySelectorAll('.mapclay[data-render=fulfilled]'),
+        ),
       focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
       switchToNextLayout: throttle(utils.switchToNextLayout, 300),
       focusNextBlock: utils.focusNextBlock,
@@ -259,10 +262,6 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     );
   };
   //}}}
-  // Draggable Blocks {{{
-  // Add draggable part for blocks
-
-  // }}}
   // CSS observer {{{
   // Focus Map {{{
   // Set focusArea
@@ -281,6 +280,13 @@ export const generateMaps = (container, { delay, mapCallback }) => {
           opacityProperty: true,
           visibilityProperty: true,
         });
+
+      if (focus) {
+        dumbymap.utils
+          .renderedMaps()
+          .filter(map => map !== target)
+          .forEach(map => map.classList.remove('focus'));
+      }
 
       if (shouldBeInShowcase) {
         if (showcase.contains(target)) return;
@@ -448,7 +454,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     // FIXME HACK use MutationObserver for animation
     if (!target.animations) target.animations = Promise.resolve();
     target.animations = target.animations.then(async () => {
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 100));
       target.setAttribute('data-report', passNum);
     });
   };
@@ -505,9 +511,9 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     // Render maps with delay
     const timer = setTimeout(
       () =>
-        render(target, configList).forEach(renderMap => {
-          renderMaps.push(renderMap);
-          renderMap.then(afterMapRendered);
+        render(target, configList).forEach(renderPromise => {
+          renderPromises.push(renderPromise);
+          renderPromise.then(afterMapRendered);
         }),
       delay ?? 1000,
     );
