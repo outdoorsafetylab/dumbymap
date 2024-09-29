@@ -110,7 +110,7 @@ body {
   width: fit-content;
 
   position: absolute;
-  z-index: 100;
+  z-index: 9999;
 
   border: 2px solid gray;
   border-radius: 6px;
@@ -193,6 +193,7 @@ body {
 
 .sub-menu {
   width: fit-content;
+  overflow: scroll;
 
   position: absolute;
   z-index: 100;
