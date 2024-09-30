@@ -91,7 +91,7 @@ export const createGeoLink = (link, callback = null) => {
 
 export const markdown2HTML = (container, mdContent) => {
   // Render: Markdown -> HTML {{{
-  Array.from(container.children).map(e => e.remove());
+  container.replaceChildren();
 
   container.innerHTML = '<div class="SemanticHtml"></div>';
   const htmlHolder = container.querySelector('.SemanticHtml');

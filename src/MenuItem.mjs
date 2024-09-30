@@ -150,7 +150,7 @@ export class Suggestion {
     }
     option.classList.add('container__suggestion');
     option.onmouseover = () => {
-      Array.from(option.parentElement?.children ?? []).forEach(s =>
+      Array.from(option.parentElement?.children)?.forEach(s =>
         s.classList.remove('focus'),
       );
       option.classList.add('focus');
