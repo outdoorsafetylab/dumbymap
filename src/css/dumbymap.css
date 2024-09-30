@@ -421,6 +421,8 @@ root {
 
 .utils {
   display: flex;
+  padding-block: 1rem;
+  padding-inline: 1rem;
 
   position: absolute;
   left: 100%;
@@ -431,8 +433,6 @@ root {
   visibility: hidden;
 
   gap: 6px;
-  padding-inline: 1rem;
-  padding-block: 1rem;
 
   &:hover {
     visibility: visible;
@@ -507,6 +507,8 @@ root {
   .dumby-block {
     overflow: scroll;
     margin: 0;
+    padding-block: 1rem 0;
+    padding-inline: 1rem;
 
     position: relative;
 
@@ -519,8 +521,6 @@ root {
     max-width: 25vw;
     min-height: 5rem;
     max-height: 50vh;
-    padding-inline: 1rem;
-    padding-block: 1rem 0;
 
     /* Remove indicator when inside draggable-block */
     &::before {

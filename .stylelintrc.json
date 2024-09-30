@@ -49,6 +49,8 @@
           "margin-bottom",
           "margin-left",
           "padding",
+          "padding-block",
+          "padding-inline",
           "padding-top",
           "padding-right",
           "padding-bottom",

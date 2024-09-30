@@ -56,16 +56,15 @@ body {
   gap: 0.5em;
 
   .CodeMirror {
-    order: 1;
-
     flex: 1 0 0;
+    padding-inline: 0;
 
     border: var(--content-border);
     border-radius: var(--content-border-radius);
-    padding-inline: 0;
 
     font-family: monospace;
     font-size: 1rem;
+    order: 1;
 
     &.focus {
       border: var(--content-focus-border);
@@ -170,19 +169,21 @@ body {
   padding: 0.5rem;
 
   z-index: 9999;
-  text-wrap: nowrap;
 
-  cursor: pointer;
   border: 2px solid transparent;
   border-radius: 5px;
+
+  cursor: pointer;
+  text-wrap: nowrap;
 
   &:hover {
     background: rgb(226 232 240);
   }
 
   .info {
-    color: steelblue;
     padding-inline: 1em;
+
+    color: steelblue;
     font-weight: bold;
   }
 }
@@ -192,8 +193,8 @@ body {
 }
 
 .sub-menu {
-  width: fit-content;
   overflow: scroll;
+  width: fit-content;
 
   position: absolute;
   z-index: 100;
@@ -204,6 +205,7 @@ body {
   background: white;
   min-width: 6rem;
   max-height: 40vh;
+
   .menu-item {
     margin: 0 auto;
     padding-inline: 0.5em;
