@@ -1,4 +1,5 @@
 import { createGeoLink } from './dumbymap';
+import { scrollToBlock } from './dumbyUtils';
 
 class Item {
   constructor({ text, innerHTML, onclick }) {
@@ -55,7 +56,10 @@ export const pickMapItem = dumbymap =>
       map =>
         new Item({
           text: map.id,
-          onclick: () => map.classList.add('focus'),
+          onclick: () => {
+            map.classList.add('focus');
+            map.scrollIntoView({ behavior: 'smooth' });
+          },
         }).element,
     ),
   }).element;
@@ -66,8 +70,15 @@ export const pickBlockItem = dumbymap =>
     items: dumbymap.blocks.map(
       (block, index) =>
         new Item({
-          text: `Block ${index}`,
-          onclick: () => block.classList.add('focus'),
+          text:
+            block
+              .querySelector('p')
+              ?.textContent.substring(0, 20)
+              .concat(' ...') ?? `Block ${index}`,
+          onclick: () => {
+            block.classList.add('focus');
+            scrollToBlock(block);
+          },
         }).element,
     ),
   }).element;

@@ -270,9 +270,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     new MutationObserver(mutations => {
       const mutation = mutations.at(-1);
       const target = mutation.target;
-      const focus = target
-        .getAttribute(mutation.attributeName)
-        .includes('focus');
+      const focus = target.classList.contains('focus');
       const shouldBeInShowcase =
         focus &&
         showcase.checkVisibility({
@@ -284,7 +282,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       if (focus) {
         dumbymap.utils
           .renderedMaps()
-          .filter(map => map !== target)
+          .filter(map => map.id !== target.id)
           .forEach(map => map.classList.remove('focus'));
       }
 
