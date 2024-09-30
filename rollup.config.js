@@ -3,6 +3,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { bundleStats } from 'rollup-plugin-bundle-stats';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -53,6 +54,7 @@ const general = {
     node(),
     commonjs(),
     production && terser(),
+    // bundleStats(),
   ],
 }
 
