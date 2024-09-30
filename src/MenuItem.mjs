@@ -1,53 +1,40 @@
 import { createGeoLink } from './dumbymap';
 import { scrollToBlock } from './dumbyUtils';
+import { default as PlainModal } from 'plain-modal';
 
-class Item {
+class Item extends HTMLDivElement {
   constructor({ text, innerHTML, onclick }) {
-    this.text = text;
-    this.innerHTML = innerHTML;
+    super();
+    this.innerHTML = innerHTML ?? text;
     this.onclick = onclick;
-  }
-
-  get element() {
-    const element = document.createElement('div');
-    element.innerHTML = this.innerHTML ? this.innerHTML : this.text;
-    element.classList.add('menu-item');
-    element.onclick = this.onclick;
-    return element;
+    this.classList.add('menu-item');
   }
 }
+window.customElements.define('menu-item', Item, { extends: 'div' });
 
-class Folder {
+class Folder extends HTMLDivElement {
   constructor({ text, innerHTML, items }) {
-    this.text = text;
-    this.innerHTML = innerHTML;
+    super();
+    this.innerHTML = innerHTML ?? text;
+    this.classList.add('folder', 'menu-item');
     this.items = items;
-    this.utils;
-  }
-
-  get element() {
-    const element = document.createElement('div');
-    element.classList.add(this.className);
-    element.className = 'menu-item folder';
-    element.innerHTML = this.innerHTML;
-    element.style.cssText = 'position: relative; overflow: visible;';
-    element.onmouseover = () => {
-      if (element.querySelector('.sub-menu')) return;
+    this.onmouseover = () => {
+      if (this.querySelector('.sub-menu')) return;
       // Prepare submenu
-      this.submenu = document.createElement('div');
-      this.submenu.className = 'sub-menu';
-      this.submenu.style.cssText = `position: absolute; left: 105%; top: 0px;`;
-      this.items.forEach(item => this.submenu.appendChild(item));
+      const submenu = document.createElement('div');
+      submenu.className = 'sub-menu';
+      submenu.style.cssText = `position: absolute; left: 105%; top: 0px;`;
+      this.items.forEach(item => submenu.appendChild(item));
 
       // hover effect
-      element.parentElement
+      this.parentElement
         .querySelectorAll('.sub-menu')
         .forEach(sub => sub.remove());
-      element.appendChild(this.submenu);
+      this.appendChild(submenu);
     };
-    return element;
   }
 }
+window.customElements.define('menu-folder', Folder, { extends: 'div' });
 
 export const pickMapItem = dumbymap =>
   new Folder({
@@ -60,9 +47,9 @@ export const pickMapItem = dumbymap =>
             map.classList.add('focus');
             map.scrollIntoView({ behavior: 'smooth' });
           },
-        }).element,
+        }),
     ),
-  }).element;
+  });
 
 export const pickBlockItem = dumbymap =>
   new Folder({
@@ -79,9 +66,9 @@ export const pickBlockItem = dumbymap =>
             block.classList.add('focus');
             scrollToBlock(block);
           },
-        }).element,
+        }),
     ),
-  }).element;
+  });
 
 export const pickLayoutItem = dumbymap =>
   new Folder({
@@ -93,17 +80,17 @@ export const pickLayoutItem = dumbymap =>
           dumbymap.container
             .closest('.playground')
             .setAttribute('data-mode', 'editing'),
-      }).element,
+      }),
       ...dumbymap.layouts.map(
         layout =>
           new Item({
             text: layout.name,
             onclick: () =>
               dumbymap.container.setAttribute('data-layout', layout.name),
-          }).element,
+          }),
       ),
     ],
-  }).element;
+  });
 
 export class GeoLink {
   constructor({ range }) {
@@ -173,3 +160,11 @@ export class Suggestion {
     return option;
   }
 }
+
+export const modal = new Item({
+  text: 'Render Results',
+  onclick: () => {
+    const modal = new PlainModal();
+    modal.open();
+  },
+});
