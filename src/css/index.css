@@ -104,22 +104,6 @@ body {
   }
 }
 
-#menu {
-  display: none;
-  width: fit-content;
-
-  position: absolute;
-  z-index: 9999;
-
-  border: 2px solid gray;
-  border-radius: 6px;
-
-  background: white;
-  min-width: 10rem;
-  max-height: 40vh;
-  overflow-y: scroll;
-}
-
 .container__suggestion {
   display: flex;
   overflow: hidden;
@@ -159,56 +143,5 @@ body {
     ::before {
       width: 2rem;
     }
-  }
-}
-
-.menu-item {
-  display: flex;
-  box-sizing: border-box;
-  justify-content: space-between;
-  padding: 0.5rem;
-
-  z-index: 9999;
-
-  border: 2px solid transparent;
-  border-radius: 5px;
-
-  cursor: pointer;
-  text-wrap: nowrap;
-
-  &:hover {
-    background: rgb(226 232 240);
-  }
-
-  .info {
-    padding-inline: 1em;
-
-    color: steelblue;
-    font-weight: bold;
-  }
-}
-
-.folder::after {
-  content: '⏵';
-}
-
-.sub-menu {
-  overflow: scroll;
-  width: fit-content;
-
-  position: absolute;
-  z-index: 100;
-
-  border: 2px solid gray;
-  border-radius: 6px;
-
-  background: white;
-  min-width: 6rem;
-  max-height: 40vh;
-
-  .menu-item {
-    margin: 0 auto;
-    padding-inline: 0.5em;
-    min-width: 5em;
   }
 }

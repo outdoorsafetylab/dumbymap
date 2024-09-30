@@ -661,39 +661,5 @@ layoutObserver.observe(HtmlContainer, {
   attributeOldValue: true,
 });
 // }}}
-// ContextMenu {{{
-document.oncontextmenu = e => {
-  if (cm.hasFocus()) return;
-
-  const selection = document.getSelection();
-  const range = selection.getRangeAt(0);
-  if (selection) {
-    e.preventDefault();
-    menu.innerHTML = '';
-    const addGeoLink = new menuItem.GeoLink({ range });
-    menu.appendChild(addGeoLink.createElement());
-  }
-  menu.style.cssText = `overflow: visible; display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`;
-  menu.appendChild(menuItem.pickMapItem(dumbymap));
-  menu.appendChild(menuItem.pickBlockItem(dumbymap));
-  menu.appendChild(menuItem.pickLayoutItem(dumbymap));
-};
-
-const actionOutsideMenu = e => {
-  if (menu.style.display === 'none' || cm.hasFocus()) return;
-  const rect = menu.getBoundingClientRect();
-  if (
-    e.clientX < rect.left ||
-    e.clientX > rect.left + rect.width ||
-    e.clientY < rect.top ||
-    e.clientY > rect.top + rect.height
-  ) {
-    menu.style.display = 'none';
-  }
-};
-
-document.addEventListener('click', actionOutsideMenu);
-
-// }}}
 
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}

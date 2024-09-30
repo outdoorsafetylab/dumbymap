@@ -8,6 +8,7 @@ import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay';
 import { onRemove, animateRectTransition, throttle } from './utils';
 import { Layout, SideBySide, Overlay } from './Layout';
 import * as utils from './dumbyUtils';
+import * as menuItem from './MenuItem';
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]';
 const geoLinkSelector = 'a[href^="geo:"]';
@@ -520,7 +521,57 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       clearTimeout(timer);
     });
   });
+  // }}}
 
+  // Menu {{{
+  const menu = document.createElement('div');
+  menu.className = 'menu';
+  menu.onclick = () => (menu.style.display = 'none');
+  new MutationObserver(() => {
+    if (menu.style.display === 'none') {
+      menu.style.cssText = '';
+      menu.replaceChildren();
+    }
+  }).observe(menu, {
+    attributes: true,
+    attributeFilter: ['style'],
+  });
+  container.appendChild(menu);
+
+  // Menu Items
+  container.oncontextmenu = e => {
+    const selection = document.getSelection();
+    const range = selection.getRangeAt(0);
+    if (selection) {
+      e.preventDefault();
+      menu.innerHTML = '';
+      const addGeoLink = new menuItem.GeoLink({ range });
+      menu.appendChild(addGeoLink.createElement());
+    }
+    menu.style.cssText = `overflow: visible; display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`;
+    menu.appendChild(menuItem.modal);
+    menu.appendChild(menuItem.pickMapItem(dumbymap));
+    menu.appendChild(menuItem.pickBlockItem(dumbymap));
+    menu.appendChild(menuItem.pickLayoutItem(dumbymap));
+  };
+
+  // Remove menu when click outside
+  const actionOutsideMenu = e => {
+    if (menu.style.display === 'none') return;
+    const rect = menu.getBoundingClientRect();
+    if (
+      e.clientX < rect.left ||
+      e.clientX > rect.left + rect.width ||
+      e.clientY < rect.top ||
+      e.clientY > rect.top + rect.height
+    ) {
+      menu.style.display = 'none';
+    }
+  };
+  document.addEventListener('click', actionOutsideMenu);
+  onRemove(htmlHolder, () =>
+    document.removeEventListener('click', actionOutsideMenu),
+  );
   //}}}
   return Object.seal(dumbymap);
 };

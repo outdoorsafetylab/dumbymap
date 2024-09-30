@@ -89,7 +89,10 @@ export const pickLayoutItem = dumbymap =>
     items: [
       new Item({
         text: 'EDIT',
-        onclick: () => document.body.setAttribute('data-mode', 'editing'),
+        onclick: () =>
+          dumbymap.container
+            .closest('.playground')
+            .setAttribute('data-mode', 'editing'),
       }).element,
       ...dumbymap.layouts.map(
         layout =>
