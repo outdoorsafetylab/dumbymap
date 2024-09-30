@@ -363,7 +363,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
         ?.enterHandler?.call(this, dumbymap);
     }
 
-    // Since layout change may show/hide showcase, the current focused map should do something
+    // Since layout change may show/hide showcase, the current focused map may need to go into/outside showcase
     // Reset attribute triggers MutationObserver which is observing it
     const focusMap =
       container.querySelector('.mapclay.focus') ??
@@ -506,6 +506,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
         .forEach(e => e.remove());
     }
 
+    // TODO Use debounce of user input to decide rendering timing
     // Render maps with delay
     const timer = setTimeout(
       () =>
