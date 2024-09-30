@@ -9,6 +9,7 @@ import { onRemove, animateRectTransition, throttle } from './utils';
 import { Layout, SideBySide, Overlay } from './Layout';
 import * as utils from './dumbyUtils';
 import * as menuItem from './MenuItem';
+import { default as PlainModal } from 'plain-modal';
 
 const docLinkSelector = 'a[href^="#"][title^="=>"]';
 const geoLinkSelector = 'a[href^="geo:"]';
@@ -155,6 +156,9 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   container.appendChild(showcase);
   showcase.classList.add('Showcase');
   const renderPromises = [];
+  const modalContent = document.createElement('div');
+  container.appendChild(modalContent);
+  const modal = new PlainModal(modalContent);
 
   const dumbymap = {
     layouts,
@@ -162,15 +166,15 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     htmlHolder,
     showcase,
     blocks,
+    modal,
     utils: {
+      ...utils,
       renderedMaps: () =>
         Array.from(
           container.querySelectorAll('.mapclay[data-render=fulfilled]'),
         ),
       focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
       switchToNextLayout: throttle(utils.switchToNextLayout, 300),
-      focusNextBlock: utils.focusNextBlock,
-      removeBlockFocus: utils.removeBlockFocus,
     },
   };
   Object.entries(dumbymap.utils).forEach(([util, func]) => {
@@ -540,16 +544,25 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
   // Menu Items
   container.oncontextmenu = e => {
+    e.preventDefault();
+
+    // GeoLinks
     const selection = document.getSelection();
-    const range = selection.getRangeAt(0);
-    if (selection) {
-      e.preventDefault();
+    if (selection.type === 'Range') {
+      const range = selection.getRangeAt(0);
       menu.innerHTML = '';
       const addGeoLink = new menuItem.GeoLink({ range });
       menu.appendChild(addGeoLink.createElement());
     }
     menu.style.cssText = `overflow: visible; display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`;
-    menu.appendChild(menuItem.modal);
+
+    // Print Map Results
+    const map = e.target.closest('.mapclay');
+    if (map) {
+      menu.appendChild(menuItem.renderResults(dumbymap, map));
+    }
+
+    // Dumby Utils
     menu.appendChild(menuItem.pickMapItem(dumbymap));
     menu.appendChild(menuItem.pickBlockItem(dumbymap));
     menu.appendChild(menuItem.pickLayoutItem(dumbymap));

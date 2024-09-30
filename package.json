@@ -50,6 +50,7 @@
     "stylelint-order": "^6.0.4"
   },
   "dependencies": {
+    "cssprefix": "^2.0.17",
     "easymde": "^2.18.0",
     "leader-line": "^1.0.7",
     "mapclay": "^0.8.3",
@@ -58,7 +59,8 @@
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-front-matter": "^0.2.4",
     "markdown-it-toc-done-right": "^4.2.0",
-    "plain-draggable": "^2.5.14"
+    "plain-draggable": "^2.5.14",
+    "plain-modal": "^1.0.34"
   },
   "author": "Hsiehg Chin Fan <pham@topo.tw>",
   "homepage": "https://outdoorsafetylab.github.io/dumbymap",

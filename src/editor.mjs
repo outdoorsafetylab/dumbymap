@@ -11,7 +11,10 @@ const textArea = document.querySelector('.editor textarea');
 let dumbymap;
 
 new MutationObserver(() => {
-  if (document.body.getAttribute('data-mode') === 'editing') {
+  if (
+    document.body.getAttribute('data-mode') === 'editing' &&
+    HtmlContainer.getAttribute('data-layout') !== 'normal'
+  ) {
     HtmlContainer.setAttribute('data-layout', 'normal');
   }
 }).observe(document.body, {
@@ -276,7 +279,7 @@ window.onhashchange = () => {
 // Completion in Code Blok {{{
 // Elements about suggestions {{{
 const menu = document.createElement('div');
-menu.id = 'menu';
+menu.className = 'menu';
 menu.onclick = () => (menu.style.display = 'none');
 new MutationObserver(() => {
   if (menu.style.display === 'none') {
@@ -648,14 +651,13 @@ document.onkeydown = e => {
 // }}}
 // }}}
 // Layout Switch {{{
-const layoutObserver = new MutationObserver(() => {
+new MutationObserver(mutaions => {
+  const mutation = mutaions.at(-1);
   const layout = HtmlContainer.getAttribute('data-layout');
-  if (layout !== 'normal') {
-    document.body.removeAttribute('data-mode');
+  if (layout !== 'normal' || mutation.oldValue === 'normal') {
+    document.body.setAttribute('data-mode', '');
   }
-});
-
-layoutObserver.observe(HtmlContainer, {
+}).observe(HtmlContainer, {
   attributes: true,
   attributeFilter: ['data-layout'],
   attributeOldValue: true,

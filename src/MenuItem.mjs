@@ -1,6 +1,5 @@
 import { createGeoLink } from './dumbymap';
 import { scrollToBlock } from './dumbyUtils';
-import { default as PlainModal } from 'plain-modal';
 
 class Item extends HTMLDivElement {
   constructor({ text, innerHTML, onclick }) {
@@ -38,7 +37,7 @@ window.customElements.define('menu-folder', Folder, { extends: 'div' });
 
 export const pickMapItem = dumbymap =>
   new Folder({
-    innerHTML: '<span>Focus a Map<span><span class="info">(Tab)</span>',
+    innerHTML: '<span>Maps<span><span class="info">(Tab)</span>',
     items: dumbymap.utils.renderedMaps().map(
       map =>
         new Item({
@@ -53,15 +52,16 @@ export const pickMapItem = dumbymap =>
 
 export const pickBlockItem = dumbymap =>
   new Folder({
-    innerHTML: '<span>Focus Block<span><span class="info">(n/p)</span>',
+    innerHTML: '<span>Blocks<span><span class="info">(n/p)</span>',
     items: dumbymap.blocks.map(
       (block, index) =>
         new Item({
           text:
+            `<strong>(${index})</strong>` +
             block
               .querySelector('p')
-              ?.textContent.substring(0, 20)
-              .concat(' ...') ?? `Block ${index}`,
+              ?.textContent.substring(0, 15)
+              .concat(' ...'),
           onclick: () => {
             block.classList.add('focus');
             scrollToBlock(block);
@@ -72,13 +72,13 @@ export const pickBlockItem = dumbymap =>
 
 export const pickLayoutItem = dumbymap =>
   new Folder({
-    innerHTML: '<span>Switch Layout<span><span class="info">(x)</span>',
+    innerHTML: '<span>Layouts<span><span class="info">(x)</span>',
     items: [
       new Item({
         text: 'EDIT',
         onclick: () =>
           dumbymap.container
-            .closest('.playground')
+            .closest('[data-mode]')
             .setAttribute('data-mode', 'editing'),
       }),
       ...dumbymap.layouts.map(
@@ -161,10 +161,17 @@ export class Suggestion {
   }
 }
 
-export const modal = new Item({
-  text: 'Render Results',
-  onclick: () => {
-    const modal = new PlainModal();
-    modal.open();
-  },
-});
+export const renderResults = (dumbymap, map) =>
+  new Item({
+    text: 'Render Results',
+    onclick: e => {
+      const modal = dumbymap.modal;
+      modal.open();
+      modal.overlayBlur = 3;
+      modal.closeByEscKey = false;
+      // HACK find another way to override inline style
+      document.querySelector('.plainmodal-overlay-force').style.position =
+        'static';
+      console.log(map.renderer.results)
+    },
+  });
