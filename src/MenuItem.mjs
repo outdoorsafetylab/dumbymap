@@ -163,6 +163,9 @@ export const renderResults = ({ modal, modalContent }, map) =>
         'relative';
 
       modalContent.innerHTML = '';
+      const sourceCode = document.createElement('div')
+      sourceCode.innerHTML = `<a href="${map.renderer.url ?? map.renderer.use}">Source Code</a>`
+      modalContent.appendChild(sourceCode)
       const printDetails = result => {
         const funcBody = result.func.toString();
         const loc = funcBody.split('\n').length;
