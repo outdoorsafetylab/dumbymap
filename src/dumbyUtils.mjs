@@ -22,8 +22,8 @@ export function focusNextBlock(reverse = false) {
   const nextIndex =
     index === -1 ? 0 : (index + (reverse ? -1 : 1)) % blocks.length;
 
-  const nextBlock = blocks.at(nextIndex);
   blocks.forEach(b => b.classList.remove('focus'));
+  const nextBlock = blocks.at(nextIndex);
   nextBlock?.classList?.add('focus');
   scrollToBlock(nextBlock);
 }
