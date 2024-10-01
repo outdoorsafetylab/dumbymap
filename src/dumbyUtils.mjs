@@ -1,3 +1,5 @@
+import LeaderLine from 'leader-line';
+
 export function focusNextMap(reverse = false) {
   const renderedList = this.utils.renderedMaps();
   const index = renderedList.findIndex(e => e.classList.contains('focus'));
@@ -56,3 +58,70 @@ export function switchToNextLayout(reverse = false) {
 export function removeBlockFocus() {
   this.blocks.forEach(b => b.classList.remove('focus'));
 }
+
+/**
+ * Create geolinks, which points to map by geo schema and id
+ *
+ * @param {HTMLElement} Elements contains anchor elements for doclinks
+ * @returns {Boolean} ture is link is created, false if coordinates are invalid
+ */
+export const createGeoLink = (link, callback = null) => {
+  const url = new URL(link.href);
+  const xyInParams = url.searchParams.get('xy');
+  const xy = xyInParams
+    ? xyInParams.split(',')?.map(Number)
+    : url?.href
+        ?.match(/^geo:([0-9.,]+)/)
+        ?.at(1)
+        ?.split(',')
+        ?.reverse()
+        ?.map(Number);
+
+  if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false;
+
+  // Geo information in link
+  link.url = url;
+  link.xy = xy;
+  link.classList.add('with-leader-line', 'geolink');
+  link.targets = link.url.searchParams.get('id')?.split(',') ?? null;
+
+  // LeaderLine
+  link.lines = [];
+  callback?.call(this, link);
+
+  return true;
+};
+
+/**
+ * CreateDocLink.
+ *
+ * @param {HTMLElement} Elements contains anchor elements for doclinks
+ */
+export const createDocLink = link => {
+  link.classList.add('with-leader-line', 'doclink');
+  link.lines = [];
+
+  link.onmouseover = () => {
+    const label = decodeURIComponent(link.href.split('#')[1]);
+    const selector = link.title.split('=>')[1] ?? '#' + label;
+    const target = document.querySelector(selector);
+    if (!target?.checkVisibility()) return;
+
+    const line = new LeaderLine({
+      start: link,
+      end: target,
+      middleLabel: LeaderLine.pathLabel({
+        text: label,
+        fontWeight: 'bold',
+      }),
+      hide: true,
+      path: 'magnet',
+    });
+    link.lines.push(line);
+    line.show('draw', { duration: 300 });
+  };
+  link.onmouseout = () => {
+    link.lines.forEach(line => line.remove());
+    link.lines.length = 0;
+  };
+};

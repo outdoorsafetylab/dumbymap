@@ -21,76 +21,6 @@ const layouts = [
 ];
 const mapCache = {};
 
-// FUNCTION: Get DocLinks from special anchor element {{{
-/**
- * CreateDocLink.
- *
- * @param {HTMLElement} Elements contains anchor elements for doclinks
- */
-export const createDocLink = link => {
-  link.classList.add('with-leader-line', 'doclink');
-  link.lines = [];
-
-  link.onmouseover = () => {
-    const label = decodeURIComponent(link.href.split('#')[1]);
-    const selector = link.title.split('=>')[1] ?? '#' + label;
-    const target = document.querySelector(selector);
-    if (!target?.checkVisibility()) return;
-
-    const line = new LeaderLine({
-      start: link,
-      end: target,
-      middleLabel: LeaderLine.pathLabel({
-        text: label,
-        fontWeight: 'bold',
-      }),
-      hide: true,
-      path: 'magnet',
-    });
-    link.lines.push(line);
-    line.show('draw', { duration: 300 });
-  };
-  link.onmouseout = () => {
-    link.lines.forEach(line => line.remove());
-    link.lines.length = 0;
-  };
-};
-// }}}
-// FUNCTION: Get GeoLinks from special anchor element {{{
-/**
- * Create geolinks, which points to map by geo schema and id
- *
- * @param {HTMLElement} Elements contains anchor elements for doclinks
- * @returns {Boolean} ture is link is created, false if coordinates are invalid
- */
-export const createGeoLink = (link, callback = null) => {
-  const url = new URL(link.href);
-  const xyInParams = url.searchParams.get('xy');
-  const xy = xyInParams
-    ? xyInParams.split(',')?.map(Number)
-    : url?.href
-        ?.match(/^geo:([0-9.,]+)/)
-        ?.at(1)
-        ?.split(',')
-        ?.reverse()
-        ?.map(Number);
-
-  if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false;
-
-  // Geo information in link
-  link.url = url;
-  link.xy = xy;
-  link.classList.add('with-leader-line', 'geolink');
-  link.targets = link.url.searchParams.get('id')?.split(',') ?? null;
-
-  // LeaderLine
-  link.lines = [];
-  callback?.call(this, link);
-
-  return true;
-};
-// }}}
-
 export const markdown2HTML = (container, mdContent) => {
   // Render: Markdown -> HTML {{{
   container.replaceChildren();
@@ -184,7 +114,9 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
   // LeaderLine {{{
 
-  Array.from(container.querySelectorAll(docLinkSelector)).filter(createDocLink);
+  Array.from(container.querySelectorAll(docLinkSelector)).filter(
+    utils.createDocLink,
+  );
 
   // Get anchors with "geo:" scheme
   htmlHolder.anchors = [];
@@ -202,7 +134,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   };
   const geoLinks = Array.from(
     container.querySelectorAll(geoLinkSelector),
-  ).filter(l => createGeoLink(l, geoLinkCallback));
+  ).filter(l => utils.createGeoLink(l, geoLinkCallback));
 
   const isAnchorPointedBy = link => anchor => {
     const mapContainer = anchor.closest('.mapclay');
@@ -527,7 +459,6 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     });
   });
   // }}}
-
   // Menu {{{
   const menu = document.createElement('div');
   menu.className = 'menu';

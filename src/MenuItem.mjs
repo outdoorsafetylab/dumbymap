@@ -1,6 +1,3 @@
-import { createGeoLink } from './dumbymap';
-import { scrollToBlock } from './dumbyUtils';
-
 class Item extends HTMLDivElement {
   constructor({ text, innerHTML, onclick }) {
     super();
@@ -35,10 +32,10 @@ class Folder extends HTMLDivElement {
 }
 window.customElements.define('menu-folder', Folder, { extends: 'div' });
 
-export const pickMapItem = dumbymap =>
+export const pickMapItem = ({ utils }) =>
   new Folder({
     innerHTML: '<span>Maps<span><span class="info">(Tab)</span>',
-    items: dumbymap.utils.renderedMaps().map(
+    items: utils.renderedMaps().map(
       map =>
         new Item({
           text: map.id,
@@ -50,10 +47,10 @@ export const pickMapItem = dumbymap =>
     ),
   });
 
-export const pickBlockItem = dumbymap =>
+export const pickBlockItem = ({ blocks, utils }) =>
   new Folder({
     innerHTML: '<span>Blocks<span><span class="info">(n/p)</span>',
-    items: dumbymap.blocks.map(
+    items: blocks.map(
       (block, index) =>
         new Item({
           text:
@@ -64,67 +61,54 @@ export const pickBlockItem = dumbymap =>
               .concat(' ...'),
           onclick: () => {
             block.classList.add('focus');
-            scrollToBlock(block);
+            utils.scrollToBlock(block);
           },
         }),
     ),
   });
 
-export const pickLayoutItem = dumbymap =>
+export const pickLayoutItem = ({ container, layouts }) =>
   new Folder({
     innerHTML: '<span>Layouts<span><span class="info">(x)</span>',
     items: [
       new Item({
         text: 'EDIT',
         onclick: () =>
-          dumbymap.container
-            .closest('[data-mode]')
-            .setAttribute('data-mode', 'editing'),
+          container.closest('[data-mode]').setAttribute('data-mode', 'editing'),
       }),
-      ...dumbymap.layouts.map(
+      ...layouts.map(
         layout =>
           new Item({
             text: layout.name,
-            onclick: () =>
-              dumbymap.container.setAttribute('data-layout', layout.name),
+            onclick: () => container.setAttribute('data-layout', layout.name),
           }),
       ),
     ],
   });
 
-export class GeoLink {
-  constructor({ range }) {
-    this.range = range;
-  }
+export const addGeoLink = ({ utils }, range) =>
+  new Item({
+    text: 'Add GeoLink',
+    onclick: () => {
+      const content = range.toString();
+      // FIXME Apply geolink only on matching sub-range
+      const match = content.match(/(^\D*[\d.]+)\D+([\d.]+)\D*$/);
+      if (!match) return false;
 
-  createElement = () => {
-    const element = document.createElement('div');
-    element.className = 'menu-item';
-    element.innerText = 'Add GeoLink';
-    element.onclick = this.addGeoLinkbyRange;
+      const [x, y] = match.slice(1);
+      const anchor = document.createElement('a');
+      anchor.textContent = content;
+      // FIXME apply WGS84
+      anchor.href = `geo:${y},${x}?xy=${x},${y}`;
 
-    return element;
-  };
+      // FIXME
+      if (utils.createGeoLink(anchor)) {
+        range.deleteContents();
+        range.insertNode(anchor);
+      }
+    },
+  });
 
-  addGeoLinkbyRange = () => {
-    const range = this.range;
-    const content = range.toString();
-    // FIXME Apply geolink only on matching sub-range
-    const match = content.match(/(^\D*[\d.]+)\D+([\d.]+)\D*$/);
-    if (!match) return false;
-
-    const [x, y] = match.slice(1);
-    const anchor = document.createElement('a');
-    anchor.textContent = content;
-    // FIXME apply WGS84
-    anchor.href = `geo:${y},${x}?xy=${x},${y}`;
-
-    if (createGeoLink(anchor)) {
-      range.deleteContents();
-      range.insertNode(anchor);
-    }
-  };
-}
 export class Suggestion {
   constructor({ text, replace }) {
     this.text = text;
@@ -161,11 +145,10 @@ export class Suggestion {
   }
 }
 
-export const renderResults = (dumbymap, map) =>
+export const renderResults = ({ modal, modalContent }, map) =>
   new Item({
     text: 'Render Results',
-    onclick: e => {
-      const modal = dumbymap.modal;
+    onclick: () => {
       modal.open();
       modal.overlayBlur = 3;
       modal.closeByEscKey = false;
@@ -175,7 +158,7 @@ export const renderResults = (dumbymap, map) =>
       map.renderer.results.forEach(result =>
         printObject(
           result,
-          dumbymap.modalContent,
+          modalContent,
           `${result.func.name} (${result.state})`,
         ),
       );
@@ -195,7 +178,7 @@ function printObject(obj, parentElement, name) {
       if (typeof value === 'object') {
         printObject(value, detailsEle, key);
       } else {
-        let valueString =
+        const valueString =
           typeof value === 'function'
             ? `<pre>${value}</pre>`
             : value ?? typeof value;
