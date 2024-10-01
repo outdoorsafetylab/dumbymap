@@ -659,6 +659,8 @@ root {
 .sub-menu {
   overflow: scroll;
   width: fit-content;
+  min-width: 6rem;
+  max-height: 40vh;
 
   position: absolute;
   z-index: 100;
@@ -667,12 +669,53 @@ root {
   border-radius: 6px;
 
   background: white;
-  min-width: 6rem;
-  max-height: 40vh;
 
   .menu-item {
+    min-width: 5em;
     margin: 0 auto;
     padding-inline: 0.5em;
-    min-width: 5em;
+  }
+}
+
+.plainoverlay-body {
+  position: absolute;
+}
+
+.plainmodal-content {
+  width: 700px;
+  height: 80%;
+  padding: 1em;
+
+  position: absolute;
+  left: 50vw;
+  top: 50vh;
+
+  background: white;
+
+  transform: translate(-50%, -50%);
+  overflow-y: scroll;
+
+  details {
+    margin-bottom: 0.5em;
+  }
+
+  summary {
+    cursor: pointer;
+  }
+
+  details > :not(summary) {
+    padding-left: 1em;
+  }
+
+  p {
+    margin: 0.3em;
+    white-space: nowrap;
+    overflow-x: scroll;
+  }
+
+  pre {
+    padding: 0.5em;
+
+    background: #f0f0f0;
   }
 }

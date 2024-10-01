@@ -171,7 +171,38 @@ export const renderResults = (dumbymap, map) =>
       modal.closeByEscKey = false;
       // HACK find another way to override inline style
       document.querySelector('.plainmodal-overlay-force').style.position =
-        'static';
-      console.log(map.renderer.results)
+        'relative';
+      map.renderer.results.forEach(result =>
+        printObject(
+          result,
+          dumbymap.modalContent,
+          `${result.func.name} (${result.state})`,
+        ),
+      );
     },
   });
+
+function printObject(obj, parentElement, name) {
+  const detailsEle = document.createElement('details');
+  const details = name ?? Object.values(obj)[0];
+  detailsEle.innerHTML = `<summary>${details}</summary`;
+  parentElement.appendChild(detailsEle);
+
+  detailsEle.onclick = () => {
+    if (detailsEle.children.length > 1) return;
+
+    Object.entries(obj).forEach(([key, value]) => {
+      if (typeof value === 'object') {
+        printObject(value, detailsEle, key);
+      } else {
+        let valueString =
+          typeof value === 'function'
+            ? `<pre>${value}</pre>`
+            : value ?? typeof value;
+        const propertyElement = document.createElement('p');
+        propertyElement.innerHTML = `<strong>${key}</strong>: ${valueString}`;
+        detailsEle.appendChild(propertyElement);
+      }
+    });
+  };
+}

@@ -167,6 +167,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     showcase,
     blocks,
     modal,
+    modalContent,
     utils: {
       ...utils,
       renderedMaps: () =>
@@ -531,19 +532,11 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   const menu = document.createElement('div');
   menu.className = 'menu';
   menu.onclick = () => (menu.style.display = 'none');
-  new MutationObserver(() => {
-    if (menu.style.display === 'none') {
-      menu.style.cssText = '';
-      menu.replaceChildren();
-    }
-  }).observe(menu, {
-    attributes: true,
-    attributeFilter: ['style'],
-  });
   container.appendChild(menu);
 
   // Menu Items
   container.oncontextmenu = e => {
+    menu.replaceChildren();
     e.preventDefault();
 
     // GeoLinks
@@ -558,7 +551,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
     // Print Map Results
     const map = e.target.closest('.mapclay');
-    if (map) {
+    if (map?.renderer?.results) {
       menu.appendChild(menuItem.renderResults(dumbymap, map));
     }
 
