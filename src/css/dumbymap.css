@@ -262,7 +262,6 @@ p a[href^='http']::after {
 }
 
 .menu-item {
-  display: flex;
   justify-content: space-between;
   padding: 0.5rem;
 
@@ -277,14 +276,19 @@ p a[href^='http']::after {
   }
 
   .info {
+    display: inline-block;
+    float: right;
+
     padding-inline: 1em;
 
     color: steelblue;
     font-weight: bold;
   }
 
-  &.folder::after {
+  &.folder::before {
     content: '⏵';
+    display: inline-block;
+    float: right;
   }
 }
 
