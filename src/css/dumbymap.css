@@ -249,8 +249,8 @@ root {
   display: flex;
   justify-content: space-between;
   padding: 0.5rem;
-  position: relative;
 
+  position: relative;
   z-index: 9999;
 
   cursor: pointer;

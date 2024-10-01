@@ -10,17 +10,17 @@ const HtmlContainer = document.querySelector('.DumbyMap');
 const textArea = document.querySelector('.editor textarea');
 let dumbymap;
 
-new MutationObserver(() => {
-  if (
-    document.querySelector('[data-mode]').getAttribute('data-mode') ===
-      'editing' &&
-    HtmlContainer.getAttribute('data-layout') !== 'normal'
-  ) {
+new MutationObserver(mutations => {
+  const mutation = mutations.at(-1);
+  const mode = mutation.target.getAttribute('data-mode');
+  const layout = HtmlContainer.getAttribute('data-layout');
+  if (mode === 'editing' && layout !== 'normal') {
     HtmlContainer.setAttribute('data-layout', 'normal');
   }
 }).observe(document.querySelector('[data-mode]'), {
   attributes: true,
   attributeFilter: ['data-mode'],
+  attributeOldValue: true,
 });
 const toggleEditing = () => {
   const mode = document.body.getAttribute('data-mode');
@@ -280,7 +280,8 @@ window.onhashchange = () => {
 // Completion in Code Blok {{{
 // Elements about suggestions {{{
 const menu = document.createElement('div');
-menu.className = 'menu';
+menu.className = 'menu editor-menu';
+menu.style.display = 'none';
 menu.onclick = () => (menu.style.display = 'none');
 new MutationObserver(() => {
   if (menu.style.display === 'none') {
@@ -564,9 +565,12 @@ cm.on('cursorActivity', _ => {
   }
 });
 cm.on('blur', () => {
-  menu.style.display = 'none';
-  cm.getWrapperElement().classList.remove('focus');
-  HtmlContainer.classList.add('focus');
+  if (menu.checkVisibility()) {
+    cm.focus() && cm.setCursor(anchor);
+  } else {
+    cm.getWrapperElement().classList.remove('focus');
+    HtmlContainer.classList.add('focus');
+  }
 });
 // }}}
 // EVENT: keydown for suggestions {{{
@@ -607,9 +611,9 @@ cm.on('keydown', (_, e) => {
       currentSuggestion.onclick();
       break;
     case 'Escape':
-      menu.style.display = 'none';
+      if (!menu.checkVisibility()) break;
       // Focus editor again
-      setTimeout(() => cm.focus() && cm.setCursor(anchor), 100);
+      setTimeout(() => (menu.style.display = 'none'), 50);
       break;
   }
 });

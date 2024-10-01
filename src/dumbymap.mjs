@@ -274,8 +274,6 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   // }}}
   // Layout {{{
   // press key to switch layout
-  const defaultLayout = layouts[0];
-  container.setAttribute('data-layout', defaultLayout.name);
 
   // observe layout change
   const layoutObserver = new MutationObserver(mutations => {
