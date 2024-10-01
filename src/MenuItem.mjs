@@ -162,6 +162,7 @@ export const renderResults = ({ modal, modalContent }, map) =>
       document.querySelector('.plainmodal-overlay-force').style.position =
         'relative';
 
+      modalContent.innerHTML = '';
       const printDetails = result => {
         const funcBody = result.func.toString();
         const loc = funcBody.split('\n').length;
