@@ -694,17 +694,20 @@ root {
 
   transform: translate(-50%, -50%);
   overflow-y: scroll;
+  white-space: pre;
 
   details {
     margin-bottom: 0.5em;
   }
 
   summary {
+    max-width: 60%;
+
     cursor: pointer;
   }
 
   details > :not(summary) {
-    padding-left: 1em;
+    padding-left: 2em;
   }
 
   p {
@@ -717,5 +720,10 @@ root {
     padding: 0.5em;
 
     background: #f0f0f0;
+  }
+
+  .align-right {
+    display: inline-block;
+    float: right;
   }
 }

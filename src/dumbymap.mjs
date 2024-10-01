@@ -379,11 +379,11 @@ export const generateMaps = (container, { delay, mapCallback }) => {
    */
   const updateAttributeByStep = ({ results, target, steps }) => {
     let passNum = results.filter(
-      r => r.type === 'step' && r.state.match(/success|skip/),
+      r => r.type === 'render' && r.state.match(/success|skip/),
     ).length;
     const total = steps.length;
     passNum += `/${total}`;
-    if (results.filter(r => r.type === 'step').length === total) {
+    if (results.filter(r => r.type === 'render').length === total) {
       passNum += '\u0020';
     }
 

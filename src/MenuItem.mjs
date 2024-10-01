@@ -155,13 +155,40 @@ export const renderResults = ({ modal, modalContent }, map) =>
       // HACK find another way to override inline style
       document.querySelector('.plainmodal-overlay-force').style.position =
         'relative';
-      map.renderer.results.forEach(result =>
+
+      const printDetails = result => {
+        const funcBody = result.func.toString();
+        const loc = funcBody.split('\n').length;
+        const color =
+          {
+            success: 'green',
+            fail: 'red',
+            skip: 'black',
+            stop: 'yellow',
+          }[result.state] ?? 'black';
         printObject(
           result,
           modalContent,
-          `${result.func.name} (${result.state})`,
-        ),
+          `${result.func.name} <span class='align-right'>${loc}LOC\x20\x20\x20<span style='display: inline-block; width: 100px; color: ${color};'>${result.state}</span></span>`,
+        );
+      };
+
+      // Add contents about prepare steps
+      const prepareHeading = document.createElement('h3');
+      prepareHeading.textContent = 'Prepare Steps';
+      modalContent.appendChild(prepareHeading);
+      const prepareSteps = map.renderer.results.filter(
+        r => r.type === 'prepare',
       );
+      prepareSteps.forEach(printDetails);
+
+      // Add contents about render steps
+      const renderHeading = document.createElement('h3');
+      renderHeading.textContent = 'Render Steps';
+      renderHeading.style.marginTop = '1em';
+      modalContent.appendChild(renderHeading);
+      const renderSteps = map.renderer.results.filter(r => r.type === 'render');
+      renderSteps.forEach(printDetails);
     },
   });
 
@@ -172,7 +199,7 @@ function printObject(obj, parentElement, name) {
   parentElement.appendChild(detailsEle);
 
   detailsEle.onclick = () => {
-    if (detailsEle.children.length > 1) return;
+    if (detailsEle.querySelector(':scope > :not(summary)')) return;
 
     Object.entries(obj).forEach(([key, value]) => {
       if (typeof value === 'object') {
