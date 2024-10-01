@@ -189,3 +189,15 @@ function printObject(obj, parentElement, name) {
     });
   };
 }
+
+export const toggleBlockFocus = block =>
+  new Item({
+    text: 'Toggle Focus',
+    onclick: () => block.classList.toggle('focus'),
+  });
+
+export const toggleMapFocus = map =>
+  new Item({
+    text: 'Toggle Focus',
+    onclick: () => map.classList.toggle('focus'),
+  });
