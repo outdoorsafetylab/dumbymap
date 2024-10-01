@@ -462,12 +462,15 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   // Menu {{{
   const menu = document.createElement('div');
   menu.className = 'menu';
+  menu.style.display = 'none';
   menu.onclick = () => (menu.style.display = 'none');
   container.appendChild(menu);
 
   // Menu Items
   container.oncontextmenu = e => {
     menu.replaceChildren();
+    menu.style.display = 'block';
+    menu.style.cssText = `left: ${e.x - menu.offsetParent.offsetLeft + 10}px; top: ${e.y - menu.offsetParent.offsetTop + 5}px;`;
     e.preventDefault();
 
     // GeoLinks
@@ -476,7 +479,6 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       const range = selection.getRangeAt(0);
       menu.appendChild(menuItem.addGeoLink(dumbymap, range));
     }
-    menu.style.cssText = `overflow: visible; display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`;
 
     const map = e.target.closest('.mapclay');
     if (map?.renderer?.results) {

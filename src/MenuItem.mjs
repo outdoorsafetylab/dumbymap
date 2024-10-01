@@ -4,6 +4,12 @@ class Item extends HTMLDivElement {
     this.innerHTML = innerHTML ?? text;
     this.onclick = onclick;
     this.classList.add('menu-item');
+
+    this.onmouseover = () => {
+      this.parentElement
+        .querySelectorAll('.sub-menu')
+        .forEach(sub => sub.remove());
+    }
   }
 }
 window.customElements.define('menu-item', Item, { extends: 'div' });

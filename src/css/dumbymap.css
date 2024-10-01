@@ -219,6 +219,131 @@ root {
   }
 }
 
+.menu {
+  display: block;
+  width: fit-content;
+  min-width: 10rem;
+  max-height: 40vh;
+  overflow-x: visible;
+
+  position: absolute;
+  z-index: 9999;
+
+  border: 2px solid gray;
+  border-radius: 6px;
+
+  background: white;
+
+  & > *:first-child {
+    border-top: 2px solid transparent;
+    border-radius: 5px 5px 0 0;
+  }
+
+  & > *:last-child {
+    border-bottom: 2px solid transparent;
+    border-radius: 0 0 5px 5px;
+  }
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  position: relative;
+
+  z-index: 9999;
+
+  cursor: pointer;
+  text-wrap: nowrap;
+
+  &:hover {
+    background: rgb(226 232 240);
+  }
+
+  .info {
+    padding-inline: 1em;
+
+    color: steelblue;
+    font-weight: bold;
+  }
+
+  &.folder::after {
+    content: '⏵';
+  }
+}
+
+.sub-menu {
+  overflow: scroll;
+  width: fit-content;
+  min-width: 6rem;
+  max-height: 40vh;
+
+  position: absolute;
+  z-index: 100;
+
+  border: 2px solid gray;
+  border-radius: 6px;
+
+  background: white;
+
+  .menu-item {
+    min-width: 5em;
+    margin: 0 auto;
+    padding-inline: 0.5em;
+  }
+}
+
+.plainoverlay-body {
+  position: absolute;
+}
+
+.plainmodal-content {
+  width: 700px;
+  height: 80%;
+  padding: 1em;
+
+  position: absolute;
+  left: 50vw;
+  top: 50vh;
+
+  background: white;
+
+  transform: translate(-50%, -50%);
+  overflow-y: scroll;
+  white-space: pre;
+
+  details {
+    margin-bottom: 0.5em;
+  }
+
+  summary {
+    max-width: 60%;
+
+    cursor: pointer;
+  }
+
+  details > :not(summary) {
+    padding-left: 2em;
+  }
+
+  p {
+    margin: 0.3em;
+    white-space: nowrap;
+    overflow-x: scroll;
+  }
+
+  pre {
+    padding: 0.5em;
+
+    background: #f0f0f0;
+  }
+
+  .align-right {
+    display: inline-block;
+    float: right;
+  }
+}
+
 .Dumby {
   overflow: visible;
   width: 100%;
@@ -608,122 +733,4 @@ root {
 
 .bold-options {
   font-weight: bold;
-}
-
-.menu {
-  display: none;
-  width: fit-content;
-  min-width: 10rem;
-  max-height: 40vh;
-
-  position: absolute;
-  z-index: 9999;
-
-  border: 2px solid gray;
-  border-radius: 6px;
-
-  background: white;
-  overflow-y: scroll;
-}
-
-.menu-item {
-  display: flex;
-  box-sizing: border-box;
-  justify-content: space-between;
-  padding: 0.5rem;
-
-  z-index: 9999;
-
-  border: 2px solid transparent;
-  border-radius: 5px;
-
-  cursor: pointer;
-  text-wrap: nowrap;
-
-  &:hover {
-    background: rgb(226 232 240);
-  }
-
-  .info {
-    padding-inline: 1em;
-
-    color: steelblue;
-    font-weight: bold;
-  }
-}
-
-.folder::after {
-  content: '⏵';
-}
-
-.sub-menu {
-  overflow: scroll;
-  width: fit-content;
-  min-width: 6rem;
-  max-height: 40vh;
-
-  position: absolute;
-  z-index: 100;
-
-  border: 2px solid gray;
-  border-radius: 6px;
-
-  background: white;
-
-  .menu-item {
-    min-width: 5em;
-    margin: 0 auto;
-    padding-inline: 0.5em;
-  }
-}
-
-.plainoverlay-body {
-  position: absolute;
-}
-
-.plainmodal-content {
-  width: 700px;
-  height: 80%;
-  padding: 1em;
-
-  position: absolute;
-  left: 50vw;
-  top: 50vh;
-
-  background: white;
-
-  transform: translate(-50%, -50%);
-  overflow-y: scroll;
-  white-space: pre;
-
-  details {
-    margin-bottom: 0.5em;
-  }
-
-  summary {
-    max-width: 60%;
-
-    cursor: pointer;
-  }
-
-  details > :not(summary) {
-    padding-left: 2em;
-  }
-
-  p {
-    margin: 0.3em;
-    white-space: nowrap;
-    overflow-x: scroll;
-  }
-
-  pre {
-    padding: 0.5em;
-
-    background: #f0f0f0;
-  }
-
-  .align-right {
-    display: inline-block;
-    float: right;
-  }
 }
