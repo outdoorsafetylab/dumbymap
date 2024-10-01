@@ -1,7 +1,7 @@
 {
   "name": "dumbymap",
   "description": "Generate interactive maps from Semantic HTML",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "license": "MIT",
   "type": "module",
   "main": "dist/dumbymap.mjs",
@@ -53,7 +53,7 @@
     "cssprefix": "^2.0.17",
     "easymde": "^2.18.0",
     "leader-line": "^1.0.7",
-    "mapclay": "^0.8.3",
+    "mapclay": "^0.8.4",
     "markdown-it": "^14.1.0",
     "markdown-it-anchor": "^9.2.0",
     "markdown-it-footnote": "^4.0.0",
