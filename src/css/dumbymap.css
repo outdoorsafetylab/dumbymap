@@ -324,6 +324,10 @@ p a[href^='http']::after {
   overflow-y: scroll;
   white-space: pre;
 
+  h3 {
+    margin-top: 1em;
+  }
+
   details {
     margin-bottom: 0.5em;
   }
@@ -348,11 +352,6 @@ p a[href^='http']::after {
     padding: 0.5em;
 
     background: #f0f0f0;
-  }
-
-  .align-right {
-    display: inline-block;
-    float: right;
   }
 }
 

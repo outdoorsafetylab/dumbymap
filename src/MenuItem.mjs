@@ -179,7 +179,7 @@ export const renderResults = ({ modal, modalContent }, map) =>
         printObject(
           result,
           modalContent,
-          `${result.func.name} <span class='align-right'>${loc}LOC\x20\x20\x20<span style='display: inline-block; width: 100px; color: ${color};'>${result.state}</span></span>`,
+          `${result.func.name} <span style='float: right;'>${loc}LOC\x20\x20\x20<span style='display: inline-block; width: 100px; color: ${color};'>${result.state}</span></span>`,
         );
       };
 
@@ -195,7 +195,6 @@ export const renderResults = ({ modal, modalContent }, map) =>
       // Add contents about render steps
       const renderHeading = document.createElement('h3');
       renderHeading.textContent = 'Render Steps';
-      renderHeading.style.marginTop = '1em';
       modalContent.appendChild(renderHeading);
       const renderSteps = map.renderer.results.filter(r => r.type === 'render');
       renderSteps.forEach(printDetails);
