@@ -12,7 +12,8 @@ let dumbymap;
 
 new MutationObserver(() => {
   if (
-    document.querySelector('[data-mode]').getAttribute('data-mode') === 'editing' &&
+    document.querySelector('[data-mode]').getAttribute('data-mode') ===
+      'editing' &&
     HtmlContainer.getAttribute('data-layout') !== 'normal'
   ) {
     HtmlContainer.setAttribute('data-layout', 'normal');
