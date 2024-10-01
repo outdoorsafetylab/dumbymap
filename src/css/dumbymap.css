@@ -233,10 +233,9 @@ p a[href^='http']::after {
 
 .menu {
   display: block;
+  overflow: visible;
   width: fit-content;
   min-width: 10rem;
-  max-height: 40vh;
-  overflow-x: visible;
 
   position: absolute;
   z-index: 9999;
@@ -254,6 +253,11 @@ p a[href^='http']::after {
   & > *:last-child {
     border-bottom: 2px solid transparent;
     border-radius: 0 0 5px 5px;
+  }
+
+  &.editor-menu {
+    max-height: 40vh;
+    overflow-y: scroll;
   }
 }
 
