@@ -474,22 +474,26 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     const selection = document.getSelection();
     if (selection.type === 'Range') {
       const range = selection.getRangeAt(0);
-      menu.innerHTML = '';
-      const addGeoLink = new menuItem.GeoLink({ range });
-      menu.appendChild(addGeoLink.createElement());
+      menu.appendChild(menuItem.addGeoLink(dumbymap, range));
     }
     menu.style.cssText = `overflow: visible; display: block; left: ${e.clientX + 10}px; top: ${e.clientY + 5}px;`;
 
-    // Print Map Results
     const map = e.target.closest('.mapclay');
     if (map?.renderer?.results) {
+      // Focus or Print Map Results
       menu.appendChild(menuItem.renderResults(dumbymap, map));
+      menu.appendChild(menuItem.toggleMapFocus(map));
+    } else {
+      // Toggle block focus
+      const block = e.target.closest('.dumby-block');
+      if (block) {
+        menu.appendChild(menuItem.toggleBlockFocus(block));
+      }
+      // Dumby Utils
+      menu.appendChild(menuItem.pickMapItem(dumbymap));
+      menu.appendChild(menuItem.pickBlockItem(dumbymap));
+      menu.appendChild(menuItem.pickLayoutItem(dumbymap));
     }
-
-    // Dumby Utils
-    menu.appendChild(menuItem.pickMapItem(dumbymap));
-    menu.appendChild(menuItem.pickBlockItem(dumbymap));
-    menu.appendChild(menuItem.pickLayoutItem(dumbymap));
   };
 
   // Remove menu when click outside
