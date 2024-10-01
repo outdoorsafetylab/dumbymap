@@ -144,6 +144,7 @@ root {
 *:has(> nav) {
   /* FIXME Hide nav at proper time */
   display: none;
+  min-width: 120px;
   padding: 0.5rem;
 
   position: absolute;
@@ -155,7 +156,6 @@ root {
   border-radius: 0.5rem;
 
   background-color: white;
-  min-width: 120px;
 
   &:has(> nav:empty) {
     display: none;
@@ -220,13 +220,13 @@ root {
 }
 
 .Dumby {
+  overflow: visible;
   width: 100%;
   height: 100%;
   margin: 0 auto;
   padding: 0;
 
   position: relative;
-  overflow: visible;
 
   &::after {
     content: 'Layout: ' attr(data-layout);
@@ -335,10 +335,10 @@ root {
   .SemanticHtml,
   .Showcase {
     width: 50%;
+    min-width: 20%;
 
     position: absolute;
     top: 0;
-    min-width: 20%;
   }
 
   .SemanticHtml {
@@ -506,6 +506,10 @@ root {
 
   .dumby-block {
     overflow: scroll;
+    min-width: 5rem;
+    max-width: 25vw;
+    min-height: 5rem;
+    max-height: 50vh;
     margin: 0;
     padding-block: 1rem 0;
     padding-inline: 1rem;
@@ -517,10 +521,6 @@ root {
     border-radius: 0.5rem;
 
     resize: both;
-    min-width: 5rem;
-    max-width: 25vw;
-    min-height: 5rem;
-    max-height: 50vh;
 
     /* Remove indicator when inside draggable-block */
     &::before {
@@ -613,6 +613,8 @@ root {
 .menu {
   display: none;
   width: fit-content;
+  min-width: 10rem;
+  max-height: 40vh;
 
   position: absolute;
   z-index: 9999;
@@ -621,8 +623,6 @@ root {
   border-radius: 6px;
 
   background: white;
-  min-width: 10rem;
-  max-height: 40vh;
   overflow-y: scroll;
 }
 

@@ -41,7 +41,6 @@ body {
 
       flex: 1 0 50%;
       max-width: calc(50% - 0.5em);
-
       height: 100%;
     }
   }
@@ -110,9 +109,9 @@ body {
   justify-content: space-between;
   align-items: center;
   height: fit-content;
+  min-height: 2rem;
 
   cursor: pointer;
-  min-height: 2rem;
   white-space: nowrap;
 
   &:not(:first-child) {
