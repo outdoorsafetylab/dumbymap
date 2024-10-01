@@ -285,7 +285,6 @@ menu.style.display = 'none';
 menu.onclick = () => (menu.style.display = 'none');
 new MutationObserver(() => {
   if (menu.style.display === 'none') {
-    menu.style.cssText = '';
     menu.replaceChildren();
   }
 }).observe(menu, {
@@ -566,7 +565,7 @@ cm.on('cursorActivity', _ => {
 });
 cm.on('blur', () => {
   if (menu.checkVisibility()) {
-    cm.focus() && cm.setCursor(anchor);
+    cm.focus()
   } else {
     cm.getWrapperElement().classList.remove('focus');
     HtmlContainer.classList.add('focus');
@@ -600,7 +599,6 @@ cm.on('keydown', (_, e) => {
   const focusSuggestion = e.shiftKey ? previousSuggestion : nextSuggestion;
 
   // Current editor selection state
-  const anchor = cm.getCursor();
   switch (e.key) {
     case 'Tab':
       Array.from(menu.children).forEach(s => s.classList.remove('focus'));
@@ -612,7 +610,7 @@ cm.on('keydown', (_, e) => {
       break;
     case 'Escape':
       if (!menu.checkVisibility()) break;
-      // Focus editor again
+      // HACK delay menu display change for blur event, mark cm focus should keep
       setTimeout(() => (menu.style.display = 'none'), 50);
       break;
   }
