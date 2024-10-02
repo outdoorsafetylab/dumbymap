@@ -1,9 +1,10 @@
 class Item extends HTMLDivElement {
-  constructor({ text, innerHTML, onclick }) {
+  constructor({ text, innerHTML, onclick, style }) {
     super();
     this.innerHTML = innerHTML ?? text;
     this.onclick = onclick;
     this.classList.add('menu-item');
+    this.style.cssText = style;
 
     this.onmouseover = () => {
       this.parentElement
