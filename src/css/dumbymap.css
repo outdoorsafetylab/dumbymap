@@ -639,7 +639,6 @@ p a[href^='http']::after,
   &:has(.dumby-block.focus) {
     display: block;
 
-    z-index: 9001;
     outline: solid #505050 1px;
     border-color: #505050;
   }
