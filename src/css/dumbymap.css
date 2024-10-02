@@ -293,12 +293,14 @@ p a[href^='http']::after,
   &.unchecked::before {
     content: '\2610';
     float: right;
+
     margin-left: 0.5em;
   }
 
   &.checked::before {
     content: '\2611';
     float: right;
+
     margin-left: 0.5em;
   }
 }
