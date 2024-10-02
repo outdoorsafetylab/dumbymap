@@ -28,6 +28,7 @@ class Folder extends HTMLDivElement {
       submenu.className = 'sub-menu';
       submenu.style.cssText = `position: absolute; left: 105%; top: 0px;`;
       this.items.forEach(item => submenu.appendChild(item));
+      submenu.onmouseleave = () => submenu.remove()
 
       // hover effect
       this.parentElement
