@@ -289,6 +289,18 @@ p a[href^='http']::after,
     display: inline-block;
     float: right;
   }
+
+  &.unchecked::before {
+    content: '\2610';
+    float: right;
+    margin-left: 0.5em;
+  }
+
+  &.checked::before {
+    content: '\2611';
+    float: right;
+    margin-left: 0.5em;
+  }
 }
 
 .sub-menu {
@@ -746,3 +758,5 @@ p a[href^='http']::after,
 .bold-options {
   font-weight: bold;
 }
+standard: Use JavaScript Standard Style (https://standardjs.com)
+standard:   <text>:1:6: Parsing error: Unexpected token { (null)

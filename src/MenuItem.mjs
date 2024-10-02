@@ -1,12 +1,13 @@
 import { shiftByWindow } from './utils.mjs'
 
 class Item extends window.HTMLDivElement {
-  constructor ({ text, innerHTML, onclick, style }) {
+  constructor ({ text, innerHTML, onclick, style, className, onmouseover }) {
     super()
     this.innerHTML = innerHTML ?? text
     this.onclick = onclick
-    this.classList.add('menu-item')
     this.style.cssText = style
+    this.classList.add('menu-item')
+    className?.forEach(c => this.classList.add(c))
 
     this.onmouseover = () => {
       this.parentElement
@@ -28,7 +29,7 @@ class Folder extends window.HTMLDivElement {
       // Prepare submenu
       const submenu = document.createElement('div')
       submenu.className = 'sub-menu'
-      submenu.style.cssText = 'position: absolute; left: 105%; top: 0px;'
+      submenu.style.cssText = 'position: absolute; left: 105%; top: -20px;'
       this.items.forEach(item => submenu.appendChild(item))
       submenu.onmouseleave = () => submenu.remove()
 
@@ -62,19 +63,28 @@ export const pickBlockItem = ({ blocks, utils }) =>
   new Folder({
     innerHTML: '<span>Blocks<span><span class="info">(n/p)</span>',
     items: blocks.map(
-      (block, index) =>
-        new Item({
-          text:
-            `<strong style="display: inline-block; width: 2.5em;">(${index})</strong>` +
-            block
-              .querySelector('p')
-              ?.textContent.substring(0, 15)
-              .concat(' ...'),
-          onclick: () => {
-            block.classList.add('focus')
-            utils.scrollToBlock(block)
+      (block, index) => {
+        const focus = block.classList.contains('focus')
+        const preview = block.querySelector('p')
+          ?.textContent.substring(0, 15)
+          ?.concat(' ', '...  ') ?? ''
+        const item = new Item({
+          className: ['keep-menu', focus ? 'checked' : 'unchecked'],
+          innerHTML:
+            `<strong>(${index})</strong><span style='display: inline-block; margin-inline: 1.2em;'>${preview}</span>`,
+          onclick: (e) => {
+            block.classList.toggle('focus')
+
+            const focus = block.classList.contains('focus')
+            if (focus) utils.scrollToBlock(block)
+            const item = e.target.closest('.menu-item.keep-menu')
+            item.classList.add(focus ? 'checked' : 'unchecked')
+            item.classList.remove(focus ? 'unchecked' : 'checked')
           }
         })
+
+        return item
+      }
     )
   })
 

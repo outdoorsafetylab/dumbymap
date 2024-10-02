@@ -461,7 +461,12 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   const menu = document.createElement('div')
   menu.className = 'menu'
   menu.style.display = 'none'
-  menu.onclick = () => (menu.style.display = 'none')
+  menu.onclick = (e) => {
+    const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
+    if (keepMenu) return
+
+    menu.style.display = 'none'
+  }
   container.appendChild(menu)
 
   // Menu Items
@@ -505,6 +510,9 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   // Remove menu when click outside
   const actionOutsideMenu = e => {
     if (menu.style.display === 'none') return
+    const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
+    if (keepMenu) return
+
     const rect = menu.getBoundingClientRect()
     if (
       e.clientX < rect.left ||
