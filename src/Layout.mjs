@@ -143,7 +143,7 @@ export class Overlay extends Layout {
       wrapper.onmouseup = e => {
         // Hide block with middle click
         if (e.button === 1) {
-          wrapper.classList.add('hide')
+          block.classList.remove('focus')
         }
       }
 
@@ -182,7 +182,7 @@ export class Overlay extends Layout {
 
       // Close button
       wrapper.querySelector('#close').onclick = () => {
-        wrapper.classList.add('hide')
+        block.classList.remove('focus')
         utils.removeAttribute('style')
       }
       // Plus/Minus font-size of content

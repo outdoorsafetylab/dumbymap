@@ -608,6 +608,8 @@ p a[href^='http']::after,
 }
 
 .draggable-block {
+  /* TODO transition for display */
+  display: none;
   overflow: visible;
   width: fit-content;
 
@@ -622,6 +624,8 @@ p a[href^='http']::after,
   pointer-events: auto;
 
   &:has(.dumby-block.focus) {
+    display: block;
+
     z-index: 9001;
     outline: solid #505050 1px;
     border-color: #505050;
@@ -706,16 +710,6 @@ p a[href^='http']::after,
     /* background: white; */
 
     transform: translate(0, -0.6rem);
-  }
-
-  &.hide {
-    transition: all 0.5s;
-    visibility: hidden;
-    opacity: 0;
-
-    .utils {
-      visibility: hidden !important;
-    }
   }
 
   &.drag,
