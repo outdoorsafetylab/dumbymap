@@ -758,5 +758,3 @@ p a[href^='http']::after,
 .bold-options {
   font-weight: bold;
 }
-standard: Use JavaScript Standard Style (https://standardjs.com)
-standard:   <text>:1:6: Parsing error: Unexpected token { (null)
