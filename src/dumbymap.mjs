@@ -105,7 +105,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       renderedMaps: () =>
         Array.from(
           container.querySelectorAll('.mapclay[data-render=fulfilled]')
-        ),
+        ).sort((a, b) => a.style.order > b.style.order),
       focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
       switchToNextLayout: throttle(utils.switchToNextLayout, 300)
     }
@@ -232,11 +232,16 @@ export const generateMaps = (container, { delay, mapCallback }) => {
         // Placeholder for map in Showcase, it should has the same DOMRect
         const placeholder = target.cloneNode(true)
         placeholder.removeAttribute('id')
-        placeholder.classList.remove('mapclay', 'focus')
-        target.parentElement.replaceChild(placeholder, target)
+        placeholder.className = ''
+
+        const parent = target.parentElement
+        parent.replaceChild(placeholder, target)
+        onRemove(placeholder, () => {
+          parent.appendChild(target)
+        })
 
         // FIXME Maybe use @start-style for CSS
-        // Trigger CSS transition, if placeholde is the olny chil element in block,
+        // Trigger CSS transition, if placeholde is the olny child element in block,
         // reduce its height to zero.
         // To make sure the original height of placeholder is applied, DOM changes seems needed
         // then set data-attribute for CSS selector to change height to 0
@@ -245,6 +250,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
         // To fit showcase, remove all inline style
         target.removeAttribute('style')
+        target.style.order = placeholder.style.order
         showcase.appendChild(target)
 
         // Resume rect from Semantic HTML to Showcase, with animation
@@ -257,11 +263,10 @@ export const generateMaps = (container, { delay, mapCallback }) => {
         const placeholder = htmlHolder.querySelector(
           `[data-placeholder="${target.id}"]`
         )
-        if (!placeholder) { throw Error(`Cannot fine placeholder for map "${target.id}"`) }
+        if (!placeholder) { throw Error(`Cannot find placeholder for map "${target.id}"`) }
 
         // Consider animation may fail, write callback
         const afterAnimation = () => {
-          placeholder.parentElement.replaceChild(target, placeholder)
           target.style = placeholder.style.cssText
           placeholder.remove()
         }
@@ -410,6 +415,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     stepCallback: updateAttributeByStep
   })
   const render = renderWith(configConverter)
+  let order = 0
   elementsWithMapConfig.forEach(target => {
     // Get text in code block starts with markdown text '```map'
     const configText = target
@@ -446,11 +452,16 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     // TODO Use debounce of user input to decide rendering timing
     // Render maps with delay
     const timer = setTimeout(
-      () =>
+      () => {
         render(target, configList).forEach(renderPromise => {
           renderPromises.push(renderPromise)
           renderPromise.then(afterMapRendered)
-        }),
+        })
+        Array.from(target.children).forEach(e => {
+          e.style.order = order
+          order++
+        })
+      },
       delay ?? 1000
     )
     onRemove(htmlHolder, () => {
