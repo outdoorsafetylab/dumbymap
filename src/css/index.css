@@ -9,7 +9,8 @@
 }
 
 body {
-  width: 100%;
+  width: 100vw;
+  min-width: 700px;
   height: 100vh;
 
   &[data-mode='editing'] {
@@ -20,13 +21,14 @@ body {
     padding: 0.5em;
 
     .Dumby {
-      order: 1;
-
-      flex: 1 0 calc(50% - 0.5em);
+      flex: 0 0 50%;
+      min-width: 45%;
+      max-width: calc(50% - 0.5em);
       height: 100%;
 
       border: var(--content-border);
       border-radius: var(--content-border-radius);
+      order: 1;
 
       &.focus {
         border: var(--content-focus-border);
@@ -36,12 +38,12 @@ body {
 
     .editor {
       display: block;
-
-      order: 2;
-
-      flex: 1 0 50%;
+      flex: 0 0 50%;
+      min-width: 45%;
       max-width: calc(50% - 0.5em);
       height: 100%;
+
+      order: 2;
     }
   }
 }
