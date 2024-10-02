@@ -387,15 +387,17 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     ).length
     const total = steps.length
     passNum += `/${total}`
-    if (results.filter(r => r.type === 'render').length === total) {
-      passNum += '\u0020'
-    }
+
+    const final = results.filter(r => r.type === 'render').length === total
 
     // FIXME HACK use MutationObserver for animation
     if (!target.animations) target.animations = Promise.resolve()
     target.animations = target.animations.then(async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
+      if (final) passNum += '\x20'
       target.setAttribute('data-report', passNum)
+
+      if (final) setTimeout(() => target.removeAttribute('data-report'), 100)
     })
   }
   /**
