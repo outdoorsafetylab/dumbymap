@@ -3,11 +3,11 @@ import LeaderLine from 'leader-line'
 export function focusNextMap (reverse = false) {
   const renderedList = this.utils.renderedMaps()
   const index = renderedList.findIndex(e => e.classList.contains('focus'))
-  const nextIndex =
-    index === -1 ? 0 : (index + (reverse ? -1 : 1)) % renderedList.length
+  const nextIndex = (index + (reverse ? -1 : 1)) % renderedList.length
 
   const nextMap = renderedList.at(nextIndex)
   nextMap.classList.add('focus')
+  nextMap.scrollIntoView({ behavior: 'smooth' })
 }
 
 export function focusNextBlock (reverse = false) {
@@ -19,8 +19,7 @@ export function focusNextBlock (reverse = false) {
     })
   )
   const index = blocks.findIndex(e => e.classList.contains('focus'))
-  const nextIndex =
-    index === -1 ? 0 : (index + (reverse ? -1 : 1)) % blocks.length
+  const nextIndex = (index + (reverse ? -1 : 1)) % blocks.length
 
   blocks.forEach(b => b.classList.remove('focus'))
   const nextBlock = blocks.at(nextIndex)
