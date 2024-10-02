@@ -53,7 +53,9 @@ const general = {
     },
     node(),
     commonjs(),
-    production && terser(),
+    production && terser({
+      keep_fnames: true,
+    }),
     production && bundleStats()
   ]
 }
