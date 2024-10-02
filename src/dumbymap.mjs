@@ -80,6 +80,7 @@ export const markdown2HTML = (container, mdContent) => {
 }
 export const generateMaps = (container, { delay, mapCallback }) => {
   container.classList.add('Dumby')
+  container.removeAttribute('data-layout')
   container.setAttribute('data-layout', layouts[0].name)
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   const blocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))

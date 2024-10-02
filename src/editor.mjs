@@ -6,25 +6,25 @@ import * as menuItem from './MenuItem'
 
 // Set up Containers {{{
 
+const context = document.querySelector('[data-mode]')
 const HtmlContainer = document.querySelector('.DumbyMap')
 const textArea = document.querySelector('.editor textarea')
 let dumbymap
 
-new window.MutationObserver(mutations => {
-  const mutation = mutations.at(-1)
-  const mode = mutation.target.getAttribute('data-mode')
+new window.MutationObserver(() => {
+  const mode = context.getAttribute('data-mode')
   const layout = HtmlContainer.getAttribute('data-layout')
   if (mode === 'editing' && layout !== 'normal') {
     HtmlContainer.setAttribute('data-layout', 'normal')
   }
-}).observe(document.querySelector('[data-mode]'), {
+}).observe(context, {
   attributes: true,
   attributeFilter: ['data-mode'],
   attributeOldValue: true
 })
 const toggleEditing = () => {
-  const mode = document.body.getAttribute('data-mode')
-  document.body.setAttribute('data-mode', mode === 'editing' ? '' : 'editing')
+  const mode = context.getAttribute('data-mode')
+  context.setAttribute('data-mode', mode === 'editing' ? '' : 'editing')
 }
 // }}}
 // Set up EasyMDE {{{
@@ -658,7 +658,7 @@ new window.MutationObserver(mutaions => {
   const mutation = mutaions.at(-1)
   const layout = HtmlContainer.getAttribute('data-layout')
   if (layout !== 'normal' || mutation.oldValue === 'normal') {
-    document.body.setAttribute('data-mode', '')
+    context.setAttribute('data-mode', '')
   }
 }).observe(HtmlContainer, {
   attributes: true,
