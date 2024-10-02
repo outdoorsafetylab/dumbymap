@@ -48,7 +48,8 @@ root {
   }
 }
 
-p a[href^='http']::after {
+p a[href^='http']::after,
+.external::after {
   content: '';
   display: inline-block;
   width: 11px;
@@ -276,10 +277,9 @@ p a[href^='http']::after {
   }
 
   .info {
-    display: inline-block;
     float: right;
 
-    padding-inline: 1em;
+    padding-inline: .5em;
 
     color: steelblue;
     font-weight: bold;

@@ -61,7 +61,7 @@ export const pickBlockItem = ({ blocks, utils }) =>
       (block, index) =>
         new Item({
           text:
-            `<strong>(${index})</strong>` +
+            `<strong style="display: inline-block; width: 2.5em;">(${index})</strong>` +
             block
               .querySelector('p')
               ?.textContent.substring(0, 15)
@@ -91,7 +91,7 @@ export const pickLayoutItem = ({ container, layouts }) =>
           }),
       ),
       new Item({
-        innerHTML: '<a href="https://github.com/outdoorsafetylab/dumbymap#layouts" style="display: block; padding: 0.5rem;">More...</a>',
+        innerHTML: '<a href="https://github.com/outdoorsafetylab/dumbymap#layouts" class="external" style="display: block; padding: 0.5rem;">More...</a>',
         style: 'padding: 0;'
       }),
     ],
