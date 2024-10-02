@@ -422,7 +422,7 @@ p a[href^='http']::after,
 
   /* if Map not in showcase, add border when focused */
   .mapclay {
-    border: 3px solid transparent;
+    border: 3px solid white;
 
     &.focus {
       border: 3px solid gray;
