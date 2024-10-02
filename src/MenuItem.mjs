@@ -201,28 +201,43 @@ export const renderResults = ({ modal, modalContent }, map) =>
     },
   });
 
-function printObject(obj, parentElement, name) {
+function printObject(obj, parentElement, name = null) {
+  // Create <details> and <summary> inside
   const detailsEle = document.createElement('details');
-  const details = name ?? Object.values(obj)[0];
-  detailsEle.innerHTML = `<summary>${details}</summary`;
+  const details = name ?? (obj instanceof Error ? obj.name : Object.values(obj)[0]);
+  detailsEle.innerHTML = `<summary>${details}</summary>`;
   parentElement.appendChild(detailsEle);
 
   detailsEle.onclick = () => {
+    // Don't add items if it has contents
     if (detailsEle.querySelector(':scope > :not(summary)')) return;
 
-    Object.entries(obj).forEach(([key, value]) => {
-      if (typeof value === 'object') {
-        printObject(value, detailsEle, key);
-      } else {
-        const valueString =
-          typeof value === 'function'
-            ? `<pre>${value}</pre>`
-            : value ?? typeof value;
+    if (obj instanceof Error) {
+      // Handle Error objects specially
+      const errorProps = ['name', 'message', 'stack', ...Object.keys(obj)];
+      errorProps.forEach(key => {
+        const value = obj[key];
+        const valueString = key === 'stack' ? `<pre>${value}</pre>` : value;
         const propertyElement = document.createElement('p');
         propertyElement.innerHTML = `<strong>${key}</strong>: ${valueString}`;
         detailsEle.appendChild(propertyElement);
-      }
-    });
+      });
+    } else {
+      // Handle regular objects
+      Object.entries(obj).forEach(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          printObject(value, detailsEle, key);
+        } else {
+          const valueString =
+            typeof value === 'function'
+              ? `<pre>${value}</pre>`
+              : value ?? typeof value;
+          const propertyElement = document.createElement('p');
+          propertyElement.innerHTML = `<strong>${key}</strong>: ${valueString}`;
+          detailsEle.appendChild(propertyElement);
+        }
+      });
+    }
   };
 }
 
