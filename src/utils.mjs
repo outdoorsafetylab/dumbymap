@@ -87,3 +87,10 @@ export function throttle (func, delay) {
     return func.call(context, ...args)
   }
 }
+
+export const shiftByWindow = element => {
+  const rect = element.getBoundingClientRect()
+  const offsetX = window.innerWidth - rect.left - rect.width
+  const offsetY = window.innerHeight - rect.top - rect.height
+  element.style.transform = `translate(${offsetX < 0 ? offsetX : 0}px, ${offsetY < 0 ? offsetY : 0}px)`
+}

@@ -267,7 +267,6 @@ p a[href^='http']::after,
   padding: 0.5rem;
 
   position: relative;
-  z-index: 9999;
 
   cursor: pointer;
   text-wrap: nowrap;
@@ -299,7 +298,7 @@ p a[href^='http']::after,
   max-height: 40vh;
 
   position: absolute;
-  z-index: 100;
+  z-index: 10000;
 
   border: 2px solid gray;
   border-radius: 6px;

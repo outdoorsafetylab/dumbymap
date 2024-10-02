@@ -5,7 +5,7 @@ import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
 import LeaderLine from 'leader-line'
 import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay'
-import { onRemove, animateRectTransition, throttle } from './utils'
+import { onRemove, animateRectTransition, throttle, shiftByWindow } from './utils'
 import { Layout, SideBySide, Overlay } from './Layout'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
@@ -498,6 +498,8 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       menu.appendChild(menuItem.pickBlockItem(dumbymap))
       menu.appendChild(menuItem.pickLayoutItem(dumbymap))
     }
+
+    shiftByWindow(menu)
   }
 
   // Remove menu when click outside

@@ -1,3 +1,5 @@
+import { shiftByWindow } from './utils.mjs'
+
 class Item extends window.HTMLDivElement {
   constructor ({ text, innerHTML, onclick, style }) {
     super()
@@ -35,6 +37,7 @@ class Folder extends window.HTMLDivElement {
         .querySelectorAll('.sub-menu')
         .forEach(sub => sub.remove())
       this.appendChild(submenu)
+      shiftByWindow(submenu)
     }
   }
 }
