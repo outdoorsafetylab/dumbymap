@@ -90,6 +90,10 @@ export const pickLayoutItem = ({ container, layouts }) =>
             onclick: () => container.setAttribute('data-layout', layout.name),
           }),
       ),
+      new Item({
+        innerHTML: '<a href="https://github.com/outdoorsafetylab/dumbymap#layouts" style="display: block; padding: 0.5rem;">More...</a>',
+        style: 'padding: 0;'
+      }),
     ],
   });
 
