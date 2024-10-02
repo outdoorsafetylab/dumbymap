@@ -478,18 +478,22 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       menu.appendChild(menuItem.addGeoLink(dumbymap, range));
     }
 
+    // Menu Items for map
     const map = e.target.closest('.mapclay');
     if (map?.renderer?.results) {
       // Focus or Print Map Results
-      menu.appendChild(menuItem.renderResults(dumbymap, map));
       menu.appendChild(menuItem.toggleMapFocus(map));
+      menu.appendChild(menuItem.renderResults(dumbymap, map));
     } else {
       // Toggle block focus
       const block = e.target.closest('.dumby-block');
       if (block) {
         menu.appendChild(menuItem.toggleBlockFocus(block));
       }
-      // Dumby Utils
+    }
+
+    // Menu Items for map/block/layout
+    if (!map || map.closest('.Showcase')) {
       menu.appendChild(menuItem.pickMapItem(dumbymap));
       menu.appendChild(menuItem.pickBlockItem(dumbymap));
       menu.appendChild(menuItem.pickLayoutItem(dumbymap));
