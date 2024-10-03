@@ -1,6 +1,6 @@
 import { shiftByWindow } from './utils.mjs'
 
-class Item extends window.HTMLDivElement {
+export class Item extends window.HTMLDivElement {
   constructor ({ text, innerHTML, onclick, style, className, onmouseover }) {
     super()
     this.innerHTML = innerHTML ?? text
@@ -18,7 +18,7 @@ class Item extends window.HTMLDivElement {
 }
 window.customElements.define('menu-item', Item, { extends: 'div' })
 
-class Folder extends window.HTMLDivElement {
+export class Folder extends window.HTMLDivElement {
   constructor ({ text, innerHTML, items }) {
     super()
     this.innerHTML = innerHTML ?? text
