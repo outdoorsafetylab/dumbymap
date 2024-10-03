@@ -349,6 +349,8 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     mapElement.setAttribute('tabindex', '-1')
     if (mapElement.getAttribute('data-render') === 'fulfilled') {
       mapCache[mapElement.id] = renderer
+    } else {
+      return
     }
 
     // Execute callback from caller
