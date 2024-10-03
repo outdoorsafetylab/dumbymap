@@ -30,7 +30,8 @@ export const markdown2HTML = (container, mdContent) => {
 
   const md = MarkdownIt({
     html: true,
-    breaks: true
+    breaks: true,
+    linkify: true
   })
     .use(MarkdownItAnchor, {
       permalink: MarkdownItAnchor.permalink.linkInsideHeader({
@@ -41,14 +42,31 @@ export const markdown2HTML = (container, mdContent) => {
     .use(MarkdownItFrontMatter)
     .use(MarkdownItTocDoneRight)
 
+  // Create links with geo scheme
+  const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/g
+  const coordinateValue = {
+    validate: coordinateRegex,
+    normalize: function (match) {
+      const matches = [...match.raw.matchAll(coordinateRegex)]
+      if (!matches[0]) return match
+      const [, , x, sep, y] = matches[0]
+      match.url = `geo:${y},${x}?xy=${x},${y}`
+      match.text = `${x}${sep}${y}`
+      match.index = match.raw.indexOf(x)
+      return match
+    }
+  }
+  const patterns = ['(', '📍', '\uFF08', '@', 'geo:', 'twd']
+  patterns.forEach(prefix =>
+    md.linkify.add(prefix, coordinateValue)
+  )
+
   // FIXME A better way to generate blocks
   md.renderer.rules.dumby_block_open = () => '<div>'
   md.renderer.rules.dumby_block_close = () => '</div>'
-
   md.core.ruler.before('block', 'dumby_block', state => {
     state.tokens.push(new state.Token('dumby_block_open', '', 1))
   })
-
   // Add close tag for block with more than 2 empty lines
   md.block.ruler.before('table', 'dumby_block', (state, startLine) => {
     if (
