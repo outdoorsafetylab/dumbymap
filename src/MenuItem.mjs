@@ -177,8 +177,8 @@ export const renderResults = ({ modal, modalContent }, map) =>
       sourceCode.innerHTML = `<a href="${map.renderer.url ?? map.renderer.use}">Source Code</a>`
       modalContent.appendChild(sourceCode)
       const printDetails = result => {
-        const funcBody = result.func.toString()
-        const loc = funcBody.split('\n').length
+        // const funcBody = result.func.toString()
+        // const loc = funcBody.split('\n').length
         const color =
           {
             success: 'green',
@@ -189,7 +189,7 @@ export const renderResults = ({ modal, modalContent }, map) =>
         printObject(
           result,
           modalContent,
-          `${result.func.name} <span style='float: right;'>${loc}LOC\x20\x20\x20<span style='display: inline-block; width: 100px; color: ${color};'>${result.state}</span></span>`
+          `${result.func.name} <span style='float: right;'><span style='display: inline-block; width: 100px; color: ${color};'>${result.state}</span></span>`
         )
       }
 
