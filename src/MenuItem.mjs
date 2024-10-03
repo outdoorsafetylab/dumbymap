@@ -184,7 +184,7 @@ export const renderResults = ({ modal, modalContent }, map) =>
             success: 'green',
             fail: 'red',
             skip: 'black',
-            stop: 'yellow'
+            stop: 'chocolate'
           }[result.state] ?? 'black'
         printObject(
           result,
