@@ -79,6 +79,18 @@ body {
     .invalid-input {
       text-decoration: red wavy underline 1px;
     }
+
+    .cm-heading-1 {
+      font-size: 2em;
+    }
+
+    .cm-heading-2 {
+      font-size: 1.5em;
+    }
+
+    .cm-heading-3 {
+      font-size: 1.25em;
+    }
   }
 
   .editor-toolbar {
