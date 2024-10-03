@@ -443,6 +443,8 @@ p a[href^='http']::after,
 
     &[data-render='unfulfilled'] {
       border: 3px solid crimson;
+
+      opacity: 0.6;
     }
   }
 
