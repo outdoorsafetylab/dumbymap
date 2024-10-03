@@ -3,6 +3,7 @@
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
+import { shiftByWindow } from './utils.mjs'
 
 // Set up Containers {{{
 
@@ -382,7 +383,8 @@ const getSuggestionsForOptions = (optionTyped, validOptions) => {
     o =>
       new menuItem.Suggestion({
         text: `<span>${o.valueOf()}</span><span class='info' title="${o.desc ?? ''}">ⓘ</span>`,
-        replace: `${o.valueOf()}: `
+        replace: `${o.valueOf()}: `,
+        cm
       })
   )
 }
@@ -397,7 +399,8 @@ const getSuggestionFromMapOption = option => {
 
   return new menuItem.Suggestion({
     text,
-    replace: `${option.valueOf()}: ${option.example ?? ''}`
+    replace: `${option.valueOf()}: ${option.example ?? ''}`,
+    cm
   })
 }
 // }}}
@@ -408,7 +411,8 @@ const getSuggestionsFromAliases = option =>
     const valueString = JSON.stringify(value).replaceAll('"', '')
     return new menuItem.Suggestion({
       text: `<span>${alias}</span><span class="truncate" style="color: gray">${valueString}</span>`,
-      replace: `${option.valueOf()}: ${valueString}`
+      replace: `${option.valueOf()}: ${valueString}`,
+      cm
     })
   }) ?? []
 // }}}
@@ -523,7 +527,8 @@ const getSuggestions = anchor => {
         ([renderer, info]) =>
           new menuItem.Suggestion({
             text: `<span>use: ${renderer}</span><span class='info' title="${info.desc}">ⓘ</span>`,
-            replace: `use: ${renderer}`
+            replace: `use: ${renderer}`,
+            cm
           })
       )
     return rendererSuggestions.length > 0 ? rendererSuggestions : []
@@ -542,7 +547,6 @@ const addSuggestions = (anchor, suggestions) => {
 
   menu.innerHTML = ''
   suggestions
-    .map(s => s.createElement(cm))
     .forEach(option => menu.appendChild(option))
 
   const widgetAnchor = document.createElement('div')
@@ -550,8 +554,8 @@ const addSuggestions = (anchor, suggestions) => {
   const rect = widgetAnchor.getBoundingClientRect()
   menu.style.left = `calc(${rect.left}px + 2rem)`
   menu.style.top = `calc(${rect.bottom}px + 1rem)`
-  menu.style.maxWidth = `calc(${window.innerWidth}px - ${rect.x}px - 3rem)`
   menu.style.display = 'block'
+  shiftByWindow(menu)
 }
 // }}}
 // EVENT: Suggests for current selection {{{
@@ -583,7 +587,7 @@ cm.on('keydown', (_, e) => {
   ) { return }
 
   // Directly add a newline when no suggestion is selected
-  const currentSuggestion = menu.querySelector('.container__suggestion.focus')
+  const currentSuggestion = menu.querySelector('.menu-item.focus')
   if (!currentSuggestion && e.key === 'Enter') return
 
   // Override default behavior
@@ -592,10 +596,10 @@ cm.on('keydown', (_, e) => {
   // Suggestion when pressing Tab or Shift + Tab
   const nextSuggestion =
     currentSuggestion?.nextSibling ??
-    menu.querySelector('.container__suggestion:first-child')
+    menu.querySelector('.menu-item:first-child')
   const previousSuggestion =
     currentSuggestion?.previousSibling ??
-    menu.querySelector('.container__suggestion:last-child')
+    menu.querySelector('.menu-item:last-child')
   const focusSuggestion = e.shiftKey ? previousSuggestion : nextSuggestion
 
   // Current editor selection state

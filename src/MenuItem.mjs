@@ -134,41 +134,32 @@ export const addGeoLink = ({ utils }, range) =>
     }
   })
 
-export class Suggestion {
-  constructor ({ text, replace }) {
-    this.text = text
+export class Suggestion extends Item {
+  constructor ({ text, replace, cm }) {
+    super({ text })
     this.replace = replace
-  }
+    this.classList.add('suggestion')
 
-  createElement (codemirror) {
-    const option = document.createElement('div')
-    if (this.text.startsWith('<')) {
-      option.innerHTML = this.text
-    } else {
-      option.innerText = this.text
-    }
-    option.classList.add('container__suggestion')
-    option.onmouseover = () => {
-      Array.from(option.parentElement?.children)?.forEach(s =>
+    this.onmouseover = () => {
+      Array.from(this.parentElement?.children)?.forEach(s =>
         s.classList.remove('focus')
       )
-      option.classList.add('focus')
+      this.classList.add('focus')
     }
-    option.onmouseout = () => {
-      option.classList.remove('focus')
+    this.onmouseout = () => {
+      this.classList.remove('focus')
     }
-    option.onclick = () => {
-      const anchor = codemirror.getCursor()
-      codemirror.setSelection(anchor, { ...anchor, ch: 0 })
-      codemirror.replaceSelection(this.replace)
-      codemirror.focus()
+    this.onclick = () => {
+      const anchor = cm.getCursor()
+      cm.setSelection(anchor, { ...anchor, ch: 0 })
+      cm.replaceSelection(this.replace)
+      cm.focus()
       const newAnchor = { ...anchor, ch: this.replace.length }
-      codemirror.setCursor(newAnchor)
+      cm.setCursor(newAnchor)
     }
-
-    return option
   }
 }
+window.customElements.define('menu-item-suggestion', Suggestion, { extends: 'div' })
 
 export const renderResults = ({ modal, modalContent }, map) =>
   new Item({

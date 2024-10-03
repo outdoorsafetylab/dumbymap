@@ -117,13 +117,12 @@ body {
   }
 }
 
-.container__suggestion {
+.suggestion {
   display: flex;
   overflow: hidden;
   justify-content: space-between;
   align-items: center;
-  height: fit-content;
-  min-height: 2rem;
+  max-width: 700px;
 
   cursor: pointer;
   white-space: nowrap;
