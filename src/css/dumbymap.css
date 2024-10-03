@@ -440,6 +440,10 @@ p a[href^='http']::after,
     &.focus {
       border: 3px solid gray;
     }
+
+    &[data-render='unfulfilled'] {
+      border: 3px solid crimson;
+    }
   }
 
   [data-placeholder] {
