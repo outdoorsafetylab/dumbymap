@@ -12,7 +12,8 @@ const general = {
     {
       dir: './dist',
       format: 'esm',
-      entryFileNames: '[name].mjs'
+      entryFileNames: '[name].mjs',
+      sourcemap: 'true'
     }
   ],
   watch: {
