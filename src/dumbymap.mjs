@@ -534,7 +534,9 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
     // Menu Items for map/block/layout
     if (!map || map.closest('.Showcase')) {
-      menu.appendChild(menuItem.pickMapItem(dumbymap))
+      if (dumbymap.utils.renderedMaps().length > 0) {
+        menu.appendChild(menuItem.pickMapItem(dumbymap))
+      }
       menu.appendChild(menuItem.pickBlockItem(dumbymap))
       menu.appendChild(menuItem.pickLayoutItem(dumbymap))
     }
