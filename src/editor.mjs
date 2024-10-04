@@ -59,15 +59,15 @@ const editor = new EasyMDE({
   },
   toolbar: [
     {
-      name: 'map',
-      title: 'Toggle Map Generation',
-      text: '🌏',
+      name: 'roll',
+      title: 'Roll a dice',
+      text: '\u{2684}',
       action: () => toggleEditing()
     },
     {
       name: 'debug',
       title: 'Save content as URL',
-      text: '🤔',
+      text: '\u{1F4BE}',
       action: () => {
         const state = { content: editor.value() }
         window.location.hash = encodeURIComponent(JSON.stringify(state))
