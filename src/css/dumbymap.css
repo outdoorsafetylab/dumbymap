@@ -124,6 +124,11 @@ p a[href^='http']::after,
       animation: 2.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
     }
   }
+
+  .marker {
+    background-color: transparent;
+    border-color: transparent;
+  }
 }
 
 .with-leader-line:not(:has(> *)) {
