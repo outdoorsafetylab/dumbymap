@@ -6,7 +6,7 @@ import { insideWindow, insideParent } from './utils'
  *
  * @param {Boolean} reverse -- focus previous map
  */
-export function focusNextMap(reverse = false) {
+export function focusNextMap (reverse = false) {
   const renderedList = this.utils.renderedMaps()
   const index = renderedList.findIndex(e => e.classList.contains('focus'))
   const nextIndex = (index + (reverse ? -1 : 1)) % renderedList.length
@@ -21,7 +21,7 @@ export function focusNextMap(reverse = false) {
  *
  * @param {Boolean} reverse -- focus previous block
  */
-export function focusNextBlock(reverse = false) {
+export function focusNextBlock (reverse = false) {
   const blocks = this.blocks.filter(b =>
     b.checkVisibility({
       contentVisibilityAuto: true,
@@ -56,7 +56,7 @@ export const scrollToBlock = block => {
 /**
  * focusDelay. Delay of throttle, value changes by cases
  */
-export function focusDelay() {
+export function focusDelay () {
   return window.window.getComputedStyle(this.showcase).display === 'none' ? 50 : 300
 }
 
@@ -65,7 +65,7 @@ export function focusDelay() {
  *
  * @param {Boolean} reverse -- Switch to previous one
  */
-export function switchToNextLayout(reverse = false) {
+export function switchToNextLayout (reverse = false) {
   const layouts = this.layouts
   const currentLayoutName = this.container.getAttribute('data-layout')
   const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
@@ -81,7 +81,7 @@ export function switchToNextLayout(reverse = false) {
 /**
  * removeBlockFocus.
  */
-export function removeBlockFocus() {
+export function removeBlockFocus () {
   this.blocks.forEach(b => b.classList.remove('focus'))
 }
 

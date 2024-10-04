@@ -55,7 +55,7 @@ const general = {
     node(),
     commonjs(),
     production && terser({
-      keep_fnames: true,
+      keep_fnames: true
     }),
     production && bundleStats()
   ]

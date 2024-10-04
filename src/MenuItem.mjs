@@ -99,7 +99,8 @@ export const pickBlockItem = ({ blocks, utils }) =>
         const preview = block.querySelector('p')
           ?.textContent.substring(0, 15)
           ?.concat(' ', '...  ') ?? ''
-        const item = new Item({
+
+        return new Item({
           className: ['keep-menu', focus ? 'checked' : 'unchecked'],
           innerHTML:
             `<strong>(${index})</strong><span style='display: inline-block; margin-inline: 1.2em;'>${preview}</span>`,
@@ -114,11 +115,9 @@ export const pickBlockItem = ({ blocks, utils }) =>
 
             // UX: remove menu after user select/deselect blocks
             const submenu = e.target.closest('.sub-menu')
-            submenu.onmouseleave = () => submenu.closest('.menu').style.display = 'none'
+            submenu.onmouseleave = () => { submenu.closest('.menu').style.display = 'none' }
           }
         })
-
-        return item
       }
     )
   })

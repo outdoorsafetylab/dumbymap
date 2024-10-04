@@ -72,10 +72,10 @@ export const animateRectTransition = (element, rect, options = {}) => {
  * @param {Number} delay milliseconds
  * @returns {Any} return value of function call, or null if throttled
  */
-export function throttle(func, delay) {
+export function throttle (func, delay) {
   let timerFlag = null
 
-  return function(...args) {
+  return function (...args) {
     const context = this
     if (timerFlag !== null) return null
 
