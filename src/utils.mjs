@@ -88,6 +88,11 @@ export function throttle (func, delay) {
   }
 }
 
+/**
+ * shiftByWindow. make sure HTMLElement inside viewport
+ *
+ * @param {HTMLElement} element
+ */
 export const shiftByWindow = element => {
   const rect = element.getBoundingClientRect()
   const offsetX = window.innerWidth - rect.left - rect.width

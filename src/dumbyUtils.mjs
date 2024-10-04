@@ -1,5 +1,10 @@
 import LeaderLine from 'leader-line'
 
+/**
+ * focusNextMap.
+ *
+ * @param {Boolean} reverse -- focus previous map
+ */
 export function focusNextMap (reverse = false) {
   const renderedList = this.utils.renderedMaps()
   const index = renderedList.findIndex(e => e.classList.contains('focus'))
@@ -10,6 +15,11 @@ export function focusNextMap (reverse = false) {
   nextMap.scrollIntoView({ behavior: 'smooth' })
 }
 
+/**
+ * focusNextBlock.
+ *
+ * @param {Boolean} reverse -- focus previous block
+ */
 export function focusNextBlock (reverse = false) {
   const blocks = this.blocks.filter(b =>
     b.checkVisibility({
@@ -27,7 +37,12 @@ export function focusNextBlock (reverse = false) {
   scrollToBlock(nextBlock)
 }
 
-// Consider block is bigger then viewport height
+/**
+ * scrollToBlock. Smoothly scroll to target block.
+ * If block is bigger than viewport, then pick strategy wisely.
+ *
+ * @param {HTMLElement} block -- Scroll to this element
+ */
 export const scrollToBlock = block => {
   const parentRect = block.parentElement.getBoundingClientRect()
   const scrollBlock =
@@ -37,10 +52,18 @@ export const scrollToBlock = block => {
   block.scrollIntoView({ behavior: 'smooth', block: scrollBlock })
 }
 
+/**
+ * focusDelay. Delay of throttle, value changes by cases
+ */
 export function focusDelay () {
   return window.window.getComputedStyle(this.showcase).display === 'none' ? 50 : 300
 }
 
+/**
+ * switchToNextLayout.
+ *
+ * @param {Boolean} reverse -- Switch to previous one
+ */
 export function switchToNextLayout (reverse = false) {
   const layouts = this.layouts
   const currentLayoutName = this.container.getAttribute('data-layout')
@@ -54,6 +77,9 @@ export function switchToNextLayout (reverse = false) {
   this.container.setAttribute('data-layout', nextLayout.name)
 }
 
+/**
+ * removeBlockFocus.
+ */
 export function removeBlockFocus () {
   this.blocks.forEach(b => b.classList.remove('focus'))
 }

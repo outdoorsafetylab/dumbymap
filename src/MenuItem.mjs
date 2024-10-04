@@ -1,6 +1,16 @@
 import { shiftByWindow } from './utils.mjs'
 
+/**
+ * Item. Basic Element for menu item
+ *
+ * @extends {window.HTMLDivElement}
+ */
 export class Item extends window.HTMLDivElement {
+  /**
+   * constructor.
+   *
+   * @param {}
+   */
   constructor ({ text, innerHTML, onclick, style, className, onmouseover }) {
     super()
     this.innerHTML = innerHTML ?? text
@@ -18,7 +28,17 @@ export class Item extends window.HTMLDivElement {
 }
 window.customElements.define('menu-item', Item, { extends: 'div' })
 
+/**
+ * Folder. Basic Element for menu item, it generate submenu on hover
+ *
+ * @extends {window.HTMLDivElement}
+ */
 export class Folder extends window.HTMLDivElement {
+  /**
+   * constructor.
+   *
+   * @param {}
+   */
   constructor ({ text, innerHTML, items }) {
     super()
     this.innerHTML = innerHTML ?? text
@@ -44,6 +64,11 @@ export class Folder extends window.HTMLDivElement {
 }
 window.customElements.define('menu-folder', Folder, { extends: 'div' })
 
+/**
+ * pickMapItem.
+ *
+ * @param {Function[]} options.utils
+ */
 export const pickMapItem = ({ utils }) =>
   new Folder({
     innerHTML: '<span>Maps<span><span class="info">(Tab)</span>',
@@ -59,6 +84,12 @@ export const pickMapItem = ({ utils }) =>
     )
   })
 
+/**
+ * pickBlockItem.
+ *
+ * @param {HTMLElement[]} options.blocks
+ * @param {Function[]} options.utils
+ */
 export const pickBlockItem = ({ blocks, utils }) =>
   new Folder({
     innerHTML: '<span>Blocks<span><span class="info">(n/p)</span>',
@@ -92,6 +123,12 @@ export const pickBlockItem = ({ blocks, utils }) =>
     )
   })
 
+/**
+ * pickLayoutItem.
+ *
+ * @param {HTEMElement} options.container
+ * @param {String[]} options.layouts
+ */
 export const pickLayoutItem = ({ container, layouts }) =>
   new Folder({
     innerHTML: '<span>Layouts<span><span class="info">(x)</span>',
@@ -115,6 +152,12 @@ export const pickLayoutItem = ({ container, layouts }) =>
     ]
   })
 
+/**
+ * addGeoLink.
+ *
+ * @param {Function[]} options.utils
+ * @param {Range} range
+ */
 export const addGeoLink = ({ utils }, range) =>
   new Item({
     text: 'Add GeoLink',
@@ -138,7 +181,17 @@ export const addGeoLink = ({ utils }, range) =>
     }
   })
 
+/**
+ * Suggestion. Menu Item for editor suggestion
+ *
+ * @extends {Item}
+ */
 export class Suggestion extends Item {
+  /**
+   * constructor.
+   *
+   * @param {}
+   */
   constructor ({ text, replace, cm }) {
     super({ text })
     this.replace = replace
@@ -165,6 +218,13 @@ export class Suggestion extends Item {
 }
 window.customElements.define('menu-item-suggestion', Suggestion, { extends: 'div' })
 
+/**
+ * renderResults. return a menu item for reporting render results
+ *
+ * @param {Object} options.modal -- Ojbect of plain-modal
+ * @param {HTMLElement} options.modalContent
+ * @param {HTMLElement} map -- Rendered map element
+ */
 export const renderResults = ({ modal, modalContent }, map) =>
   new Item({
     text: 'Render Results',
@@ -215,6 +275,13 @@ export const renderResults = ({ modal, modalContent }, map) =>
     }
   })
 
+/**
+ * printObject. Generate <details> in parent element based on Ojbect properties
+ *
+ * @param {Object} obj
+ * @param {HTMLElement} parentElement
+ * @param {String} name
+ */
 function printObject (obj, parentElement, name = null) {
   // Create <details> and <summary> inside
   const detailsEle = document.createElement('details')
@@ -255,12 +322,22 @@ function printObject (obj, parentElement, name = null) {
   }
 }
 
+/**
+ * toggleBlockFocus. Menu Item for toggling focus on a block
+ *
+ * @param {HTMLElement} block
+ */
 export const toggleBlockFocus = block =>
   new Item({
     text: 'Toggle Focus',
     onclick: () => block.classList.toggle('focus')
   })
 
+/**
+ * toggleMapFocus. Menu Item for toggling focus on a map
+ *
+ * @param {HTMLElement} map
+ */
 export const toggleMapFocus = map =>
   new Item({
     text: 'Toggle Focus',

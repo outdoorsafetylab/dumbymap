@@ -1,7 +1,15 @@
 import PlainDraggable from 'plain-draggable'
 import { onRemove, animateRectTransition } from './utils'
 
+/**
+ * Layout. Basic class for layout
+ */
 export class Layout {
+  /**
+   * constructor.
+   *
+   * @param {} options
+   */
   constructor (options = {}) {
     if (!options.name) throw Error('Layout name is not given')
     this.name = options.name
@@ -9,12 +17,28 @@ export class Layout {
     this.leaveHandler = options.leaveHandler
   }
 
+  /**
+   * valueOf.
+   */
   valueOf = () => this.name
 }
 
+/**
+ * Side-By-Side Layout, HTML content and Showcase show on left/right side
+ *
+ * @extends {Layout}
+ */
 export class SideBySide extends Layout {
+  /**
+   * @type {}
+   */
   name = 'side-by-side'
 
+  /**
+   * enterHandler.
+   *
+   * @param {}
+   */
   enterHandler = ({ container, htmlHolder, showcase }) => {
     const bar = document.createElement('div')
     bar.className = 'bar'
@@ -46,20 +70,43 @@ export class SideBySide extends Layout {
     onRemove(bar, () => draggable.remove())
   }
 
+  /**
+   * leaveHandler.
+   *
+   * @param {}
+   */
   leaveHandler = ({ container }) => {
     container.querySelector('.bar')?.remove()
   }
 }
 
+/**
+ * Overlay Layout, Showcase occupies viewport, and HTML content becomes draggable blocks
+ *
+ * @extends {Layout}
+ */
 export class Overlay extends Layout {
+  /**
+   * @type {}
+   */
   name = 'overlay'
 
+  /**
+   * saveLeftTopAsData.
+   *
+   * @param {} element
+   */
   saveLeftTopAsData = element => {
     const { left, top } = element.getBoundingClientRect()
     element.setAttribute('data-left', left)
     element.setAttribute('data-top', top)
   }
 
+  /**
+   * addDraggable.
+   *
+   * @param {} element
+   */
   addDraggable = element => {
     // Make sure current element always on top
     const siblings = Array.from(
@@ -119,6 +166,11 @@ export class Overlay extends Layout {
     })
   }
 
+  /**
+   * enterHandler.
+   *
+   * @param {}
+   */
   enterHandler = ({ htmlHolder, blocks }) => {
     // FIXME It is weird rect from this method and this scope are different...
     blocks.forEach(this.saveLeftTopAsData)
@@ -197,6 +249,11 @@ export class Overlay extends Layout {
     })
   }
 
+  /**
+   * leaveHandler.
+   *
+   * @param {}
+   */
   leaveHandler = ({ htmlHolder, blocks }) => {
     const resumeFromDraggable = block => {
       const draggableContainer = block.closest('.draggable-block')

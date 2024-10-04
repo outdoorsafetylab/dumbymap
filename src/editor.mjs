@@ -23,6 +23,9 @@ new window.MutationObserver(() => {
   attributeFilter: ['data-mode'],
   attributeOldValue: true
 })
+/**
+ * toggle editing mode
+ */
 const toggleEditing = () => {
   const mode = context.getAttribute('data-mode')
   context.setAttribute('data-mode', mode === 'editing' ? '' : 'editing')
@@ -128,6 +131,11 @@ const editor = new EasyMDE({
 
 const cm = editor.codemirror
 
+/**
+ * get state of website from hash string
+ *
+ * @param {String} hash
+ */
 const getStateFromHash = hash => {
   const hashValue = hash.substring(1)
   const stateString = decodeURIComponent(hashValue)
@@ -138,6 +146,11 @@ const getStateFromHash = hash => {
   }
 }
 
+/**
+ * get editor content from hash string
+ *
+ * @param {} hash
+ */
 const getContentFromHash = hash => {
   const state = getStateFromHash(hash)
   return state.content
@@ -154,7 +167,13 @@ if (contentFromHash) {
 }
 // }}}
 // Set up logic about editor content {{{
-const afterMapRendered = _ => {
+/**
+ * afterMapRendered. Callback of map rendered
+ *
+ * @param {HTEMLElement} map
+ */
+const afterMapRendered = map => {
+  console.info(map)
   // mapHolder.oncontextmenu = (event) => {
   //   event.preventDefault()
   //   const lonLat = mapHolder.renderer.unproject([event.x, event.y])
@@ -164,7 +183,9 @@ const afterMapRendered = _ => {
 markdown2HTML(HtmlContainer, editor.value())
 dumbymap = generateMaps(HtmlContainer, afterMapRendered)
 
-// Quick hack to style lines inside code block
+/**
+ * addClassToCodeLines. Quick hack to style lines inside code block
+ */
 const addClassToCodeLines = () => {
   const lines = cm.getLineHandle(0).parent.lines
   let insideCodeBlock = false
@@ -180,6 +201,11 @@ const addClassToCodeLines = () => {
 }
 addClassToCodeLines()
 
+/**
+ * completeForCodeBlock.
+ *
+ * @param {Object} change -- codemirror change object
+ */
 const completeForCodeBlock = change => {
   const line = change.to.line
   if (change.origin === '+input') {
@@ -234,6 +260,9 @@ const completeForCodeBlock = change => {
 //   }
 // })()
 
+/**
+ * update content of HTML about Dumbymap
+ */
 const updateDumbyMap = () => {
   markdown2HTML(HtmlContainer, editor.value())
   // TODO Test if generate maps intantly is OK with map cache
@@ -309,7 +338,11 @@ fetch(defaultApply)
   })
   .catch(err => console.warn(`Fail to get aliases from ${defaultApply}`, err))
 // }}}
-//  FUNCTION: Check if current token is inside code block {{{
+/**
+ * insideCodeblockForMap. Check if current token is inside code block {{{
+ *
+ * @param {} anchor
+ */
 const insideCodeblockForMap = anchor => {
   const token = cm.getTokenAt(anchor)
   const insideCodeBlock =
@@ -330,7 +363,11 @@ const insideCodeblockForMap = anchor => {
   return false
 }
 // }}}
-// FUNCTION: Get Renderer by cursor position in code block {{{
+/**
+ * getLineWithRenderer. Get Renderer by cursor position in code block {{{
+ *
+ * @param {Object} anchor -- Codemirror Anchor Object
+ */
 const getLineWithRenderer = anchor => {
   const currentLine = anchor.line
   if (!cm.getLine) return null
@@ -365,7 +402,12 @@ const getLineWithRenderer = anchor => {
   return null
 }
 // }}}
-// FUNCTION: Return suggestions for valid options {{{
+/**
+ * getSuggestionsForOptions. Return suggestions for valid options {{{
+ *
+ * @param {Boolean} optionTyped
+ * @param {Object[]} validOptions
+ */
 const getSuggestionsForOptions = (optionTyped, validOptions) => {
   let suggestOptions = []
 
@@ -389,7 +431,11 @@ const getSuggestionsForOptions = (optionTyped, validOptions) => {
   )
 }
 // }}}
-// FUNCTION: Return suggestion for example of option value {{{
+/**
+ * getSuggestionFromMapOption. Return suggestion for example of option value {{{
+ *
+ * @param {Object} option
+ */
 const getSuggestionFromMapOption = option => {
   if (!option.example) return null
 
@@ -404,7 +450,11 @@ const getSuggestionFromMapOption = option => {
   })
 }
 // }}}
-// FUNCTION: Return suggestions from aliases {{{
+/**
+ * getSuggestionsFromAliases. Return suggestions from aliases {{{
+ *
+ * @param {Object} option
+ */
 const getSuggestionsFromAliases = option =>
   Object.entries(aliasesForMapOptions[option.valueOf()] ?? {})?.map(record => {
     const [alias, value] = record
@@ -416,7 +466,11 @@ const getSuggestionsFromAliases = option =>
     })
   }) ?? []
 // }}}
-// FUCNTION: Handler for map codeblock {{{
+/**
+ * handleTypingInCodeBlock. Handler for map codeblock {{{
+ *
+ * @param {Object} anchor -- Codemirror Anchor Object
+ */
 const handleTypingInCodeBlock = anchor => {
   const text = cm.getLine(anchor.line)
   if (text.match(/^\s\+$/) && text.length % 2 !== 0) {
@@ -429,7 +483,11 @@ const handleTypingInCodeBlock = anchor => {
   }
 }
 // }}}
-// FUNCTION: get suggestions by current input {{{
+/**
+ * getSuggestions. Get suggestions by current input {{{
+ *
+ * @param {Object} anchor -- Codemirror Anchor Object
+ */
 const getSuggestions = anchor => {
   const text = cm.getLine(anchor.line)
 
@@ -543,7 +601,12 @@ const getSuggestions = anchor => {
   return []
 }
 // }}}
-// {{{ FUNCTION: Show element about suggestions
+/**
+ * addSuggestions.  Show element about suggestions {{{
+ *
+ * @param {Object} anchor -- Codemirror Anchor Object
+ * @param {Suggestion[]} suggestions
+ */
 const addSuggestions = (anchor, suggestions) => {
   if (suggestions.length === 0) {
     menu.style.display = 'none'

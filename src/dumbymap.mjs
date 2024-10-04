@@ -21,6 +21,12 @@ const layouts = [
 ]
 const mapCache = {}
 
+/**
+ * markdown2HTML.
+ *
+ * @param {HTMLElement} container -- Target Element to include generated HTML contents
+ * @param {String} mdContent -- Texts in Markdown
+ */
 export const markdown2HTML = (container, mdContent) => {
   // Render: Markdown -> HTML {{{
   container.replaceChildren()
@@ -83,7 +89,7 @@ export const markdown2HTML = (container, mdContent) => {
     state.tokens.push(new state.Token('dumby_block_close', '', -1))
   })
 
-  const contentWithToc = '${toc}\n\n\n' + mdContent  // eslint-disable-line
+  const contentWithToc = '${toc}\n\n\n' + mdContent   
   htmlHolder.innerHTML = md.render(contentWithToc)
 
   // TODO Do this in markdown-it
@@ -96,6 +102,13 @@ export const markdown2HTML = (container, mdContent) => {
   return container
   // }}}
 }
+
+/**
+ * generateMaps.
+ *
+ * @param {HTMLElement} container -- Target Element contains HTML contents
+ * @param {Object} dumbymap -- Include and Elements and Methods about managing contents
+ */
 export const generateMaps = (container, { delay, mapCallback }) => {
   container.classList.add('Dumby')
   container.removeAttribute('data-layout')
@@ -159,7 +172,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
   const isAnchorPointedBy = link => anchor => {
     const mapContainer = anchor.closest('.mapclay')
     const isTarget = !link.targets || link.targets.includes(mapContainer.id)
-    return anchor.title === link.url.pathname && isTarget
+    return anchor.title === link.url.searchParams.get('text') && isTarget
   }
 
   const isAnchorVisible = anchor => {
@@ -366,7 +379,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     mapCallback?.call(this, mapElement)
     const markers = geoLinks
       .filter(link => !link.targets || link.targets.includes(mapElement.id))
-      .map(link => ({ xy: link.xy, title: link.url.pathname }))
+      .map(link => ({ xy: link.xy, title: link.url.searchParams.get('text') }))
 
     // FIXME Here may cause error
     // Add markers with Geolinks
