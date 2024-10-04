@@ -353,18 +353,6 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       return
     }
 
-    // Execute callback from caller
-    mapCallback?.call(this, mapElement)
-    const markers = geoLinks
-      .filter(link => !link.targets || link.targets.includes(mapElement.id))
-      .map(link => ({ xy: link.xy, title: link.url.pathname }))
-
-    // Add markers with Geolinks
-    renderer.addMarkers(markers)
-    mapElement
-      .querySelectorAll('.marker')
-      .forEach(marker => htmlHolder.anchors.push(marker))
-
     // Work with Mutation Observer
     const observer = mapFocusObserver()
     mapFocusObserver().observe(mapElement, {
@@ -373,6 +361,19 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       attributeOldValue: true
     })
     onRemove(mapElement, () => observer.disconnect())
+
+    // Execute callback from caller
+    mapCallback?.call(this, mapElement)
+    const markers = geoLinks
+      .filter(link => !link.targets || link.targets.includes(mapElement.id))
+      .map(link => ({ xy: link.xy, title: link.url.pathname }))
+
+    // FIXME Here may cause error
+    // Add markers with Geolinks
+    renderer.addMarkers(markers)
+    mapElement
+      .querySelectorAll('.marker')
+      .forEach(marker => htmlHolder.anchors.push(marker))
   }
 
   // Set unique ID for map container
