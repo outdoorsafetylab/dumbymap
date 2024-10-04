@@ -11,6 +11,7 @@ import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
 
+const mapBlockSelector = 'pre:has(.language-map)'
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
 const geoLinkSelector = 'a[href^="geo:"]'
 
@@ -408,7 +409,7 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
   // Render each code block with "language-map" class
   const elementsWithMapConfig = Array.from(
-    container.querySelectorAll('pre:has(.language-map)') ?? []
+    container.querySelectorAll(mapBlockSelector) ?? []
   )
   /**
    * updateAttributeByStep.
