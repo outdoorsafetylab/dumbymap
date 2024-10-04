@@ -2,8 +2,6 @@ import MarkdownIt from 'markdown-it'
 import MarkdownItAnchor from 'markdown-it-anchor'
 import MarkdownItFootnote from 'markdown-it-footnote'
 import MarkdownItFrontMatter from 'markdown-it-front-matter'
-import MarkdownItTocDoneRight from 'markdown-it-toc-done-right'
-import LeaderLine from 'leader-line'
 import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import { onRemove, animateRectTransition, throttle, shiftByWindow } from './utils'
 import { Layout, SideBySide, Overlay } from './Layout'
@@ -47,7 +45,6 @@ export const markdown2HTML = (container, mdContent) => {
     })
     .use(MarkdownItFootnote)
     .use(MarkdownItFrontMatter)
-    .use(MarkdownItTocDoneRight)
 
   // Create links with geo scheme
   const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/g
@@ -90,8 +87,7 @@ export const markdown2HTML = (container, mdContent) => {
     state.tokens.push(new state.Token('dumby_block_close', '', -1))
   })
 
-  const contentWithToc = '${toc}\n\n\n' + mdContent   
-  htmlHolder.innerHTML = md.render(contentWithToc)
+  htmlHolder.innerHTML = md.render(mdContent)
 
   // TODO Do this in markdown-it
   const blocks = htmlHolder.querySelectorAll(':scope > div:not(:has(nav))')
