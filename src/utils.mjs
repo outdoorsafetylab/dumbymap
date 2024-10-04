@@ -72,10 +72,10 @@ export const animateRectTransition = (element, rect, options = {}) => {
  * @param {Number} delay milliseconds
  * @returns {Any} return value of function call, or null if throttled
  */
-export function throttle (func, delay) {
+export function throttle(func, delay) {
   let timerFlag = null
 
-  return function (...args) {
+  return function(...args) {
     const context = this
     if (timerFlag !== null) return null
 
@@ -98,4 +98,38 @@ export const shiftByWindow = element => {
   const offsetX = window.innerWidth - rect.left - rect.width
   const offsetY = window.innerHeight - rect.top - rect.height
   element.style.transform = `translate(${offsetX < 0 ? offsetX : 0}px, ${offsetY < 0 ? offsetY : 0}px)`
+}
+
+/**
+ * insideWindow. check DOMRect is inside window
+ *
+ * @param {HTMLElement} element
+ */
+export const insideWindow = element => {
+  const rect = element.getBoundingClientRect()
+  return (
+    rect.left > 0 &&
+    rect.right < window.innerWidth + rect.width &&
+    rect.top > 0 &&
+    rect.bottom < window.innerHeight + rect.height
+  )
+}
+
+/**
+ * insideParent. check children element is inside DOMRect of parent element
+ *
+ * @param {HTMLElement} childElement
+ * @param {HTMLElement} parentElement
+ */
+export const insideParent = (childElement, parentElement) => {
+  const childRect = childElement.getBoundingClientRect()
+  const parentRect = parentElement.getBoundingClientRect()
+  const offset = 20
+
+  return (
+    childRect.left > parentRect.left + offset &&
+    childRect.right < parentRect.right - offset &&
+    childRect.top > parentRect.top + offset &&
+    childRect.bottom < parentRect.bottom - offset
+  )
 }

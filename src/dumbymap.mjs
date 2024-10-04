@@ -152,87 +152,10 @@ export const generateMaps = (container, { delay, mapCallback }) => {
     utils.createDocLink
   )
 
-  // Get anchors with "geo:" scheme
-  htmlHolder.anchors = []
-  const geoLinkCallback = link => {
-    link.onmouseover = () => addLeaderLines(link)
-    link.onmouseout = () => removeLeaderLines(link)
-    link.onclick = event => {
-      event.preventDefault()
-      htmlHolder.anchors
-        .filter(isAnchorPointedBy(link))
-        .forEach(updateMapByMarker(link.xy))
-      // TODO Just hide leader line and show it again
-      removeLeaderLines(link)
-    }
-  }
-  const geoLinks = Array.from(
-    container.querySelectorAll(geoLinkSelector)
-  ).filter(l => utils.createGeoLink(l, geoLinkCallback))
+  // Add GeoLinks
+  container.querySelectorAll(geoLinkSelector)
+    .forEach(utils.createGeoLink)
 
-  const isAnchorPointedBy = link => anchor => {
-    const mapContainer = anchor.closest('.mapclay')
-    const isTarget = !link.targets || link.targets.includes(mapContainer.id)
-    return anchor.title === link.url.searchParams.get('text') && isTarget
-  }
-
-  const isAnchorVisible = anchor => {
-    const mapContainer = anchor.closest('.mapclay')
-    return insideWindow(anchor) && insideParent(anchor, mapContainer)
-  }
-
-  const drawLeaderLine = link => anchor => {
-    const line = new LeaderLine({
-      start: link,
-      end: anchor,
-      hide: true,
-      middleLabel: link.url.searchParams.get('text'),
-      path: 'magnet'
-    })
-    line.show('draw', { duration: 300 })
-    return line
-  }
-
-  const addLeaderLines = link => {
-    link.lines = htmlHolder.anchors
-      .filter(isAnchorPointedBy(link))
-      .filter(isAnchorVisible)
-      .map(drawLeaderLine(link))
-  }
-
-  const removeLeaderLines = link => {
-    if (!link.lines) return
-    link.lines.forEach(line => line.remove())
-    link.lines = []
-  }
-
-  const updateMapByMarker = xy => marker => {
-    const renderer = marker.closest('.mapclay')?.renderer
-    renderer.updateCamera({ center: xy }, true)
-  }
-
-  const insideWindow = element => {
-    const rect = element.getBoundingClientRect()
-    return (
-      rect.left > 0 &&
-      rect.right < window.innerWidth + rect.width &&
-      rect.top > 0 &&
-      rect.bottom < window.innerHeight + rect.height
-    )
-  }
-
-  const insideParent = (childElement, parentElement) => {
-    const childRect = childElement.getBoundingClientRect()
-    const parentRect = parentElement.getBoundingClientRect()
-    const offset = 20
-
-    return (
-      childRect.left > parentRect.left + offset &&
-      childRect.right < parentRect.right - offset &&
-      childRect.top > parentRect.top + offset &&
-      childRect.bottom < parentRect.bottom - offset
-    )
-  }
   // }}}
   // CSS observer {{{
   // Focus Map {{{
@@ -378,16 +301,6 @@ export const generateMaps = (container, { delay, mapCallback }) => {
 
     // Execute callback from caller
     mapCallback?.call(this, mapElement)
-    const markers = geoLinks
-      .filter(link => !link.targets || link.targets.includes(mapElement.id))
-      .map(link => ({ xy: link.xy, title: link.url.searchParams.get('text') }))
-
-    // FIXME Here may cause error
-    // Add markers with Geolinks
-    renderer.addMarkers(markers)
-    mapElement
-      .querySelectorAll('.marker')
-      .forEach(marker => htmlHolder.anchors.push(marker))
   }
 
   // Set unique ID for map container
