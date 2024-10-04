@@ -80,6 +80,10 @@ export const pickBlockItem = ({ blocks, utils }) =>
             const item = e.target.closest('.menu-item.keep-menu')
             item.classList.add(focus ? 'checked' : 'unchecked')
             item.classList.remove(focus ? 'unchecked' : 'checked')
+
+            // UX: remove menu after user select/deselect blocks
+            const submenu = e.target.closest('.sub-menu')
+            submenu.onmouseleave = () => submenu.closest('.menu').style.display = 'none'
           }
         })
 
