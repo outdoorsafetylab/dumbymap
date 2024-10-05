@@ -67,16 +67,25 @@ const editor = new EasyMDE({
       action: () => addMapRandomlyByPreset()
     },
     {
-      name: 'debug',
-      title: 'Save content as URL',
+      name: 'export',
+      title: 'Export current page',
       text: '\u{1F4BE}',
+      action: () => {
+      }
+    },
+    {
+      name: 'hash',
+      title: 'Save content as URL',
+      // text: '\u{1F4BE}',
+      text: '#',
       action: () => {
         const state = { content: editor.value() }
         window.location.hash = encodeURIComponent(JSON.stringify(state))
         navigator.clipboard.writeText(window.location.href)
-        window.alert('URL copied to clipboard')
+        window.alert('URL updated in address bar, you can save current page as bookmark')
       }
     },
+    '|',
     {
       name: 'undo',
       title: 'Undo last editing',
