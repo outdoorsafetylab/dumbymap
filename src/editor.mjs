@@ -245,7 +245,6 @@ new window.MutationObserver(() => {
 })
 
 markdown2HTML(dumbyContainer, editor.value())
-dumbymap = generateMaps(dumbyContainer)
 
 /**
  * addClassToCodeLines. Quick hack to style lines inside code block
@@ -329,14 +328,12 @@ const completeForCodeBlock = change => {
  */
 const updateDumbyMap = () => {
   markdown2HTML(dumbyContainer, editor.value())
-  // TODO Test if generate maps intantly is OK with map cache
   // debounceForMap(HtmlContainer, afterMapRendered)
-  dumbymap = generateMaps(dumbyContainer, afterMapRendered)
+  dumbymap = generateMaps(dumbyContainer)
 
   const htmlHolder = dumbymap.htmlHolder
   htmlHolder.onscroll = htmlOnScroll(htmlHolder)
 }
-
 updateDumbyMap()
 
 // Re-render HTML by editor content
