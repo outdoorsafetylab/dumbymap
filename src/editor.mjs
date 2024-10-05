@@ -833,25 +833,31 @@ new window.MutationObserver(mutaions => {
 // }}}
 
 /**
- * addMapRandomlyByPreset. insert text of valid mapclay yaml into editor
+ * addMapRandomlyByPreset. insert random text of valid mapclay yaml into editor
  */
 const addMapRandomlyByPreset = () => {
+  const yamlText = [
+    'apply: dist/default.yml',
+    'width: 85%',
+    'height: 200px',
+  ]
   const order = [
+    'id',
+    'apply',
     'use',
+    'width',
+    'height',
     'center',
     'XYZ',
     'zoom'
   ]
   const aliasesEntries = Object.entries(aliasesForMapOptions)
-    .sort((a, b) => order.indexOf(a) < order.indexOf(b))
-    .filter(([key, _]) => order.includes(key))
+    .filter(([key, _]) =>
+      order.includes(key)
+      && !yamlText.find(text => text.startsWith(key))
+    )
   if (aliasesEntries.length === 0) return
 
-  const yamlText = [
-    'apply: dist/default.yml',
-    'width: 100%',
-    'height: 200px',
-  ]
   aliasesEntries.forEach(([option, aliases]) => {
     const entries = Object.entries(aliases)
     const validEntries = entries
@@ -869,9 +875,15 @@ const addMapRandomlyByPreset = () => {
     const randomValue = validEntries
       .at((Math.random() * validEntries.length) | 0)
       .at(0)
+
     yamlText.push(`${option}: ${typeof randomValue === 'object' ? randomValue.value : randomValue}`)
+
+    if (option === 'center') yamlText.push(`id: ${randomValue}`)
   })
 
+  yamlText.sort((a, b) =>
+    order.indexOf(a.split(':')[0]) > order.indexOf(b.split(':')[0])
+  )
   cm.replaceRange(
     '\n```map\n' + yamlText.join('\n') + '\n```\n',
     cm.getCursor()
