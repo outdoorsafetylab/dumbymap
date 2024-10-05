@@ -49,20 +49,18 @@ export const markdown2HTML = (container, mdContent) => {
     .use(MarkdownItInjectLinenumbers)
 
   // Create links with geo scheme
-  const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/g
+  const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/
   const coordinateValue = {
     validate: coordinateRegex,
     normalize: function (match) {
-      const matches = [...match.raw.matchAll(coordinateRegex)]
-      if (!matches[0]) return match
-      const [, , x, sep, y] = matches[0]
+      const [, , x, sep, y] = match.text.match(coordinateRegex)
       match.url = `geo:${y},${x}?xy=${x},${y}`
-      match.text = `${x}${sep}${y}`
-      match.index = match.raw.indexOf(x)
+      match.text = `${x}${sep} ${y}`
+      match.index += match.text.indexOf(x) + 1
       return match
     }
   }
-  const patterns = ['(', '📍', '\uFF08', '@', 'geo:', 'twd']
+  const patterns = ['[', '(', '📍', '\uFF08', '@', 'geo:', 'twd']
   patterns.forEach(prefix =>
     md.linkify.add(prefix, coordinateValue)
   )

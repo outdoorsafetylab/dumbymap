@@ -101,10 +101,10 @@ const getMarkersFromMaps = link => {
     .map(map => {
       const renderer = map.renderer
 
-      return map.querySelector(`.marker[title="${link.title}"]`) ??
+      return map.querySelector(`.marker[title="${link.xy}"]`) ??
         renderer.addMarker({
           xy: link.xy,
-          title: link.title
+          title: link.xy
         })
     })
 }
