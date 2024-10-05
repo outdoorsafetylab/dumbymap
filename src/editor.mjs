@@ -838,8 +838,6 @@ new window.MutationObserver(mutaions => {
 const addMapRandomlyByPreset = () => {
   const order = [
     'use',
-    'width',
-    'height',
     'center',
     'XYZ',
     'zoom'
@@ -849,7 +847,11 @@ const addMapRandomlyByPreset = () => {
     .filter(([key, _]) => order.includes(key))
   if (aliasesEntries.length === 0) return
 
-  const yamlText = ['apply: dist/default.yml']
+  const yamlText = [
+    'apply: dist/default.yml',
+    'width: 100%',
+    'height: 200px',
+  ]
   aliasesEntries.forEach(([option, aliases]) => {
     const entries = Object.entries(aliases)
     const validEntries = entries
