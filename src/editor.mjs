@@ -151,7 +151,7 @@ const getStateFromHash = hash => {
 /**
  * get editor content from hash string
  *
- * @param {} hash
+ * @param {String} hash
  */
 const getContentFromHash = hash => {
   const state = getStateFromHash(hash)
@@ -423,7 +423,7 @@ fetch(defaultApply)
 /**
  * insideCodeblockForMap. Check if current token is inside code block {{{
  *
- * @param {} anchor
+ * @param {Anchor} anchor
  */
 const insideCodeblockForMap = anchor => {
   const token = cm.getTokenAt(anchor)
