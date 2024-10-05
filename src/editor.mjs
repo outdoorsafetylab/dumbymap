@@ -4,6 +4,7 @@ import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
 import { shiftByWindow } from './utils.mjs'
+import { Item } from './MenuItem.mjs'
 
 // Set up Containers {{{
 
@@ -333,6 +334,23 @@ const updateDumbyMap = () => {
 
   const htmlHolder = dumbymap.htmlHolder
   htmlHolder.onscroll = htmlOnScroll(htmlHolder)
+
+  const dumbymenu = dumbyContainer.oncontextmenu
+  dumbyContainer.oncontextmenu = e => {
+    const menu = dumbymenu(e)
+
+    if (context.dataset.mode !== 'editing') {
+      menu.appendChild(
+        new Item({
+          innerHTML: '<strong>EDIT</strong>',
+          onclick: () => context.dataset.mode = 'editing'
+        })
+      )
+    }
+
+    menu.style.transform = ''
+    shiftByWindow(menu)
+  }
 }
 updateDumbyMap()
 

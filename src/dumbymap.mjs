@@ -465,6 +465,8 @@ export const generateMaps = (container, { delay } = {}) => {
     }
 
     shiftByWindow(menu)
+
+    return menu
   }
 
   // Remove menu when click outside

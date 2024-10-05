@@ -133,11 +133,6 @@ export const pickLayoutItem = ({ container, layouts }) =>
   new Folder({
     innerHTML: '<span>Layouts<span><span class="info">(x)</span>',
     items: [
-      new Item({
-        text: 'EDIT',
-        onclick: () =>
-          container.closest('[data-mode]').setAttribute('data-mode', 'editing')
-      }),
       ...layouts.map(
         layout =>
           new Item({
