@@ -63,7 +63,7 @@ const editor = new EasyMDE({
       name: 'roll',
       title: 'Roll a dice',
       text: '\u{2684}',
-      action: () => toggleEditing()
+      action: () => addMapRandomlyByPreset()
     },
     {
       name: 'debug',
@@ -350,9 +350,9 @@ cm.on('focus', () => {
 })
 
 cm.on('beforeChange', (_, change) => {
-  const line = change.to.line
   // Don't allow more content after YAML doc separator
-  if (change.origin.match(/^(\+input|paste)$/)) {
+  if (change.origin && change.origin.match(/^(\+input|paste)$/)) {
+    const line = change.to.line
     if (cm.getLine(line) === '---' && change.text[0] !== '') {
       change.cancel()
     }
@@ -805,11 +805,48 @@ new window.MutationObserver(mutaions => {
 })
 // }}}
 
+/**
+ * addMapRandomlyByPreset. insert text of valid mapclay yaml into editor
+ */
 const addMapRandomlyByPreset = () => {
-  if (Object.keys(aliasesForMapOptions).length === 0) return
-  cm.replaceRange('\n```map\n```\n', cm.getCursor()); // adds a new line
+  const order = [
+    'use',
+    'width',
+    'height',
+    'center',
+    'XYZ',
+    'zoom'
+  ]
+  const aliasesEntries = Object.entries(aliasesForMapOptions)
+    .sort((a, b) => order.indexOf(a) < order.indexOf(b))
+    .filter(([key, _]) => order.includes(key))
+  if (aliasesEntries.length === 0) return
 
+  const yamlText = ['apply: dist/default.yml']
+  aliasesEntries.forEach(([option, aliases]) => {
+    const entries = Object.entries(aliases)
+    const validEntries = entries
+      .filter(([alias, value]) => {
+        // FIXME logic about picking XYZ data
+        if (option === 'XYZ') {
+          const inTaiwan = yamlText.find(text => text.match(/center: TAIWAN/))
+          if (!inTaiwan) return !alias.includes('TAIWAN')
+        }
+        if (option === 'zoom') {
+          return value > 6 && value < 15
+        }
+        return true
+      })
+    const randomValue = validEntries
+      .at((Math.random() * validEntries.length) | 0)
+      .at(0)
+    yamlText.push(`${option}: ${typeof randomValue === 'object' ? randomValue.value : randomValue}`)
+  })
 
+  cm.replaceRange(
+    '\n```map\n' + yamlText.join('\n') + '\n```\n',
+    cm.getCursor()
+  )
 }
 
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
