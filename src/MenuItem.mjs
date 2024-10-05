@@ -9,9 +9,9 @@ export class Item extends window.HTMLDivElement {
   /**
    * constructor.
    *
-   * @param {}
+   * @param {Object}
    */
-  constructor ({ text, innerHTML, onclick, style, className, onmouseover }) {
+  constructor ({ text, innerHTML, onclick, style, className }) {
     super()
     this.innerHTML = innerHTML ?? text
     this.onclick = onclick
@@ -341,4 +341,10 @@ export const toggleMapFocus = map =>
   new Item({
     text: 'Toggle Focus',
     onclick: () => map.classList.toggle('focus')
+  })
+
+export const getCoordinatesByPixels = (map, xy) =>
+  new Item({
+    text: 'Get Coordinates',
+    onclick: () => console.log(map.renderer.unproject(xy))
   })

@@ -2,13 +2,13 @@ import MarkdownIt from 'markdown-it'
 import MarkdownItAnchor from 'markdown-it-anchor'
 import MarkdownItFootnote from 'markdown-it-footnote'
 import MarkdownItFrontMatter from 'markdown-it-front-matter'
+import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import { onRemove, animateRectTransition, throttle, shiftByWindow } from './utils'
 import { Layout, SideBySide, Overlay } from './Layout'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
-import markdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 
 const mapBlockSelector = 'pre:has(.language-map)'
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
@@ -46,7 +46,7 @@ export const markdown2HTML = (container, mdContent) => {
     })
     .use(MarkdownItFootnote)
     .use(MarkdownItFrontMatter)
-    .use(markdownItInjectLinenumbers)
+    .use(MarkdownItInjectLinenumbers)
 
   // Create links with geo scheme
   const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/g
@@ -106,9 +106,10 @@ export const markdown2HTML = (container, mdContent) => {
  * generateMaps.
  *
  * @param {HTMLElement} container -- Target Element contains HTML contents
- * @param {Object} dumbymap -- Include and Elements and Methods about managing contents
+ * @param {Number} options.delay -- delay of map generation, milliseconds
+ * @return {Object} dumbymap -- Include and Elements and Methods about managing contents
  */
-export const generateMaps = (container, { delay, mapCallback }) => {
+export const generateMaps = (container, { delay } = {}) => {
   container.classList.add('Dumby')
   container.removeAttribute('data-layout')
   container.setAttribute('data-layout', layouts[0].name)
@@ -296,9 +297,6 @@ export const generateMaps = (container, { delay, mapCallback }) => {
       attributeOldValue: true
     })
     onRemove(mapElement, () => observer.disconnect())
-
-    // Execute callback from caller
-    mapCallback?.call(this, mapElement)
   }
 
   // Set unique ID for map container

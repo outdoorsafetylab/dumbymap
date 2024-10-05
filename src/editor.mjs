@@ -244,21 +244,8 @@ new window.MutationObserver(() => {
   attributeFilter: ['data-scroll-line']
 })
 
-/**
- * afterMapRendered. Callback of map rendered
- *
- * @param {HTEMLElement} map
- */
-const afterMapRendered = map => {
-  console.info(map)
-  // mapHolder.oncontextmenu = (event) => {
-  //   event.preventDefault()
-  //   const lonLat = mapHolder.renderer.unproject([event.x, event.y])
-  //   // TODO...
-  // }
-}
 markdown2HTML(dumbyContainer, editor.value())
-dumbymap = generateMaps(dumbyContainer, afterMapRendered)
+dumbymap = generateMaps(dumbyContainer)
 
 /**
  * addClassToCodeLines. Quick hack to style lines inside code block
