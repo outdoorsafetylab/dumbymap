@@ -808,4 +808,11 @@ new window.MutationObserver(mutaions => {
 })
 // }}}
 
+const addMapRandomlyByPreset = () => {
+  if (Object.keys(aliasesForMapOptions).length === 0) return
+  cm.replaceRange('\n```map\n```\n', cm.getCursor()); // adds a new line
+
+
+}
+
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}

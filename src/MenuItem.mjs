@@ -343,8 +343,30 @@ export const toggleMapFocus = map =>
     onclick: () => map.classList.toggle('focus')
   })
 
+/**
+ * getCoordinatesByPixels.
+ *
+ * @param {HTMLElement} map instance
+ * @param {Number[]} xy -- pixel of window
+ */
 export const getCoordinatesByPixels = (map, xy) =>
   new Item({
     text: 'Get Coordinates',
-    onclick: () => console.log(map.renderer.unproject(xy))
+    onclick: () => {
+      const [x, y] = map.renderer.unproject(xy)
+      const xyString = `[${x.toFixed(7)}, ${y.toFixed(7)}]`
+      navigator.clipboard.writeText(xyString)
+      window.alert(`${xyString} copied to clipboard`)
+    }
+  })
+
+/**
+ * restoreCamera.
+ *
+ * @param {HTMLElement} map
+ */
+export const restoreCamera = map =>
+  new Item({
+    text: 'Restore Camera',
+    onclick: () => map.renderer.restoreCamera()
   })
