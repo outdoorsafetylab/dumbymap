@@ -52,6 +52,7 @@
     "markdown-it-anchor": "^9.2.0",
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-front-matter": "^0.2.4",
+    "markdown-it-inject-linenumbers": "^0.3.0",
     "markdown-it-toc-done-right": "^4.2.0",
     "plain-draggable": "^2.5.14",
     "plain-modal": "^1.0.34"

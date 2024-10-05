@@ -8,6 +8,7 @@ import { Layout, SideBySide, Overlay } from './Layout'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
+import markdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 
 const mapBlockSelector = 'pre:has(.language-map)'
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
@@ -45,6 +46,7 @@ export const markdown2HTML = (container, mdContent) => {
     })
     .use(MarkdownItFootnote)
     .use(MarkdownItFrontMatter)
+    .use(markdownItInjectLinenumbers)
 
   // Create links with geo scheme
   const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/g

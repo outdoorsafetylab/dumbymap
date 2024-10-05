@@ -8,21 +8,22 @@ import { shiftByWindow } from './utils.mjs'
 // Set up Containers {{{
 
 const context = document.querySelector('[data-mode]')
-const HtmlContainer = document.querySelector('.DumbyMap')
+const dumbyContainer = document.querySelector('.DumbyMap')
 const textArea = document.querySelector('.editor textarea')
 let dumbymap
 
 new window.MutationObserver(() => {
   const mode = context.getAttribute('data-mode')
-  const layout = HtmlContainer.getAttribute('data-layout')
+  const layout = dumbyContainer.getAttribute('data-layout')
   if (mode === 'editing' && layout !== 'normal') {
-    HtmlContainer.setAttribute('data-layout', 'normal')
+    dumbyContainer.setAttribute('data-layout', 'normal')
   }
 }).observe(context, {
   attributes: true,
   attributeFilter: ['data-mode'],
   attributeOldValue: true
 })
+
 /**
  * toggle editing mode
  */
@@ -167,6 +168,82 @@ if (contentFromHash) {
 }
 // }}}
 // Set up logic about editor content {{{
+
+const htmlOnScroll = (ele) => () => {
+  if (textArea.dataset.scrollLine) return
+
+  const threshold = ele.scrollTop + window.innerHeight / 2 + 30
+  const block = Array.from(ele.children)
+    .findLast(e => e.offsetTop < threshold) ??
+    ele.firstChild
+
+  const line = Array.from(block.querySelectorAll('p'))
+    .findLast(e => e.offsetTop + block.offsetTop < threshold)
+  const linenumber = line?.dataset?.sourceLine
+  if (!linenumber) return
+  const offset = (line.offsetTop + block.offsetTop - ele.scrollTop)
+
+  clearTimeout(dumbyContainer.timer)
+  if (linenumber) {
+    dumbyContainer.dataset.scrollLine = linenumber + '/' + offset
+    dumbyContainer.timer = setTimeout(
+      () => delete dumbyContainer.dataset.scrollLine,
+      50
+    )
+  }
+}
+
+// Sync CodeMirror LineNumber with HTML Contents
+new window.MutationObserver(() => {
+  const line = dumbyContainer.dataset.scrollLine
+  if (line) {
+    const [lineNumber, offset] = line.split('/')
+
+    if (!isNaN(lineNumber)) {
+      cm.scrollIntoView({ line: lineNumber, ch: 0 }, offset)
+    }
+  }
+}).observe(dumbyContainer, {
+  attributes: true,
+  attributeFilter: ['data-scroll-line']
+})
+
+cm.on('scroll', () => {
+  if (dumbyContainer.dataset.scrollLine) return
+
+  const scrollInfo = cm.getScrollInfo()
+  const lineNumber = cm.lineAtHeight(scrollInfo.top, 'local')
+  textArea.dataset.scrollLine = lineNumber
+
+  clearTimeout(textArea.timer)
+  textArea.timer = setTimeout(
+    () => delete textArea.dataset.scrollLine,
+    1000
+  )
+})
+
+// Sync HTML Contents with CodeMirror LineNumber
+new window.MutationObserver(() => {
+  const line = textArea.dataset.scrollLine
+  let lineNumber = Number(line)
+  let p
+  if (isNaN(lineNumber)) return
+
+  const paragraphs = Array.from(dumbymap.htmlHolder.querySelectorAll('p'))
+  do {
+    p = paragraphs.find(p => Number(p.dataset.sourceLine) === lineNumber)
+    lineNumber++
+  } while (!p && lineNumber < cm.doc.size)
+  if (!p) return
+
+  const coords = cm.charCoords({ line: lineNumber, ch: 0 }, 'window')
+  p.scrollIntoView()
+  dumbymap.htmlHolder.scrollBy(0, -coords.top + 30)
+}).observe(textArea, {
+  attributes: true,
+  attributeFilter: ['data-scroll-line']
+})
+
 /**
  * afterMapRendered. Callback of map rendered
  *
@@ -180,8 +257,8 @@ const afterMapRendered = map => {
   //   // TODO...
   // }
 }
-markdown2HTML(HtmlContainer, editor.value())
-dumbymap = generateMaps(HtmlContainer, afterMapRendered)
+markdown2HTML(dumbyContainer, editor.value())
+dumbymap = generateMaps(dumbyContainer, afterMapRendered)
 
 /**
  * addClassToCodeLines. Quick hack to style lines inside code block
@@ -264,10 +341,13 @@ const completeForCodeBlock = change => {
  * update content of HTML about Dumbymap
  */
 const updateDumbyMap = () => {
-  markdown2HTML(HtmlContainer, editor.value())
+  markdown2HTML(dumbyContainer, editor.value())
   // TODO Test if generate maps intantly is OK with map cache
   // debounceForMap(HtmlContainer, afterMapRendered)
-  dumbymap = generateMaps(HtmlContainer, afterMapRendered)
+  dumbymap = generateMaps(dumbyContainer, afterMapRendered)
+
+  const htmlHolder = dumbymap.htmlHolder
+  htmlHolder.onscroll = htmlOnScroll(htmlHolder)
 }
 
 updateDumbyMap()
@@ -282,7 +362,7 @@ cm.on('change', (_, change) => {
 // Set class for focus
 cm.on('focus', () => {
   cm.getWrapperElement().classList.add('focus')
-  HtmlContainer.classList.remove('focus')
+  dumbyContainer.classList.remove('focus')
 })
 
 cm.on('beforeChange', (_, change) => {
@@ -643,7 +723,7 @@ cm.on('blur', () => {
     cm.focus()
   } else {
     cm.getWrapperElement().classList.remove('focus')
-    HtmlContainer.classList.add('focus')
+    dumbyContainer.classList.add('focus')
   }
 })
 // }}}
@@ -730,11 +810,11 @@ document.onkeydown = e => {
 // Layout Switch {{{
 new window.MutationObserver(mutaions => {
   const mutation = mutaions.at(-1)
-  const layout = HtmlContainer.getAttribute('data-layout')
+  const layout = dumbyContainer.getAttribute('data-layout')
   if (layout !== 'normal' || mutation.oldValue === 'normal') {
     context.setAttribute('data-mode', '')
   }
-}).observe(HtmlContainer, {
+}).observe(dumbyContainer, {
   attributes: true,
   attributeFilter: ['data-layout'],
   attributeOldValue: true
