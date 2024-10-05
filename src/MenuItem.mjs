@@ -49,7 +49,8 @@ export class Folder extends window.HTMLDivElement {
       // Prepare submenu
       const submenu = document.createElement('div')
       submenu.className = 'sub-menu'
-      submenu.style.cssText = 'position: absolute; left: 105%; top: -20px;'
+      const offset = this.items.length > 1 ? '-20px' : '0px'
+      submenu.style.cssText = `position: absolute; left: 105%; top: ${offset};`
       this.items.forEach(item => submenu.appendChild(item))
       submenu.onmouseleave = () => submenu.remove()
 
