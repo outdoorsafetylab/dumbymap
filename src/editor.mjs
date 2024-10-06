@@ -448,28 +448,11 @@ const menuForEditor = (event, menu) => {
  */
 const updateDumbyMap = () => {
   markdown2HTML(dumbyContainer, editor.value())
-  // debounceForMap(HtmlContainer, afterMapRendered)
+  // debounceForMap(dumbyContainer, afterMapRendered)
   dumbymap = generateMaps(dumbyContainer)
-
+  // Set onscroll callback
   const htmlHolder = dumbymap.htmlHolder
   htmlHolder.onscroll = htmlOnScroll(htmlHolder)
-
-  const dumbymenu = dumbyContainer.oncontextmenu
-  dumbyContainer.oncontextmenu = e => {
-    const menu = dumbymenu(e)
-
-    if (context.dataset.mode !== 'editing') {
-      menu.appendChild(
-        new Item({
-          innerHTML: '<strong>EDIT</strong>',
-          onclick: () => context.dataset.mode = 'editing'
-        })
-      )
-    }
-
-    menu.style.transform = ''
-    shiftByWindow(menu)
-  }
   // Set oncontextmenu callback
   dumbymap.utils.setContextMenu(menuForEditor)
 }
@@ -503,12 +486,6 @@ window.onhashchange = () => {
   const content = getContentFromHash(window.location.hash)
   if (content) editor.value(content)
 }
-
-// FIXME DEBUGONLY
-// generateMaps(HtmlContainer)
-// setTimeout(() => {
-//   HtmlContainer.setAttribute("data-layout", 'side')
-// }, 500)
 
 // }}}
 // Completion in Code Blok {{{
