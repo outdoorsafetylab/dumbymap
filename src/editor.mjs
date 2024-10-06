@@ -12,6 +12,8 @@ const context = document.querySelector('[data-mode]')
 const dumbyContainer = document.querySelector('.DumbyMap')
 const textArea = document.querySelector('.editor textarea')
 let dumbymap
+
+const refLinkPattern = /\[([^\[\]]+)\]:\s+(.+)/
 let refLinks = []
 
 /**
@@ -196,7 +198,7 @@ const cm = editor.codemirror
 const getRefLinks = () => editor.value()
   .split('\n')
   .map(line => {
-    const [, ref, link] = line.match(/\[([^\[\]]+)\]:\s+(.+)/) ?? []
+    const [, ref, link] = line.match(refLinkPattern) ?? []
     return { ref, link }
   })
   .filter(({ ref, link }) => ref && link)
@@ -432,7 +434,11 @@ const menuForEditor = (event, menu) => {
         }
         while (refLinks.find(({ref}) => ref === anchorName))
 
-        cm.replaceRange(`\n[${anchorName}]: ${link}`, { line: Infinity })
+        const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
+        cm.replaceRange(
+          `${lastLineIsRefLink ? '' : '\n'}\n[${anchorName}]: ${link}`,
+          { line: Infinity }
+        )
       }
     })
     menu.insertBefore(item, menu.firstChild)
