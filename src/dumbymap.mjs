@@ -449,10 +449,12 @@ export const generateMaps = (container, { delay } = {}) => {
     // Menu Items for map
     const map = e.target.closest('.mapclay')
     if (map?.renderer?.results) {
-      // Focus or Print Map Results
+      menu.dataset.map = map.id
+      const rect = map.getBoundingClientRect()
+      const [x, y] = [e.x - rect.left, e.y - rect.top]
       menu.appendChild(menuItem.toggleMapFocus(map))
       menu.appendChild(menuItem.renderResults(dumbymap, map))
-      menu.appendChild(menuItem.getCoordinatesByPixels(map, [e.x, e.y]))
+      menu.appendChild(menuItem.getCoordinatesByPixels(map, [x, y]))
       menu.appendChild(menuItem.restoreCamera(map))
     } else {
       // Toggle block focus
