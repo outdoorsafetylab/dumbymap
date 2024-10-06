@@ -13,6 +13,12 @@ const dumbyContainer = document.querySelector('.DumbyMap')
 const textArea = document.querySelector('.editor textarea')
 let dumbymap
 
+/**
+ * Watch for changes of editing mode
+ *
+ * For 'data-mode' attribute of the context element, if the mode is 'editing'
+ * and the layout is not 'normal', it sets the layout to 'normal' and switch to editing mode
+ */
 new window.MutationObserver(() => {
   const mode = context.getAttribute('data-mode')
   const layout = dumbyContainer.getAttribute('data-layout')
