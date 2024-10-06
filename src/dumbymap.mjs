@@ -135,6 +135,13 @@ export const generateMaps = (container, { delay } = {}) => {
         Array.from(
           container.querySelectorAll('.mapclay[data-render=fulfilled]')
         ).sort((a, b) => a.style.order > b.style.order),
+      setContextMenu: (menuCallback) => {
+        const originalCallback = container.oncontextmenu
+        container.oncontextmenu = (e) => {
+          const menu = originalCallback(e)
+          menuCallback(e, menu)
+        }
+      },
       focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
       switchToNextLayout: throttle(utils.switchToNextLayout, 300)
     }

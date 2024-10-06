@@ -12,6 +12,7 @@ const context = document.querySelector('[data-mode]')
 const dumbyContainer = document.querySelector('.DumbyMap')
 const textArea = document.querySelector('.editor textarea')
 let dumbymap
+let refLinks = []
 
 /**
  * Watch for changes of editing mode
@@ -190,6 +191,17 @@ const editor = new EasyMDE({
 })
 
 const cm = editor.codemirror
+
+
+const getRefLinks = () => editor.value()
+  .split('\n')
+  .map(line => {
+    const [, ref, link] = line.match(/\[([^\[\]]+)\]:\s+(.+)/) ?? []
+    return { ref, link }
+  })
+  .filter(({ ref, link }) => ref && link)
+
+refLinks = getRefLinks()
 
 /**
  * get state of website from hash string
@@ -385,6 +397,26 @@ const completeForCodeBlock = change => {
 // })()
 
 /**
+ * menuForEditor.
+ *
+ * @param {Event} event -- Event for context menu
+ * @param {HTMLElement} menu -- menu of dumbymap
+ */
+const menuForEditor = (event, menu) => {
+  if (context.dataset.mode !== 'editing') {
+    const switchToEditingMode = new Item({
+      innerHTML: '<strong>EDIT</strong>',
+      onclick: () => context.dataset.mode = 'editing'
+    })
+    menu.appendChild(switchToEditingMode)
+  }
+
+  // Prevent menu appears outside of window
+  menu.style.transform = ''
+  shiftByWindow(menu)
+}
+
+/**
  * update content of HTML about Dumbymap
  */
 const updateDumbyMap = () => {
@@ -411,6 +443,8 @@ const updateDumbyMap = () => {
     menu.style.transform = ''
     shiftByWindow(menu)
   }
+  // Set oncontextmenu callback
+  dumbymap.utils.setContextMenu(menuForEditor)
 }
 updateDumbyMap()
 
@@ -782,6 +816,8 @@ cm.on('cursorActivity', _ => {
   }
 })
 cm.on('blur', () => {
+  refLinks = getRefLinks()
+
   if (menu.checkVisibility()) {
     cm.focus()
   } else {
