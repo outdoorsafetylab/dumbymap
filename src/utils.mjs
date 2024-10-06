@@ -124,12 +124,12 @@ export const insideWindow = element => {
 export const insideParent = (childElement, parentElement) => {
   const childRect = childElement.getBoundingClientRect()
   const parentRect = parentElement.getBoundingClientRect()
-  const offset = 20
+  const offset = 10
 
   return (
-    childRect.left > parentRect.left + offset &&
-    childRect.right < parentRect.right - offset &&
-    childRect.top > parentRect.top + offset &&
-    childRect.bottom < parentRect.bottom - offset
+    childRect.left < parentRect.right - offset &&
+    childRect.right > parentRect.left + offset &&
+    childRect.top < parentRect.bottom - offset &&
+    childRect.bottom > parentRect.top + offset
   )
 }
