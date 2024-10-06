@@ -237,6 +237,7 @@ if (contentFromHash) {
   editor.cleanup()
   editor.value(contentFromHash)
 }
+
 // }}}
 // Set up logic about editor content {{{
 
@@ -409,6 +410,32 @@ const menuForEditor = (event, menu) => {
       onclick: () => context.dataset.mode = 'editing'
     })
     menu.appendChild(switchToEditingMode)
+  }
+
+  const map = dumbyContainer.querySelector('#' + menu.dataset.map)
+  if (map) {
+    const item = new Item({
+      text: 'Add Anchor for GeoLinks',
+      onclick: () => {
+        const rect = map.getBoundingClientRect()
+        const [x, y] = map.renderer
+          .unproject([event.x - rect.left, event.y - rect.top])
+          .map(coord => coord.toFixed(7))
+
+        let prompt
+        let anchorName
+        let link
+        do {
+          prompt = prompt ? 'Anchor name exists' : 'Name this anchor'
+          anchorName = window.prompt(prompt, `${x}, ${y}`)
+          link = `geo:${y},${x}?xy=${x},${y}&id=${map.id} "${anchorName}"`
+        }
+        while (refLinks.find(({ref}) => ref === anchorName))
+
+        cm.replaceRange(`\n[${anchorName}]: ${link}`, { line: Infinity })
+      }
+    })
+    menu.insertBefore(item, menu.firstChild)
   }
 
   // Prevent menu appears outside of window
