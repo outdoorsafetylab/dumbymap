@@ -193,18 +193,19 @@ const htmlOnScroll = (ele) => () => {
   if (!linenumber) return
   const offset = (line.offsetTop + block.offsetTop - ele.scrollTop)
 
-  clearTimeout(dumbyContainer.timer)
   if (linenumber) {
     dumbyContainer.dataset.scrollLine = linenumber + '/' + offset
-    dumbyContainer.timer = setTimeout(
-      () => delete dumbyContainer.dataset.scrollLine,
-      50
-    )
   }
 }
 
 // Sync CodeMirror LineNumber with HTML Contents
 new window.MutationObserver(() => {
+  clearTimeout(dumbyContainer.timer)
+  dumbyContainer.timer = setTimeout(
+    () => delete dumbyContainer.dataset.scrollLine,
+    50
+  )
+
   const line = dumbyContainer.dataset.scrollLine
   if (line) {
     const [lineNumber, offset] = line.split('/')
@@ -224,16 +225,16 @@ cm.on('scroll', () => {
   const scrollInfo = cm.getScrollInfo()
   const lineNumber = cm.lineAtHeight(scrollInfo.top, 'local')
   textArea.dataset.scrollLine = lineNumber
+})
 
+// Sync HTML Contents with CodeMirror LineNumber
+new window.MutationObserver(() => {
   clearTimeout(textArea.timer)
   textArea.timer = setTimeout(
     () => delete textArea.dataset.scrollLine,
     1000
   )
-})
 
-// Sync HTML Contents with CodeMirror LineNumber
-new window.MutationObserver(() => {
   const line = textArea.dataset.scrollLine
   let lineNumber = Number(line)
   let p
@@ -246,9 +247,10 @@ new window.MutationObserver(() => {
   } while (!p && lineNumber < cm.doc.size)
   if (!p) return
 
-  const coords = cm.charCoords({ line: lineNumber, ch: 0 }, 'window')
+  const coords = cm.charCoords({ line: lineNumber, ch: 0 })
   p.scrollIntoView()
-  dumbymap.htmlHolder.scrollBy(0, -coords.top + 30)
+  const top = p.getBoundingClientRect().top
+  dumbymap.htmlHolder.scrollBy(0, top - coords.top + 30)
 }).observe(textArea, {
   attributes: true,
   attributeFilter: ['data-scroll-line']
@@ -724,6 +726,7 @@ const addSuggestions = (anchor, suggestions) => {
 cm.on('cursorActivity', _ => {
   menu.style.display = 'none'
   const anchor = cm.getCursor()
+  textArea.dataset.scrollLine = anchor.line
 
   if (insideCodeblockForMap(anchor)) {
     handleTypingInCodeBlock(anchor)
