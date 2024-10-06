@@ -43,8 +43,51 @@ const toggleEditing = () => {
 
 // Content values for editor
 
-const defaultContent =
-  '## Links\n\n- [Go to marker](geo:24,121?id=foo,leaflet&text=normal "Link Test")\n\n```map\nid: foo\nuse: Maplibre\n```\n'
+const defaultContent = `<br>
+
+> <big>Hello My Friend! This is DumbyMap!</big>
+
+<br>
+
+\`\`\`map
+use: Leaflet
+height: 120px
+XYZ: https://tile.openstreetmap.jp/styles/osm-bright/512/{z}/{x}/{y}.png
+\`\`\`
+
+
+DumbyMap generates **interactive document with maps** from raw texts.
+
+You can use it to:
+
+1. [Roll a Dice] for a new map
+2. Click on [GeoLink][example-geolink] for maps. Or Add a new one by **Right Click** on map.
+3. Add more contents into [Editor] by text in [Markdown]
+4. Generated document is at left hand side, **Right click** for context menu.
+   You can:
+    + Select content block for browsing
+    + Switch layouts for various use cases
+
+
+If you want know more, take a look at subjects below:
+1. [How to write text in Markdown?][subject]
+2. [How can I save contents for next time][subject]
+3. [I want XXX feature in maps][subject]
+3. [I am a expeienced developer, show me what you got!][subject]
+
+
+<br>
+
+> Have Fun ~
+
+<br>
+
+[Roll a dice]: #Click%20it! "=>.mde-roll"
+[example-geolink]: geo:24,121?xy=121,24
+[Markdown]: https://www.markdownguide.org/basic-syntax/
+[Editor]: #This%20is%20editor! "=>.editor"
+[subject]: placeholder`
+
 const editor = new EasyMDE({
   element: textArea,
   initialValue: defaultContent,
@@ -68,7 +111,7 @@ const editor = new EasyMDE({
   toolbar: [
     {
       name: 'roll',
-      title: 'Roll a dice',
+      title: 'Roll a Dice',
       text: '\u{2684}',
       action: () => addMapRandomlyByPreset()
     },
