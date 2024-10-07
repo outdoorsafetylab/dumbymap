@@ -413,7 +413,7 @@ const menuForEditor = (event, menu) => {
     menu.appendChild(switchToEditingMode)
   }
 
-  const map = dumbyContainer.querySelector('#' + menu.dataset.map)
+  const map = event.target.closest('.mapclay')
   if (map) {
     const item = new menuItem.Item({
       text: 'Add Anchor for GeoLinks',

@@ -454,7 +454,6 @@ export const generateMaps = (container, { delay } = {}) => {
     // Menu Items for map
     const map = e.target.closest('.mapclay')
     if (map?.renderer?.results) {
-      menu.dataset.map = map.id
       const rect = map.getBoundingClientRect()
       const [x, y] = [e.x - rect.left, e.y - rect.top]
       menu.appendChild(menuItem.toggleMapFocus(map))
