@@ -404,6 +404,13 @@ const completeForCodeBlock = change => {
  * @param {HTMLElement} menu -- menu of dumbymap
  */
 const menuForEditor = (event, menu) => {
+  event.preventDefault()
+
+  if (cm.getSelection() && refLinks.length > 0) {
+    menu.replaceChildren()
+    menu.appendChild(menuItem.addRefLink(cm, refLinks))
+  }
+
   if (context.dataset.mode !== 'editing') {
     const switchToEditingMode = new menuItem.Item({
       innerHTML: '<strong>EDIT</strong>',
@@ -439,7 +446,7 @@ const menuForEditor = (event, menu) => {
           { line: Infinity }
         )
         refLinks = getRefLinks()
-        map.renderer.addMarker({xy: [Number(x), Number(y)], title: `${map.id}@${x},${y}`, type: 'circle'})
+        map.renderer.addMarker({ xy: [Number(x), Number(y)], title: `${map.id}@${x},${y}`, type: 'circle' })
       }
     })
     menu.insertBefore(item, menu.firstChild)
@@ -1001,4 +1008,52 @@ cm.getWrapperElement().oncontextmenu = e => {
   }
 }
 
+/** HACK Sync selection from HTML to CodeMirror */
+document.addEventListener("selectionchange", () => {
+  if (cm.hasFocus()) {
+    return
+  }
+
+  const selection = document.getSelection()
+  if (selection.type === 'Range') {
+    const content = selection.getRangeAt(0).toString()
+    const parentWithSourceLine = selection.anchorNode.parentElement.closest('.source-line')
+    const lineStart = Number(parentWithSourceLine?.dataset?.sourceLine ?? NaN)
+    const lineEnd = Number(parentWithSourceLine?.nextSibling?.dataset?.sourceLine ?? NaN)
+    // TODO Also return when range contains anchor element
+    if (content.includes('\n') || isNaN(lineStart)) {
+      cm.setSelection(cm.getCursor())
+      return
+    }
+
+    let texts = [content]
+    let sibling = selection.anchorNode.previousSibling
+    while (sibling) {
+      texts.push(sibling.textContent)
+      sibling = sibling.previousSibling
+    }
+
+    const anchor = { line: lineStart, ch: 0 }
+
+    texts
+      .filter(t => t && t !== '\n')
+      .map(t => t.replace('\n', ''))
+      .reverse()
+      .forEach(text => {
+        let index = cm.getLine(anchor.line).indexOf(text, anchor.ch)
+        while (index === -1) {
+          anchor.line += 1
+          anchor.ch = 0
+          if (anchor.line >= lineEnd) {
+            cm.setSelection(cm.setCursor())
+            return
+          }
+            index = cm.getLine(anchor.line).indexOf(text)
+        }
+        anchor.ch = index + text.length
+      })
+
+    cm.setSelection({ ...anchor, ch: anchor.ch - content.length }, anchor)
+  }
+});
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
