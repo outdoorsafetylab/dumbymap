@@ -444,13 +444,6 @@ export const generateMaps = (container, { delay } = {}) => {
     menu.style.cssText = `left: ${e.x - menu.offsetParent.offsetLeft + 10}px; top: ${e.y - menu.offsetParent.offsetTop + 5}px;`
     e.preventDefault()
 
-    // GeoLinks
-    const selection = document.getSelection()
-    if (selection.type === 'Range') {
-      const range = selection.getRangeAt(0)
-      menu.appendChild(menuItem.addGeoLink(dumbymap, range))
-    }
-
     // Menu Items for map
     const map = e.target.closest('.mapclay')
     if (map?.renderer?.results) {
