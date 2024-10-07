@@ -424,14 +424,15 @@ const menuForEditor = (event, menu) => {
 
         let prompt
         let anchorName
-        let link
+
         do {
           prompt = prompt ? 'Anchor name exists' : 'Name this anchor'
           anchorName = window.prompt(prompt, `${x}, ${y}`)
-          link = `geo:${y},${x}?xy=${x},${y}&id=${map.id} "${anchorName}"`
         }
-        while (refLinks.find(({ ref }) => ref === anchorName))
+        while (anchorName !== null && refLinks.find(({ ref }) => ref === anchorName))
+        if (anchorName === null) return
 
+        const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id} "${anchorName}"`
         const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
         cm.replaceRange(
           `${lastLineIsRefLink ? '' : '\n'}\n[${anchorName}]: ${link}`,
