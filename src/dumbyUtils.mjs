@@ -100,11 +100,12 @@ const getMarkersFromMaps = link => {
     .filter(map => link.targets ? link.targets.includes(map.id) : true)
     .map(map => {
       const renderer = map.renderer
+      const markerTitle = `${link.targets ?? 'all'}@${link.xy}`
 
-      return map.querySelector(`.marker[title="${link.xy}"]`) ??
+      return map.querySelector(`.marker[title="${markerTitle}"]`) ??
         renderer.addMarker({
           xy: link.xy,
-          title: link.xy
+          title: markerTitle
         })
     })
 }
