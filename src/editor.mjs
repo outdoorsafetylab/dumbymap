@@ -438,6 +438,8 @@ const menuForEditor = (event, menu) => {
           `${lastLineIsRefLink ? '' : '\n'}\n[${anchorName}]: ${link}`,
           { line: Infinity }
         )
+        refLinks = getRefLinks()
+        map.renderer.addMarker({xy: [Number(x), Number(y)], title: `${map.id}@${x},${y}`, type: 'circle'})
       }
     })
     menu.insertBefore(item, menu.firstChild)
@@ -981,9 +983,10 @@ const addMapRandomlyByPreset = () => {
   yamlText.sort((a, b) =>
     order.indexOf(a.split(':')[0]) > order.indexOf(b.split(':')[0])
   )
+  const anchor = cm.getCursor()
   cm.replaceRange(
     '\n```map\n' + yamlText.join('\n') + '\n```\n',
-    cm.getCursor()
+    anchor
   )
 }
 
