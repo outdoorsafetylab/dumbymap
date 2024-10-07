@@ -415,7 +415,7 @@ const menuForEditor = (event, menu) => {
   const map = event.target.closest('.mapclay')
   if (map) {
     const item = new menuItem.Item({
-      text: 'Add Anchor for GeoLinks',
+      text: 'Add Anchor',
       onclick: () => {
         const rect = map.getBoundingClientRect()
         const [x, y] = map.renderer
