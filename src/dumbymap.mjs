@@ -301,7 +301,9 @@ export const generateMaps = (container, { delay } = {}) => {
       attributeFilter: ['class'],
       attributeOldValue: true
     })
-    onRemove(mapElement, () => observer.disconnect())
+    onRemove(dumbymap.htmlHolder, () => {
+      observer.disconnect()
+    })
   }
 
   // Set unique ID for map container
