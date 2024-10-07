@@ -168,6 +168,7 @@ export const createGeoLink = (link) => {
   link.onmouseout = () => removeLeaderLines(link)
   link.onclick = (event) => {
     event.preventDefault()
+    removeLeaderLines(link)
     getMarkersFromMaps(link).forEach(updateMapCameraByMarker(link.xy))
   }
   return true
