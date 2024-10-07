@@ -366,3 +366,25 @@ export const restoreCamera = map =>
     text: 'Restore Camera',
     onclick: () => map.renderer.restoreCamera()
   })
+
+/**
+ * addRefLink. replace selected text into markdown link by reference style links
+ *
+ * @param {CodeMirror} cm
+ * @param {Object[]} refLinks -- object for { ref, link }
+ */
+export const addRefLink = (cm, refLinks) =>
+  new Folder({
+    text: 'Add Link',
+    items: refLinks.map(refLink => new Item({
+      text: refLink.ref,
+      onclick: () => {
+        const selection = cm.getSelection()
+        if (selection === refLink.ref) {
+          cm.replaceSelection(`[${selection}]`)
+        } else {
+          cm.replaceSelection(`[${selection}][${refLink.ref}]`)
+        }
+      }
+    }))
+  })

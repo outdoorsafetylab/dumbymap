@@ -991,4 +991,17 @@ const addMapRandomlyByPreset = () => {
   )
 }
 
+cm.getWrapperElement().oncontextmenu = e => {
+  if (insideCodeblockForMap(cm.getCursor())) return
+  e.preventDefault()
+
+  if (cm.getSelection() && refLinks.length > 0) {
+    menu.appendChild(menuItem.addRefLink(cm, refLinks))
+  }
+
+  if (menu.children.length > 0) {
+    menu.style.cssText = `display: block; transform: translate(${e.x}px, ${e.y}px); overflow: visible;`
+  }
+}
+
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
