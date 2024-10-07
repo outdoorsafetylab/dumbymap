@@ -289,14 +289,14 @@ export const generateMaps = (container, { delay } = {}) => {
     mapElement.renderer = renderer
     mapElement.setAttribute('tabindex', '-1')
     if (mapElement.getAttribute('data-render') === 'fulfilled') {
-      mapCache[mapElement.id] = renderer
+      mapCache[mapElement.id] ??= renderer
     } else {
       return
     }
 
     // Work with Mutation Observer
     const observer = mapFocusObserver()
-    mapFocusObserver().observe(mapElement, {
+    observer.observe(mapElement, {
       attributes: true,
       attributeFilter: ['class'],
       attributeOldValue: true
@@ -386,11 +386,11 @@ export const generateMaps = (container, { delay } = {}) => {
     // If map in cache has the same ID, just put it into target
     // So user won't feel anything changes when editing markdown
     configList.forEach(config => {
-      const cache = mapCache[config.id]
-      if (!cache) return
+      const cachedRenderer = mapCache[config.id]
+      if (!cachedRenderer) return
 
-      target.appendChild(cache.target)
-      config.target = cache.target
+      target.appendChild(cachedRenderer.target)
+      config.target = cachedRenderer.target
     })
 
     // trivial: if map cache is applied, do not show yaml text
@@ -411,6 +411,9 @@ export const generateMaps = (container, { delay } = {}) => {
         Array.from(target.children).forEach(e => {
           e.style.order = order
           order++
+          if (e.dataset.render === 'fulfilled') {
+            afterMapRendered(e.renderer)
+          }
         })
       },
       delay ?? 1000
