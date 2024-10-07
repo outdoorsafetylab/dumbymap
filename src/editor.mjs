@@ -4,7 +4,6 @@ import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
 import { shiftByWindow } from './utils.mjs'
-import { Item } from './MenuItem.mjs'
 
 // Set up Containers {{{
 
@@ -407,7 +406,7 @@ const completeForCodeBlock = change => {
  */
 const menuForEditor = (event, menu) => {
   if (context.dataset.mode !== 'editing') {
-    const switchToEditingMode = new Item({
+    const switchToEditingMode = new menuItem.Item({
       innerHTML: '<strong>EDIT</strong>',
       onclick: () => context.dataset.mode = 'editing'
     })
@@ -416,7 +415,7 @@ const menuForEditor = (event, menu) => {
 
   const map = dumbyContainer.querySelector('#' + menu.dataset.map)
   if (map) {
-    const item = new Item({
+    const item = new menuItem.Item({
       text: 'Add Anchor for GeoLinks',
       onclick: () => {
         const rect = map.getBoundingClientRect()
@@ -432,7 +431,7 @@ const menuForEditor = (event, menu) => {
           anchorName = window.prompt(prompt, `${x}, ${y}`)
           link = `geo:${y},${x}?xy=${x},${y}&id=${map.id} "${anchorName}"`
         }
-        while (refLinks.find(({ref}) => ref === anchorName))
+        while (refLinks.find(({ ref }) => ref === anchorName))
 
         const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
         cm.replaceRange(
