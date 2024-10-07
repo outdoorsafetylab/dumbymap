@@ -776,14 +776,16 @@ const getSuggestions = anchor => {
             cm
           })
       )
-    return [
-      ...(rendererSuggestions ?? []),
-      new menuItem.Item({
-        innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
-        className: ['suggestion'],
-        onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank')
-      })
-    ]
+    return rendererSuggestions.length === 0
+      ? []
+      : [
+        ...rendererSuggestions,
+        new menuItem.Item({
+          innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
+          className: ['suggestion'],
+          onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank')
+        })
+      ]
   }
   return []
 }
