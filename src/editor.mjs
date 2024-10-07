@@ -444,10 +444,6 @@ const menuForEditor = (event, menu) => {
     })
     menu.insertBefore(item, menu.firstChild)
   }
-
-  // Prevent menu appears outside of window
-  menu.style.transform = ''
-  shiftByWindow(menu)
 }
 
 /**

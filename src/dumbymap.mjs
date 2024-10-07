@@ -140,6 +140,8 @@ export const generateMaps = (container, { delay } = {}) => {
         container.oncontextmenu = (e) => {
           const menu = originalCallback(e)
           menuCallback(e, menu)
+          menu.style.transform = ''
+          shiftByWindow(menu)
         }
       },
       focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
