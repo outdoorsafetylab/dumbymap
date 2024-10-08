@@ -12,7 +12,7 @@ const dumbyContainer = document.querySelector('.DumbyMap')
 const textArea = document.querySelector('.editor textarea')
 let dumbymap
 
-const refLinkPattern = /\[([^\[\]]+)\]:\s+(.+)/
+const refLinkPattern = /\[([^\x5B\x5D]+)\]:\s+(.+)/
 let refLinks = []
 
 /**
@@ -296,8 +296,8 @@ new window.MutationObserver(() => {
 const setScrollLine = () => {
   if (dumbyContainer.dataset.scrollLine) return
 
-  const lineNumber = cm.getCursor()?.line
-    ?? cm.lineAtHeight(cm.getScrollInfo().top, 'local')
+  const lineNumber = cm.getCursor()?.line ??
+    cm.lineAtHeight(cm.getScrollInfo().top, 'local')
   textArea.dataset.scrollLine = lineNumber
 }
 cm.on('scroll', setScrollLine)
@@ -324,7 +324,7 @@ new window.MutationObserver(() => {
   if (!p) return
 
   const coords = cm.charCoords({ line: lineNumber, ch: 0 })
-  p.scrollIntoView()
+  p.scrollIntoView({ inline: 'start' })
   const top = p.getBoundingClientRect().top
   dumbymap.htmlHolder.scrollBy(0, top - coords.top + 30)
 }).observe(textArea, {
@@ -428,7 +428,7 @@ const menuForEditor = (event, menu) => {
   if (context.dataset.mode !== 'editing') {
     const switchToEditingMode = new menuItem.Item({
       innerHTML: '<strong>EDIT</strong>',
-      onclick: () => context.dataset.mode = 'editing'
+      onclick: () => (context.dataset.mode = 'editing')
     })
     menu.appendChild(switchToEditingMode)
   }
@@ -1025,7 +1025,7 @@ cm.getWrapperElement().oncontextmenu = e => {
 }
 
 /** HACK Sync selection from HTML to CodeMirror */
-document.addEventListener("selectionchange", () => {
+document.addEventListener('selectionchange', () => {
   if (cm.hasFocus()) {
     return
   }
@@ -1042,7 +1042,7 @@ document.addEventListener("selectionchange", () => {
       return
     }
 
-    let texts = [content]
+    const texts = [content]
     let sibling = selection.anchorNode.previousSibling
     while (sibling) {
       texts.push(sibling.textContent)
@@ -1064,12 +1064,12 @@ document.addEventListener("selectionchange", () => {
             cm.setSelection(cm.setCursor())
             return
           }
-            index = cm.getLine(anchor.line).indexOf(text)
+          index = cm.getLine(anchor.line).indexOf(text)
         }
         anchor.ch = index + text.length
       })
 
     cm.setSelection({ ...anchor, ch: anchor.ch - content.length }, anchor)
   }
-});
+})
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
