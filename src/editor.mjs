@@ -187,6 +187,16 @@ const editor = new EasyMDE({
       text: '\u{1D43C}',
       title: 'Italic',
       action: EasyMDE.toggleItalic
+    },
+    '|',
+    {
+      name: 'tutorial',
+      text: '\u{2753}',
+      title: 'Reset for content for tutorial',
+      action: () => {
+        editor.value(defaultContent)
+        refLinks = getRefLinks()
+      }
     }
   ]
 })
