@@ -11,9 +11,10 @@ export class Item extends window.HTMLDivElement {
    *
    * @param {Object}
    */
-  constructor ({ text, innerHTML, onclick, style, className }) {
+  constructor ({ text, innerHTML, title, onclick, style, className }) {
     super()
     this.innerHTML = innerHTML ?? text
+    this.title = title
     this.onclick = onclick
     this.style.cssText = style
     this.classList.add('menu-item')
@@ -377,7 +378,8 @@ export const addRefLink = (cm, refLinks) =>
   new Folder({
     text: 'Add Link',
     items: refLinks.map(refLink => new Item({
-      text: refLink.ref,
+      text: refLink.link.startsWith('geo:') ? `@ ${refLink.ref}` : refLink.ref,
+      title: refLink.link,
       onclick: () => {
         const selection = cm.getSelection()
         if (selection === refLink.ref) {
