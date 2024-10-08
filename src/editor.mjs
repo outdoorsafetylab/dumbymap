@@ -193,7 +193,6 @@ const editor = new EasyMDE({
 
 const cm = editor.codemirror
 
-
 const getRefLinks = () => editor.value()
   .split('\n')
   .map(line => {
@@ -779,13 +778,13 @@ const getSuggestions = anchor => {
     return rendererSuggestions.length === 0
       ? []
       : [
-        ...rendererSuggestions,
-        new menuItem.Item({
-          innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
-          className: ['suggestion'],
-          onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank')
-        })
-      ]
+          ...rendererSuggestions,
+          new menuItem.Item({
+            innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
+            className: ['suggestion'],
+            onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank')
+          })
+        ]
   }
   return []
 }
@@ -940,7 +939,7 @@ const addMapRandomlyByPreset = () => {
   const yamlText = [
     'apply: dist/default.yml',
     'width: 85%',
-    'height: 200px',
+    'height: 200px'
   ]
   const order = [
     'id',
@@ -954,8 +953,8 @@ const addMapRandomlyByPreset = () => {
   ]
   const aliasesEntries = Object.entries(aliasesForMapOptions)
     .filter(([key, _]) =>
-      order.includes(key)
-      && !yamlText.find(text => text.startsWith(key))
+      order.includes(key) &&
+      !yamlText.find(text => text.startsWith(key))
     )
   if (aliasesEntries.length === 0) return
 
