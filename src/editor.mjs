@@ -45,7 +45,8 @@ const toggleEditing = () => {
 
 // Content values for editor
 
-const defaultContent = `<br>
+const defaultContent =
+`<br>
 
 > <big>Hello My Friend! This is DumbyMap!</big>
 
@@ -63,9 +64,10 @@ DumbyMap generates **interactive document with maps** from raw texts.
 You can use it to:
 
 1. [Roll a Dice] for a new map
-2. Click on [GeoLink][example-geolink] for maps. Or Add a new one by **Right Click** on map.
-3. Add more contents into [Editor] by text in [Markdown]
-4. Generated document is at left hand side, **Right click** for context menu.
+2. Hover on [GeoLink][example-geolink] to show point in maps.
+3. Add a new anchor by **Right Click** on a map, and **Right Click** on **Selected Text** to attach anchor
+4. Add more contents into [Editor] by text in [Markdown]
+5. Generated document is at left hand side, **Right click** for context menu.
    You can:
     + Select content block for browsing
     + Switch layouts for various use cases
@@ -80,9 +82,9 @@ If you want know more, take a look at subjects below:
 
 <br>
 
-> Have Fun ~
+> <big>Have Fun ~<big>
 
-<br>
+ <br>
 
 [Roll a dice]: #Click%20it! "=>.mde-roll"
 [example-geolink]: geo:24,121?xy=121,24
