@@ -16,7 +16,7 @@ body {
   &[data-mode='editing'] {
     display: flex;
     align-items: stretch;
-    gap: 0.5em;
+    /* gap: 0.5em; */
 
     padding: 0.5em;
 
