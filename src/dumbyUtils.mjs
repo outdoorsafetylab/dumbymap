@@ -267,8 +267,8 @@ export const addAnchorByPoint = ({
   const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id}&text=${anchorName}`
   map.renderer.addMarker({
     xy: [x, y],
-    title: `${map.id}@${x}, ${y}`,
-    type: 'circle',
+    title: `${map.id}@${x},${y}`,
+    type: 'circle'
   })
 
   return { ref: anchorName, link }
