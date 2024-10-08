@@ -539,7 +539,7 @@ const rendererOptions = {}
 // }}}
 // Aliases for map options {{{
 const aliasesForMapOptions = {}
-const defaultApply = '/assets/default.yml'
+const defaultApply = './assets/default.yml'
 fetch(defaultApply)
   .then(res => res.text())
   .then(rawText => {
