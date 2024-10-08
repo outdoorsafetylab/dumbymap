@@ -6,7 +6,7 @@ import { insideWindow, insideParent } from './utils'
  *
  * @param {Boolean} reverse -- focus previous map
  */
-export function focusNextMap(reverse = false) {
+export function focusNextMap (reverse = false) {
   const renderedList = this.utils.renderedMaps()
   const index = renderedList.findIndex(e => e.classList.contains('focus'))
   const nextIndex = (index + (reverse ? -1 : 1)) % renderedList.length
@@ -21,13 +21,13 @@ export function focusNextMap(reverse = false) {
  *
  * @param {Boolean} reverse -- focus previous block
  */
-export function focusNextBlock(reverse = false) {
+export function focusNextBlock (reverse = false) {
   const blocks = this.blocks.filter(b =>
     b.checkVisibility({
       contentVisibilityAuto: true,
       opacityProperty: true,
-      visibilityProperty: true
-    })
+      visibilityProperty: true,
+    }),
   )
   const index = blocks.findIndex(e => e.classList.contains('focus'))
   const nextIndex = (index + (reverse ? -1 : 1)) % blocks.length
@@ -56,7 +56,7 @@ export const scrollToBlock = block => {
 /**
  * focusDelay. Delay of throttle, value changes by cases
  */
-export function focusDelay() {
+export function focusDelay () {
   return window.window.getComputedStyle(this.showcase).display === 'none' ? 50 : 300
 }
 
@@ -65,7 +65,7 @@ export function focusDelay() {
  *
  * @param {Boolean} reverse -- Switch to previous one
  */
-export function switchToNextLayout(reverse = false) {
+export function switchToNextLayout (reverse = false) {
   const layouts = this.layouts
   const currentLayoutName = this.container.getAttribute('data-layout')
   const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
@@ -81,7 +81,7 @@ export function switchToNextLayout(reverse = false) {
 /**
  * removeBlockFocus.
  */
-export function removeBlockFocus() {
+export function removeBlockFocus () {
   this.blocks.forEach(b => b.classList.remove('focus'))
 }
 
@@ -94,7 +94,7 @@ export function removeBlockFocus() {
 const getMarkersFromMaps = link => {
   const maps = Array.from(
     link.closest('.Dumby')
-      .querySelectorAll('.mapclay[data-render="fulfilled"]')
+      .querySelectorAll('.mapclay[data-render="fulfilled"]'),
   )
   return maps
     .filter(map => link.targets ? link.targets.includes(map.id) : true)
@@ -105,7 +105,7 @@ const getMarkersFromMaps = link => {
       return map.querySelector(`.marker[title="${markerTitle}"]`) ??
         renderer.addMarker({
           xy: link.xy,
-          title: markerTitle
+          title: markerTitle,
         })
     })
 }
@@ -122,7 +122,7 @@ const addLeaderLine = (link, target) => {
     end: target,
     hide: true,
     middleLabel: link.url.searchParams.get('text'),
-    path: 'magnet'
+    path: 'magnet',
   })
   line.show('draw', { duration: 300 })
 
@@ -196,10 +196,10 @@ export const createDocLink = link => {
         end: target,
         middleLabel: LeaderLine.pathLabel({
           text: label,
-          fontWeight: 'bold'
+          fontWeight: 'bold',
         }),
         hide: true,
-        path: 'magnet'
+        path: 'magnet',
       })
       link.lines.push(line)
       line.show('draw', { duration: 300 })
@@ -229,7 +229,6 @@ const removeLeaderLines = link => {
  * @return {Function} function
  */
 const updateMapCameraByMarker = xy => marker => {
-  console.log('update')
   const renderer = marker.closest('.mapclay')?.renderer
   renderer.updateCamera({ center: xy }, true)
 }
@@ -244,10 +243,17 @@ const isAnchorVisible = anchor => {
   return insideWindow(anchor) && insideParent(anchor, mapContainer)
 }
 
+/**
+ * addAnchorByPoint.
+ *
+ * @param {point} options.point -- object has {x, y} for window coordinates
+ * @param {HTMLElement} options.map
+ * @param {Function} options.validateAnchorName -- validate anchor name is OK to use
+ */
 export const addAnchorByPoint = ({
   point,
   map,
-  validateAnchorName = () => true
+  validateAnchorName = () => true,
 }) => {
   const rect = map.getBoundingClientRect()
   const [x, y] = map.renderer
@@ -268,7 +274,7 @@ export const addAnchorByPoint = ({
   map.renderer.addMarker({
     xy: [x, y],
     title: `${map.id}@${x},${y}`,
-    type: 'circle'
+    type: 'circle',
   })
 
   return { ref: anchorName, link }

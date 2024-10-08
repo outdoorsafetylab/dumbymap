@@ -81,9 +81,9 @@ export const pickMapItem = ({ utils }) =>
           onclick: () => {
             map.classList.add('focus')
             map.scrollIntoView({ behavior: 'smooth' })
-          }
-        })
-    )
+          },
+        }),
+    ),
   })
 
 /**
@@ -118,10 +118,10 @@ export const pickBlockItem = ({ blocks, utils }) =>
             // UX: remove menu after user select/deselect blocks
             const submenu = e.target.closest('.sub-menu')
             submenu.onmouseleave = () => { submenu.closest('.menu').style.display = 'none' }
-          }
+          },
         })
-      }
-    )
+      },
+    ),
   })
 
 /**
@@ -138,14 +138,14 @@ export const pickLayoutItem = ({ container, layouts }) =>
         layout =>
           new Item({
             text: layout.name,
-            onclick: () => container.setAttribute('data-layout', layout.name)
-          })
+            onclick: () => container.setAttribute('data-layout', layout.name),
+          }),
       ),
       new Item({
         innerHTML: '<a href="https://github.com/outdoorsafetylab/dumbymap#layouts" class="external" style="display: block; padding: 0.5rem;">More...</a>',
-        style: 'padding: 0;'
-      })
-    ]
+        style: 'padding: 0;',
+      }),
+    ],
   })
 
 /**
@@ -174,7 +174,7 @@ export const addGeoLink = ({ utils }, range) =>
         range.deleteContents()
         range.insertNode(anchor)
       }
-    }
+    },
   })
 
 /**
@@ -195,7 +195,7 @@ export class Suggestion extends Item {
 
     this.onmouseover = () => {
       Array.from(this.parentElement?.children)?.forEach(s =>
-        s.classList.remove('focus')
+        s.classList.remove('focus'),
       )
       this.classList.add('focus')
     }
@@ -244,12 +244,12 @@ export const renderResults = ({ modal, modalContent }, map) =>
             success: 'green',
             fail: 'red',
             skip: 'black',
-            stop: 'chocolate'
+            stop: 'chocolate',
           }[result.state] ?? 'black'
         printObject(
           result,
           modalContent,
-          `${result.func.name} <span style='float: right;'><span style='display: inline-block; width: 100px; color: ${color};'>${result.state}</span></span>`
+          `${result.func.name} <span style='float: right;'><span style='display: inline-block; width: 100px; color: ${color};'>${result.state}</span></span>`,
         )
       }
 
@@ -258,7 +258,7 @@ export const renderResults = ({ modal, modalContent }, map) =>
       prepareHeading.textContent = 'Prepare Steps'
       modalContent.appendChild(prepareHeading)
       const prepareSteps = map.renderer.results.filter(
-        r => r.type === 'prepare'
+        r => r.type === 'prepare',
       )
       prepareSteps.forEach(printDetails)
 
@@ -268,7 +268,7 @@ export const renderResults = ({ modal, modalContent }, map) =>
       modalContent.appendChild(renderHeading)
       const renderSteps = map.renderer.results.filter(r => r.type === 'render')
       renderSteps.forEach(printDetails)
-    }
+    },
   })
 
 /**
@@ -326,7 +326,7 @@ function printObject (obj, parentElement, name = null) {
 export const toggleBlockFocus = block =>
   new Item({
     text: 'Toggle Focus',
-    onclick: () => block.classList.toggle('focus')
+    onclick: () => block.classList.toggle('focus'),
   })
 
 /**
@@ -337,7 +337,7 @@ export const toggleBlockFocus = block =>
 export const toggleMapFocus = map =>
   new Item({
     text: 'Toggle Focus',
-    onclick: () => map.classList.toggle('focus')
+    onclick: () => map.classList.toggle('focus'),
   })
 
 /**
@@ -354,7 +354,7 @@ export const getCoordinatesByPixels = (map, xy) =>
       const xyString = `[${x.toFixed(7)}, ${y.toFixed(7)}]`
       navigator.clipboard.writeText(xyString)
       window.alert(`${xyString} copied to clipboard`)
-    }
+    },
   })
 
 /**
@@ -365,7 +365,7 @@ export const getCoordinatesByPixels = (map, xy) =>
 export const restoreCamera = map =>
   new Item({
     text: 'Restore Camera',
-    onclick: () => map.renderer.restoreCamera()
+    onclick: () => map.renderer.restoreCamera(),
   })
 
 /**
@@ -387,6 +387,6 @@ export const addRefLink = (cm, refLinks) =>
         } else {
           cm.replaceSelection(`[${selection}][${refLink.ref}]`)
         }
-      }
-    }))
+      },
+    })),
   })

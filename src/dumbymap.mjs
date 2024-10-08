@@ -17,7 +17,7 @@ const geoLinkSelector = 'a[href^="geo:"]'
 const layouts = [
   new Layout({ name: 'normal' }),
   new SideBySide({ name: 'side-by-side' }),
-  new Overlay({ name: 'overlay' })
+  new Overlay({ name: 'overlay' }),
 ]
 const mapCache = {}
 
@@ -37,12 +37,12 @@ export const markdown2HTML = (container, mdContent) => {
   const md = MarkdownIt({
     html: true,
     breaks: true,
-    linkify: true
+    linkify: true,
   })
     .use(MarkdownItAnchor, {
       permalink: MarkdownItAnchor.permalink.linkInsideHeader({
-        placement: 'before'
-      })
+        placement: 'before',
+      }),
     })
     .use(MarkdownItFootnote)
     .use(MarkdownItFrontMatter)
@@ -58,11 +58,11 @@ export const markdown2HTML = (container, mdContent) => {
       match.text = `${x}${sep} ${y}`
       match.index += match.text.indexOf(x) + 1
       return match
-    }
+    },
   }
   const patterns = ['[', '(', '📍', '\uFF08', '@', 'geo:', 'twd']
   patterns.forEach(prefix =>
-    md.linkify.add(prefix, coordinateValue)
+    md.linkify.add(prefix, coordinateValue),
   )
 
   // FIXME A better way to generate blocks
@@ -133,7 +133,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
       ...utils,
       renderedMaps: () =>
         Array.from(
-          container.querySelectorAll('.mapclay[data-render=fulfilled]')
+          container.querySelectorAll('.mapclay[data-render=fulfilled]'),
         ).sort((a, b) => a.style.order > b.style.order),
       setContextMenu: (menuCallback) => {
         const originalCallback = container.oncontextmenu
@@ -145,8 +145,8 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
         }
       },
       focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
-      switchToNextLayout: throttle(utils.switchToNextLayout, 300)
-    }
+      switchToNextLayout: throttle(utils.switchToNextLayout, 300),
+    },
   }
   Object.entries(dumbymap.utils).forEach(([util, func]) => {
     dumbymap.utils[util] = func.bind(dumbymap)
@@ -155,7 +155,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
   // LeaderLine {{{
 
   Array.from(container.querySelectorAll(docLinkSelector)).filter(
-    utils.createDocLink
+    utils.createDocLink,
   )
 
   // Add GeoLinks
@@ -177,7 +177,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
         showcase.checkVisibility({
           contentVisibilityAuto: true,
           opacityProperty: true,
-          visibilityProperty: true
+          visibilityProperty: true,
         })
 
       if (focus) {
@@ -217,12 +217,12 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
         // Resume rect from Semantic HTML to Showcase, with animation
         animateRectTransition(target, placeholder.getBoundingClientRect(), {
           duration: 300,
-          resume: true
+          resume: true,
         })
       } else if (showcase.contains(target)) {
         // Check placeholder is inside Semantic HTML
         const placeholder = htmlHolder.querySelector(
-          `[data-placeholder="${target.id}"]`
+          `[data-placeholder="${target.id}"]`,
         )
         if (!placeholder) { throw Error(`Cannot find placeholder for map "${target.id}"`) }
 
@@ -234,7 +234,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
 
         // animation from Showcase to placeholder
         animateRectTransition(target, placeholder.getBoundingClientRect(), {
-          duration: 300
+          duration: 300,
         }).finished.finally(afterAnimation)
       }
     })
@@ -277,7 +277,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
     attributes: true,
     attributeFilter: ['data-layout'],
     attributeOldValue: true,
-    characterDataOldValue: true
+    characterDataOldValue: true,
   })
 
   onRemove(htmlHolder, () => layoutObserver.disconnect())
@@ -303,7 +303,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
     observer.observe(mapElement, {
       attributes: true,
       attributeFilter: ['class'],
-      attributeOldValue: true
+      attributeOldValue: true,
     })
     onRemove(dumbymap.htmlHolder, () => {
       observer.disconnect()
@@ -329,7 +329,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
 
   // Render each code block with "language-map" class
   const elementsWithMapConfig = Array.from(
-    container.querySelectorAll(mapBlockSelector) ?? []
+    container.querySelectorAll(mapBlockSelector) ?? [],
   )
   /**
    * updateAttributeByStep.
@@ -338,7 +338,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
    */
   const updateAttributeByStep = ({ results, target, steps }) => {
     let passNum = results.filter(
-      r => r.type === 'render' && r.state.match(/success|skip/)
+      r => r.type === 'render' && r.state.match(/success|skip/),
     ).length
     const total = steps.length
     passNum += `/${total}`
@@ -367,9 +367,9 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
     ...config,
     aliases: {
       ...defaultAliases,
-      ...(config.aliases ?? {})
+      ...(config.aliases ?? {}),
     },
-    stepCallback: updateAttributeByStep
+    stepCallback: updateAttributeByStep,
   })
   const render = renderWith(configConverter)
   let order = 0
@@ -422,7 +422,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
           }
         })
       },
-      delay ?? 1000
+      delay ?? 1000,
     )
     onRemove(htmlHolder, () => {
       clearTimeout(timer)
@@ -497,7 +497,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
   }
   document.addEventListener('click', actionOutsideMenu)
   onRemove(htmlHolder, () =>
-    document.removeEventListener('click', actionOutsideMenu)
+    document.removeEventListener('click', actionOutsideMenu),
   )
   // }}}
   return Object.seal(dumbymap)

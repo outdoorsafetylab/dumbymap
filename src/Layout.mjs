@@ -55,7 +55,7 @@ export class SideBySide extends Layout {
 
     const draggable = new PlainDraggable(bar, {
       handle,
-      containment: { left: '25%', top: 0, right: '75%', height: 0 }
+      containment: { left: '25%', top: 0, right: '75%', height: 0 },
     })
     draggable.draggableCursor = 'grab'
 
@@ -110,7 +110,7 @@ export class Overlay extends Layout {
   addDraggable = element => {
     // Make sure current element always on top
     const siblings = Array.from(
-      element.parentElement?.querySelectorAll(':scope > *') ?? []
+      element.parentElement?.querySelectorAll(':scope > *') ?? [],
     )
     let popTimer = null
     element.onmouseover = () => {
@@ -135,7 +135,7 @@ export class Overlay extends Layout {
       top,
       left,
       handle: draggablePart,
-      snap: { x: { step: 20 }, y: { step: 20 } }
+      snap: { x: { step: 20 }, y: { step: 20 } },
     })
 
     // FIXME use pure CSS to hide utils
@@ -215,7 +215,7 @@ export class Overlay extends Layout {
       animateRectTransition(
         wrapper,
         { left: originLeft, top: originTop },
-        { resume: true, duration: 300 }
+        { resume: true, duration: 300 },
       ).finished.finally(() => this.addDraggable(wrapper))
 
       // Trivial case:

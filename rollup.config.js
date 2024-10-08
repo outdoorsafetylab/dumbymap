@@ -13,12 +13,12 @@ const general = {
       dir: './dist',
       format: 'esm',
       entryFileNames: '[name].mjs',
-      sourcemap: 'true'
-    }
+      sourcemap: 'true',
+    },
   ],
   watch: {
     clearScreen: false,
-    include: ['src/**', 'mapclay/dist/mapclay.mjs']
+    include: ['src/**', 'mapclay/dist/mapclay.mjs'],
   },
   context: 'window',
   plugins: [
@@ -26,13 +26,12 @@ const general = {
       name: 'watch-mapclay',
       buildStart () {
         const mapclayPath = join(process.cwd(), 'mapclay', 'dist', 'mapclay.mjs')
-        console.log('Watching:', mapclayPath)
         if (existsSync(mapclayPath)) {
           this.addWatchFile(mapclayPath)
         } else {
-          console.log('mapclay.mjs not found at:', mapclayPath)
+          console.warn('mapclay.mjs not found at:', mapclayPath)
         }
-      }
+      },
     },
     {
       name: 'leader-line',
@@ -41,7 +40,7 @@ const general = {
           return `${code}\nexport default LeaderLine;`
         }
         return null
-      }
+      },
     },
     {
       name: 'mapclay',
@@ -50,24 +49,24 @@ const general = {
           return './mapclay/dist/mapclay.mjs'
         }
         return null
-      }
+      },
     },
     node(),
     commonjs(),
     production && terser({
-      keep_fnames: true
+      keep_fnames: true,
     }),
-    production && bundleStats()
-  ]
+    production && bundleStats(),
+  ],
 }
 
 export default [
   {
-    input: 'src/editor.mjs'
+    input: 'src/editor.mjs',
   },
   {
-    input: 'src/dumbymap.mjs'
-  }
+    input: 'src/dumbymap.mjs',
+  },
 ]
   .map(config => ({ ...general, ...config }))
   .filter((config) => production || config.input.match(/editor/))

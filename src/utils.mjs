@@ -39,7 +39,7 @@ export const animateRectTransition = (element, rect, options = {}) => {
     width: w2,
     height: h2,
     left: x2,
-    top: y2
+    top: y2,
   } = element.getBoundingClientRect()
 
   const rw = (w1 ?? w2) / w2
@@ -55,13 +55,13 @@ export const animateRectTransition = (element, rect, options = {}) => {
   const transform2 = `translate(${dx}px, ${dy}px) scale(${rw}, ${rh})`
   const keyframes = [
     { transform: transform1, opacity: 1 },
-    { transform: transform2, opacity: 0.3 }
+    { transform: transform2, opacity: 0.3 },
   ]
   if (options.resume === true) keyframes.reverse()
 
   return element.animate(keyframes, {
     duration: options.duration ?? 500,
-    easing: 'ease-in-out'
+    easing: 'ease-in-out',
   })
 }
 
@@ -81,7 +81,7 @@ export function throttle (func, delay) {
 
     timerFlag = setTimeout(
       () => (timerFlag = null),
-      typeof delay === 'function' ? delay.call(context) : delay
+      typeof delay === 'function' ? delay.call(context) : delay,
     )
 
     return func.call(context, ...args)

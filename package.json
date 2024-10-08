@@ -25,7 +25,7 @@
     "build-resources": "cp node_modules/easymde/dist/easymde.min.js dist; cp node_modules/easymde/dist/easymde.min.css dist/css",
     "server": "live-server --port=8080 --ignore='**/src/**js' --wait=2000 --no-browser --cors",
     "dev": "npm run server",
-    "lint": "npx standard",
+    "lint": "standard --fix",
     "style": "scripts/stylelint.sh",
     "prepack": "npm run lint && npm run style && npm run build",
     "postpack": "rm -rf dist/css dist/renderers; ln -sf `pwd`/src/css dist; cp node_modules/easymde/dist/easymde.min.css src/css; ln -sf `pwd`/mapclay/dist/renderers dist"
@@ -38,7 +38,6 @@
     "globals": "^15.10.0",
     "rollup": "^4.24.0",
     "rollup-plugin-bundle-stats": "^4.15.1",
-    "standard": "^17.1.2",
     "stylelint": "^16.9.0",
     "stylelint-config-standard": "^36.0.1",
     "stylelint-order": "^6.0.4"

@@ -3,12 +3,12 @@
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
-import { shiftByWindow } from './utils.mjs'
 import { addAnchorByPoint } from './dumbyUtils.mjs'
+import { shiftByWindow } from './utils.mjs'
 import LeaderLine from 'leader-line'
 
 // Set up Containers {{{
-
+/** Variables about dumbymap and editor **/
 const url = new URL(window.location)
 const context = document.querySelector('[data-mode]')
 const dumbyContainer = document.querySelector('.DumbyMap')
@@ -27,7 +27,6 @@ const appendRefLink = ({ cm, ref, link }) => {
 
   refLinks.push({ ref, link })
 }
-
 /**
  * Watch for changes of editing mode
  *
@@ -43,11 +42,10 @@ new window.MutationObserver(() => {
 }).observe(context, {
   attributes: true,
   attributeFilter: ['data-mode'],
-  attributeOldValue: true
+  attributeOldValue: true,
 })
-
 /**
- * toggle editing mode
+ * toggleEditing: toggle editing mode
  */
 const toggleEditing = () => {
   const mode = context.getAttribute('data-mode')
@@ -55,9 +53,7 @@ const toggleEditing = () => {
 }
 // }}}
 // Set up EasyMDE {{{
-
-// Content values for editor
-
+/** Contents for tutorial **/
 const defaultContent =
   `<br>
 
@@ -105,12 +101,13 @@ If you want know more, take a look at subjects below:
 [Editor]: #This%20is%20editor! "=>.editor"
 [subject]: placeholder`
 
+/** Editor from EasyMDE **/
 const editor = new EasyMDE({
   element: textArea,
   initialValue: defaultContent,
   autosave: {
     enabled: true,
-    uniqueId: 'dumbymap'
+    uniqueId: 'dumbymap',
   },
   indentWithTabs: false,
   lineNumbers: true,
@@ -123,21 +120,21 @@ const editor = new EasyMDE({
     map: 'Ctrl-Alt-M',
     debug: 'Ctrl-Alt-D',
     toggleUnorderedList: null,
-    toggleOrderedList: null
+    toggleOrderedList: null,
   },
   toolbar: [
     {
       name: 'roll',
       title: 'Roll a Dice',
       text: '\u{2684}',
-      action: () => addMapRandomlyByPreset()
+      action: () => addMapRandomlyByPreset(),
     },
     {
       name: 'export',
       title: 'Export current page',
       text: '\u{1F4BE}',
       action: () => {
-      }
+      },
     },
     {
       name: 'hash',
@@ -150,59 +147,59 @@ const editor = new EasyMDE({
         window.location.search = ''
         navigator.clipboard.writeText(window.location.href)
         window.alert('URL updated in address bar, you can save current page as bookmark')
-      }
+      },
     },
     '|',
     {
       name: 'undo',
       title: 'Undo last editing',
       text: '\u27F2',
-      action: EasyMDE.undo
+      action: EasyMDE.undo,
     },
     {
       name: 'redo',
       text: '\u27F3',
       title: 'Redo editing',
-      action: EasyMDE.redo
+      action: EasyMDE.redo,
     },
     '|',
     {
       name: 'heading-1',
       text: 'H1',
       title: 'Big Heading',
-      action: EasyMDE['heading-1']
+      action: EasyMDE['heading-1'],
     },
     {
       name: 'heading-2',
       text: 'H2',
       title: 'Medium Heading',
-      action: EasyMDE['heading-2']
+      action: EasyMDE['heading-2'],
     },
     '|',
     {
       name: 'link',
       text: '\u{1F517}',
       title: 'Create Link',
-      action: EasyMDE.drawLink
+      action: EasyMDE.drawLink,
     },
     {
       name: 'image',
       text: '\u{1F5BC}',
       title: 'Create Image',
-      action: EasyMDE.drawImage
+      action: EasyMDE.drawImage,
     },
     '|',
     {
       name: 'Bold',
       text: '\u{1D401}',
       title: 'Bold',
-      action: EasyMDE.toggleBold
+      action: EasyMDE.toggleBold,
     },
     {
       name: 'Italic',
       text: '\u{1D43C}',
       title: 'Italic',
-      action: EasyMDE.toggleItalic
+      action: EasyMDE.toggleItalic,
     },
     '|',
     {
@@ -213,13 +210,14 @@ const editor = new EasyMDE({
         editor.value(defaultContent)
         refLinks = getRefLinks()
         updateDumbyMap()
-      }
-    }
-  ]
+      },
+    },
+  ],
 })
-
+/** CodeMirror Instance **/
 const cm = editor.codemirror
 
+/** Ref Links **/
 const getRefLinks = () => editor.value()
   .split('\n')
   .map(line => {
@@ -244,7 +242,6 @@ const getStateFromHash = hash => {
     return {}
   }
 }
-
 /**
  * get editor content from hash string
  *
@@ -254,7 +251,9 @@ const getContentFromHash = hash => {
   const state = getStateFromHash(hash)
   return state.content
 }
+/** Hash and Query Parameters in URL **/
 const contentFromHash = getContentFromHash(window.location.hash)
+window.location.hash = ''
 
 if (url.searchParams.get('content') === 'tutorial') {
   editor.value(defaultContent)
@@ -263,12 +262,10 @@ if (url.searchParams.get('content') === 'tutorial') {
   editor.cleanup()
   editor.value(contentFromHash)
 }
-
-window.location.hash = ''
-
 // }}}
 // Set up logic about editor content {{{
 
+/** Sync scroll from HTML to CodeMirror **/
 const htmlOnScroll = (ele) => () => {
   if (textArea.dataset.scrollLine) return
 
@@ -288,12 +285,11 @@ const htmlOnScroll = (ele) => () => {
   }
 }
 
-// Sync CodeMirror LineNumber with HTML Contents
 new window.MutationObserver(() => {
   clearTimeout(dumbyContainer.timer)
   dumbyContainer.timer = setTimeout(
     () => delete dumbyContainer.dataset.scrollLine,
-    50
+    50,
   )
 
   const line = dumbyContainer.dataset.scrollLine
@@ -306,7 +302,7 @@ new window.MutationObserver(() => {
   }
 }).observe(dumbyContainer, {
   attributes: true,
-  attributeFilter: ['data-scroll-line']
+  attributeFilter: ['data-scroll-line'],
 })
 
 const setScrollLine = () => {
@@ -318,12 +314,12 @@ const setScrollLine = () => {
 }
 cm.on('scroll', setScrollLine)
 
-// Sync HTML Contents with CodeMirror LineNumber
+/** Sync scroll from CodeMirror to HTML **/
 new window.MutationObserver(() => {
   clearTimeout(textArea.timer)
   textArea.timer = setTimeout(
     () => delete textArea.dataset.scrollLine,
-    1000
+    1000,
   )
 
   const line = textArea.dataset.scrollLine
@@ -345,10 +341,8 @@ new window.MutationObserver(() => {
   dumbymap.htmlHolder.scrollBy(0, top - coords.top + 30)
 }).observe(textArea, {
   attributes: true,
-  attributeFilter: ['data-scroll-line']
+  attributeFilter: ['data-scroll-line'],
 })
-
-markdown2HTML(dumbyContainer, editor.value())
 
 /**
  * addClassToCodeLines. Quick hack to style lines inside code block
@@ -444,7 +438,7 @@ const menuForEditor = (event, menu) => {
   if (context.dataset.mode !== 'editing') {
     const switchToEditingMode = new menuItem.Item({
       innerHTML: '<strong>EDIT</strong>',
-      onclick: () => (context.dataset.mode = 'editing')
+      onclick: () => (context.dataset.mode = 'editing'),
     })
     menu.appendChild(switchToEditingMode)
   }
@@ -456,7 +450,7 @@ const menuForEditor = (event, menu) => {
       onclick: (event) => {
         const { ref, link } = addAnchorByPoint({ point: event, map, validateAnchorName })
         appendRefLink({ cm, ref, link })
-      }
+      },
     })
     menu.insertBefore(item, menu.firstChild)
   }
@@ -468,7 +462,7 @@ const menuForEditor = (event, menu) => {
 const updateDumbyMap = () => {
   markdown2HTML(dumbyContainer, editor.value())
   // debounceForMap(dumbyContainer, afterMapRendered)
-  dumbymap = generateMaps(dumbyContainer, { renderCallback })
+  dumbymap = generateMaps(dumbyContainer, {})
   // Set onscroll callback
   const htmlHolder = dumbymap.htmlHolder
   htmlHolder.onscroll = htmlOnScroll(htmlHolder)
@@ -521,7 +515,7 @@ new window.MutationObserver(() => {
   }
 }).observe(menu, {
   attributes: true,
-  attributeFilter: ['style']
+  attributeFilter: ['style'],
 })
 document.body.append(menu)
 
@@ -613,7 +607,7 @@ const getSuggestionsForOptions = (optionTyped, validOptions) => {
   let suggestOptions = []
 
   const matchedOptions = validOptions.filter(o =>
-    o.valueOf().toLowerCase().includes(optionTyped.toLowerCase())
+    o.valueOf().toLowerCase().includes(optionTyped.toLowerCase()),
   )
 
   if (matchedOptions.length > 0) {
@@ -627,8 +621,8 @@ const getSuggestionsForOptions = (optionTyped, validOptions) => {
       new menuItem.Suggestion({
         text: `<span>${o.valueOf()}</span><span class='info' title="${o.desc ?? ''}">ⓘ</span>`,
         replace: `${o.valueOf()}: `,
-        cm
-      })
+        cm,
+      }),
   )
 }
 // }}}
@@ -647,7 +641,7 @@ const getSuggestionFromMapOption = option => {
   return new menuItem.Suggestion({
     text,
     replace: `${option.valueOf()}: ${option.example ?? ''}`,
-    cm
+    cm,
   })
 }
 // }}}
@@ -663,7 +657,7 @@ const getSuggestionsFromAliases = option =>
     return new menuItem.Suggestion({
       text: `<span>${alias}</span><span class="truncate" style="color: gray">${valueString}</span>`,
       replace: `${option.valueOf()}: ${valueString}`,
-      cm
+      cm,
     })
   }) ?? []
 // }}}
@@ -694,7 +688,7 @@ const getSuggestions = anchor => {
 
   // Clear marks on text
   cm.findMarks({ ...anchor, ch: 0 }, { ...anchor, ch: text.length }).forEach(
-    m => m.clear()
+    m => m.clear(),
   )
 
   // Mark user input invalid by case
@@ -704,7 +698,7 @@ const getSuggestions = anchor => {
       .markText(
         { ...anchor, ch: 0 },
         { ...anchor, ch: text.length },
-        { className: 'invalid-input' }
+        { className: 'invalid-input' },
       )
 
   // Check if "use: <renderer>" is set
@@ -732,7 +726,7 @@ const getSuggestions = anchor => {
         .catch(_ => {
           markInputIsInvalid(lineWithRenderer)
           console.warn(
-            `Fail to get valid options from Renderer typed: ${renderer}`
+            `Fail to get valid options from Renderer typed: ${renderer}`,
           )
         })
       return []
@@ -765,7 +759,7 @@ const getSuggestions = anchor => {
       if (!valueTyped) {
         return [
           getSuggestionFromMapOption(matchedOption),
-          ...getSuggestionsFromAliases(matchedOption)
+          ...getSuggestionsFromAliases(matchedOption),
         ].filter(s => s instanceof menuItem.Suggestion)
       }
       if (valueTyped && !isValidValue) {
@@ -787,19 +781,19 @@ const getSuggestions = anchor => {
           new menuItem.Suggestion({
             text: `<span>use: ${renderer}</span><span class='info' title="${info.desc}">ⓘ</span>`,
             replace: `use: ${renderer}`,
-            cm
-          })
+            cm,
+          }),
       )
     return rendererSuggestions.length === 0
       ? []
       : [
-        ...rendererSuggestions,
-        new menuItem.Item({
-          innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
-          className: ['suggestion'],
-          onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank')
-        })
-      ]
+          ...rendererSuggestions,
+          new menuItem.Item({
+            innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
+            className: ['suggestion'],
+            onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank'),
+          }),
+        ]
   }
   return []
 }
@@ -943,7 +937,7 @@ new window.MutationObserver(mutaions => {
 }).observe(dumbyContainer, {
   attributes: true,
   attributeFilter: ['data-layout'],
-  attributeOldValue: true
+  attributeOldValue: true,
 })
 // }}}
 
@@ -954,7 +948,7 @@ const addMapRandomlyByPreset = () => {
   const yamlText = [
     'apply: dist/default.yml',
     'width: 85%',
-    'height: 200px'
+    'height: 200px',
   ]
   const order = [
     'id',
@@ -964,12 +958,12 @@ const addMapRandomlyByPreset = () => {
     'height',
     'center',
     'XYZ',
-    'zoom'
+    'zoom',
   ]
   const aliasesEntries = Object.entries(aliasesForMapOptions)
     .filter(([key, _]) =>
       order.includes(key) &&
-      !yamlText.find(text => text.startsWith(key))
+      !yamlText.find(text => text.startsWith(key)),
     )
   if (aliasesEntries.length === 0) return
 
@@ -997,12 +991,12 @@ const addMapRandomlyByPreset = () => {
   })
 
   yamlText.sort((a, b) =>
-    order.indexOf(a.split(':')[0]) > order.indexOf(b.split(':')[0])
+    order.indexOf(a.split(':')[0]) > order.indexOf(b.split(':')[0]),
   )
   const anchor = cm.getCursor()
   cm.replaceRange(
     '\n```map\n' + yamlText.join('\n') + '\n```\n',
-    anchor
+    anchor,
   )
 }
 
@@ -1068,6 +1062,7 @@ document.addEventListener('selectionchange', () => {
   }
 })
 
+/** Drag/Drop on map for new reference style link */
 dumbyContainer.onmousedown = (e) => {
   // Check should start drag event for GeoLink
   const selection = document.getSelection()
@@ -1087,14 +1082,13 @@ dumbyContainer.onmousedown = (e) => {
   lineEnd.style.cssText = `position: absolute; left: ${e.clientX}px; top: ${e.clientY}px;`
   document.body.appendChild(lineEnd)
 
-  menu.style.display = 'block'
   const line = new LeaderLine({
     start: geoLink,
     end: lineEnd,
-    path: 'magnet'
+    path: 'magnet',
   })
 
-  function onMouseMove(event) {
+  function onMouseMove (event) {
     lineEnd.style.left = event.clientX + 'px'
     lineEnd.style.top = event.clientY + 'px'
     line.position()
@@ -1102,7 +1096,7 @@ dumbyContainer.onmousedown = (e) => {
   }
 
   dumbyContainer.onmousemove = onMouseMove
-  dumbyContainer.onmouseup = function(e) {
+  dumbyContainer.onmouseup = function (e) {
     dumbyContainer.onmousemove = null
     dumbyContainer.onmouseup = null
     line?.remove()
@@ -1122,16 +1116,14 @@ dumbyContainer.onmousedown = (e) => {
       return
     }
 
-    const {ref, link} = refLink
+    const { ref, link } = refLink
     appendRefLink({ cm, ref, link })
     if (selection === ref) {
       cm.replaceSelection(`[${selection}]`)
     } else {
       cm.replaceSelection(`[${selection}][${ref}]`)
     }
-  };
+  }
 }
 
 dumbyContainer.ondragstart = () => false
-
-// vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
