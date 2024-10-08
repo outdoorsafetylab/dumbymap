@@ -67,9 +67,20 @@ body {
     font-size: 1rem;
     order: 1;
 
+    .CodeMirror-scroll {
+      margin-right: 0;
+    }
+
     &.focus {
       border: var(--content-focus-border);
       outline: var(--content-focus-border);
+    }
+
+    /* padding of end of line */
+    span[role="presentation"]::after {
+      content: '';
+      display: inline-block;
+      margin-right: 30px;
     }
 
     span {
