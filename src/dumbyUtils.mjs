@@ -244,14 +244,14 @@ const isAnchorVisible = anchor => {
   return insideWindow(anchor) && insideParent(anchor, mapContainer)
 }
 
-export const addAnchorByEvent = ({
-  event,
+export const addAnchorByPoint = ({
+  point,
   map,
   validateAnchorName = () => true
 }) => {
   const rect = map.getBoundingClientRect()
   const [x, y] = map.renderer
-    .unproject([event.x - rect.left, event.y - rect.top])
+    .unproject([point.x - rect.left, point.y - rect.top])
     .map(coord => Number(coord.toFixed(7)))
 
   let prompt
@@ -264,7 +264,7 @@ export const addAnchorByEvent = ({
   while (anchorName !== null && !validateAnchorName(anchorName))
   if (anchorName === null) return
 
-  const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id} "${anchorName}"`
+  const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id}&text=${anchorName}`
   map.renderer.addMarker({
     xy: [x, y],
     title: `${map.id}@${x}, ${y}`,

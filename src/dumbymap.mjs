@@ -107,7 +107,7 @@ export const markdown2HTML = (container, mdContent) => {
  * @param {Number} options.delay -- delay of map generation, milliseconds
  * @return {Object} dumbymap -- Include and Elements and Methods about managing contents
  */
-export const generateMaps = (container, { delay } = {}) => {
+export const generateMaps = (container, { delay, renderCallback } = {}) => {
   container.classList.add('Dumby')
   container.removeAttribute('data-layout')
   container.setAttribute('data-layout', layouts[0].name)
@@ -295,6 +295,8 @@ export const generateMaps = (container, { delay } = {}) => {
     } else {
       return
     }
+
+    renderCallback?.(renderer)
 
     // Work with Mutation Observer
     const observer = mapFocusObserver()

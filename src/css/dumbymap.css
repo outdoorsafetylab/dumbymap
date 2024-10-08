@@ -152,7 +152,7 @@ a[href^='http']:not(:has(img))::after,
     background-color: #9ee7ea;
   }
 
-  &:hover {
+  &:hover, &.drag {
     background-image: none;
 
     font-weight: bolder;

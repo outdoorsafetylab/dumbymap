@@ -4,7 +4,8 @@ import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
 import { shiftByWindow } from './utils.mjs'
-import { addAnchorByEvent } from './dumbyUtils.mjs'
+import { addAnchorByPoint } from './dumbyUtils.mjs'
+import LeaderLine from 'leader-line'
 
 // Set up Containers {{{
 
@@ -16,6 +17,16 @@ let dumbymap
 
 const refLinkPattern = /\[([^\x5B\x5D]+)\]:\s+(.+)/
 let refLinks = []
+const validateAnchorName = anchorName =>
+  !refLinks.find(obj => obj.ref === anchorName)
+const appendRefLink = ({ cm, ref, link }) => {
+  let refLinkString = `\n[${ref}]: ${link}`
+  const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
+  if (!lastLineIsRefLink) refLinkString = '\n' + refLinkString
+  cm.replaceRange(refLinkString, { line: Infinity })
+
+  refLinks.push({ ref, link })
+}
 
 /**
  * Watch for changes of editing mode
@@ -201,6 +212,7 @@ const editor = new EasyMDE({
       action: () => {
         editor.value(defaultContent)
         refLinks = getRefLinks()
+        updateDumbyMap()
       }
     }
   ]
@@ -245,7 +257,6 @@ const getContentFromHash = hash => {
 const contentFromHash = getContentFromHash(window.location.hash)
 
 if (url.searchParams.get('content') === 'tutorial') {
-  console.log('tutorial')
   editor.value(defaultContent)
 } else if (contentFromHash) {
   // Seems like autosave would overwrite initialValue, set content from hash here
@@ -443,20 +454,8 @@ const menuForEditor = (event, menu) => {
     const item = new menuItem.Item({
       text: 'Add Anchor',
       onclick: (event) => {
-        const validateAnchorName = anchorName =>
-            !refLinks.find(obj => obj.ref === anchorName)
-        const { ref, link } = addAnchorByEvent({
-          event,
-          map,
-          validateAnchorName 
-        })
-
-        let refLinkString = `\n[${ref}]: ${link}`
-        const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
-        if (lastLineIsRefLink) refLinkString = '\n' + refLinkString
-        cm.replaceRange(refLinkString, { line: Infinity })
-
-        refLinks.push({ ref, link })
+        const { ref, link } = addAnchorByPoint({ point: event, map, validateAnchorName })
+        appendRefLink({ cm, ref, link })
       }
     })
     menu.insertBefore(item, menu.firstChild)
@@ -469,7 +468,7 @@ const menuForEditor = (event, menu) => {
 const updateDumbyMap = () => {
   markdown2HTML(dumbyContainer, editor.value())
   // debounceForMap(dumbyContainer, afterMapRendered)
-  dumbymap = generateMaps(dumbyContainer)
+  dumbymap = generateMaps(dumbyContainer, { renderCallback })
   // Set onscroll callback
   const htmlHolder = dumbymap.htmlHolder
   htmlHolder.onscroll = htmlOnScroll(htmlHolder)
@@ -1022,7 +1021,7 @@ cm.getWrapperElement().oncontextmenu = e => {
 
 /** HACK Sync selection from HTML to CodeMirror */
 document.addEventListener('selectionchange', () => {
-  if (cm.hasFocus()) {
+  if (cm.hasFocus() || dumbyContainer.onmousemove) {
     return
   }
 
@@ -1052,7 +1051,7 @@ document.addEventListener('selectionchange', () => {
       .map(t => t.replace('\n', ''))
       .reverse()
       .forEach(text => {
-        let index = cm.getLine(anchor.line).indexOf(text, anchor.ch)
+        let index = cm.getLine(anchor.line)?.indexOf(text, anchor.ch)
         while (index === -1) {
           anchor.line += 1
           anchor.ch = 0
@@ -1060,13 +1059,77 @@ document.addEventListener('selectionchange', () => {
             cm.setSelection(cm.setCursor())
             return
           }
-          index = cm.getLine(anchor.line).indexOf(text)
+          index = cm.getLine(anchor.line)?.indexOf(text)
         }
         anchor.ch = index + text.length
       })
 
-    cm.setSelection({ ...anchor, ch: anchor.ch - content.length }, anchor)
+    cm.setSelection({ line: anchor.line, ch: anchor.ch - content.length }, anchor)
   }
 })
+
+dumbyContainer.onmousedown = (e) => {
+  // Check should start drag event for GeoLink
+  const selection = document.getSelection()
+  if (cm.getSelection() === '' || selection.type !== 'Range') return
+  const range = selection.getRangeAt(0)
+  const rect = range.getBoundingClientRect()
+  const mouseInRange = e.x < rect.right && e.x > rect.left && e.y < rect.bottom && e.y > rect.top
+  if (!mouseInRange) return
+
+  const geoLink = document.createElement('a')
+  geoLink.textContent = range.toString()
+  geoLink.classList.add('with-leader-line', 'geolink', 'drag')
+  range.deleteContents()
+  range.insertNode(geoLink)
+
+  const lineEnd = document.createElement('div')
+  lineEnd.style.cssText = `position: absolute; left: ${e.clientX}px; top: ${e.clientY}px;`
+  document.body.appendChild(lineEnd)
+
+  menu.style.display = 'block'
+  const line = new LeaderLine({
+    start: geoLink,
+    end: lineEnd,
+    path: 'magnet'
+  })
+
+  function onMouseMove(event) {
+    lineEnd.style.left = event.clientX + 'px'
+    lineEnd.style.top = event.clientY + 'px'
+    line.position()
+  }
+
+  dumbyContainer.onmousemove = onMouseMove
+  dumbyContainer.onmouseup = function(e) {
+    dumbyContainer.onmousemove = null
+    dumbyContainer.onmouseup = null
+    line?.remove()
+    lineEnd.remove()
+
+    const map = document.elementFromPoint(e.clientX, e.clientY).closest('.mapclay')
+    const selection = cm.getSelection()
+    if (!map || !selection) {
+      updateDumbyMap()
+      return
+    }
+
+    const refLink = addAnchorByPoint({ point: e, map, validateAnchorName })
+    if (!refLink) {
+      updateDumbyMap()
+      return
+    }
+
+    const {ref, link} = refLink
+    appendRefLink({ cm, ref, link })
+    if (selection === ref) {
+      cm.replaceSelection(`[${selection}]`)
+    } else {
+      cm.replaceSelection(`[${selection}][${ref}]`)
+    }
+  };
+}
+
+dumbyContainer.ondragstart = () => false
 
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
