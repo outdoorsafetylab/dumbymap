@@ -7,6 +7,7 @@ import { shiftByWindow } from './utils.mjs'
 
 // Set up Containers {{{
 
+const url = new URL(window.location)
 const context = document.querySelector('[data-mode]')
 const dumbyContainer = document.querySelector('.DumbyMap')
 const textArea = document.querySelector('.editor textarea')
@@ -134,6 +135,7 @@ const editor = new EasyMDE({
       action: () => {
         const state = { content: editor.value() }
         window.location.hash = encodeURIComponent(JSON.stringify(state))
+        window.location.search = ''
         navigator.clipboard.writeText(window.location.href)
         window.alert('URL updated in address bar, you can save current page as bookmark')
       }
@@ -239,16 +241,18 @@ const getContentFromHash = hash => {
   const state = getStateFromHash(hash)
   return state.content
 }
+const contentFromHash = getContentFromHash(window.location.hash)
 
-const initialState = getStateFromHash(window.location.hash)
-window.location.hash = ''
-const contentFromHash = initialState.content
-
-// Seems like autosave would overwrite initialValue, set content from hash here
-if (contentFromHash) {
+if (url.searchParams.get('content') === 'tutorial') {
+  console.log('tutorial')
+  editor.value(defaultContent)
+} else if (contentFromHash) {
+  // Seems like autosave would overwrite initialValue, set content from hash here
   editor.cleanup()
   editor.value(contentFromHash)
 }
+
+window.location.hash = ''
 
 // }}}
 // Set up logic about editor content {{{
