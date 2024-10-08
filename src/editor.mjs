@@ -4,6 +4,7 @@ import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
 import { shiftByWindow } from './utils.mjs'
+import { addAnchorByEvent } from './dumbyUtils.mjs'
 
 // Set up Containers {{{
 
@@ -47,7 +48,7 @@ const toggleEditing = () => {
 // Content values for editor
 
 const defaultContent =
-`<br>
+  `<br>
 
 > <big>Hello My Friend! This is DumbyMap!</big>
 
@@ -441,30 +442,21 @@ const menuForEditor = (event, menu) => {
   if (map) {
     const item = new menuItem.Item({
       text: 'Add Anchor',
-      onclick: () => {
-        const rect = map.getBoundingClientRect()
-        const [x, y] = map.renderer
-          .unproject([event.x - rect.left, event.y - rect.top])
-          .map(coord => coord.toFixed(7))
+      onclick: (event) => {
+        const validateAnchorName = anchorName =>
+            !refLinks.find(obj => obj.ref === anchorName)
+        const { ref, link } = addAnchorByEvent({
+          event,
+          map,
+          validateAnchorName 
+        })
 
-        let prompt
-        let anchorName
-
-        do {
-          prompt = prompt ? 'Anchor name exists' : 'Name this anchor'
-          anchorName = window.prompt(prompt, `${x}, ${y}`)
-        }
-        while (anchorName !== null && refLinks.find(({ ref }) => ref === anchorName))
-        if (anchorName === null) return
-
-        const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id} "${anchorName}"`
+        let refLinkString = `\n[${ref}]: ${link}`
         const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
-        cm.replaceRange(
-          `${lastLineIsRefLink ? '' : '\n'}\n[${anchorName}]: ${link}`,
-          { line: Infinity }
-        )
-        refLinks = getRefLinks()
-        map.renderer.addMarker({ xy: [Number(x), Number(y)], title: `${map.id}@${x},${y}`, type: 'circle' })
+        if (lastLineIsRefLink) refLinkString = '\n' + refLinkString
+        cm.replaceRange(refLinkString, { line: Infinity })
+
+        refLinks.push({ ref, link })
       }
     })
     menu.insertBefore(item, menu.firstChild)
@@ -802,13 +794,13 @@ const getSuggestions = anchor => {
     return rendererSuggestions.length === 0
       ? []
       : [
-          ...rendererSuggestions,
-          new menuItem.Item({
-            innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
-            className: ['suggestion'],
-            onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank')
-          })
-        ]
+        ...rendererSuggestions,
+        new menuItem.Item({
+          innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
+          className: ['suggestion'],
+          onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank')
+        })
+      ]
   }
   return []
 }
@@ -1076,4 +1068,5 @@ document.addEventListener('selectionchange', () => {
     cm.setSelection({ ...anchor, ch: anchor.ch - content.length }, anchor)
   }
 })
+
 // vim: sw=2 ts=2 foldmethod=marker foldmarker={{{,}}}
