@@ -291,13 +291,14 @@ new window.MutationObserver(() => {
   attributeFilter: ['data-scroll-line']
 })
 
-cm.on('scroll', () => {
+const setScrollLine = () => {
   if (dumbyContainer.dataset.scrollLine) return
 
-  const scrollInfo = cm.getScrollInfo()
-  const lineNumber = cm.lineAtHeight(scrollInfo.top, 'local')
+  const lineNumber = cm.getCursor()?.line
+    ?? cm.lineAtHeight(cm.getScrollInfo().top, 'local')
   textArea.dataset.scrollLine = lineNumber
-})
+}
+cm.on('scroll', setScrollLine)
 
 // Sync HTML Contents with CodeMirror LineNumber
 new window.MutationObserver(() => {
@@ -317,6 +318,7 @@ new window.MutationObserver(() => {
     p = paragraphs.find(p => Number(p.dataset.sourceLine) === lineNumber)
     lineNumber++
   } while (!p && lineNumber < cm.doc.size)
+  p = p ?? paragraphs.at(-1)
   if (!p) return
 
   const coords = cm.charCoords({ line: lineNumber, ch: 0 })
@@ -475,6 +477,8 @@ const updateDumbyMap = () => {
   htmlHolder.onscroll = htmlOnScroll(htmlHolder)
   // Set oncontextmenu callback
   dumbymap.utils.setContextMenu(menuForEditor)
+  // Scroll to proper position
+  setScrollLine()
 }
 updateDumbyMap()
 
