@@ -424,7 +424,7 @@ const completeForCodeBlock = change => {
 const menuForEditor = (event, menu) => {
   event.preventDefault()
 
-  if (document.getSelection.type === 'Range' && cm.getSelection() && refLinks.length > 0) {
+  if (document.getSelection().type === 'Range' && cm.getSelection() && refLinks.length > 0) {
     menu.replaceChildren()
     menu.appendChild(menuItem.addRefLink(cm, refLinks))
   }
