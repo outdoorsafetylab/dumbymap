@@ -19,13 +19,14 @@ const refLinkPattern = /\[([^\x5B\x5D]+)\]:\s+(.+)/
 let refLinks = []
 const validateAnchorName = anchorName =>
   !refLinks.find(obj => obj.ref === anchorName)
-const appendRefLink = ({ cm, ref, link }) => {
-  let refLinkString = `\n[${ref}]: ${link}`
+const appendRefLink = (cm, refLink) => {
+  const {ref, link, title} = refLink
+  let refLinkString = `\n[${ref}]: ${link} "${title ?? ''}"`
   const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
   if (!lastLineIsRefLink) refLinkString = '\n' + refLinkString
   cm.replaceRange(refLinkString, { line: Infinity })
 
-  refLinks.push({ ref, link })
+  refLinks.push(refLink)
 }
 /**
  * Watch for changes of editing mode
@@ -468,8 +469,8 @@ const menuForEditor = (event, menu) => {
     const item = new menuItem.Item({
       text: 'Add Anchor',
       onclick: (event) => {
-        const { ref, link } = addAnchorByPoint({ point: event, map, validateAnchorName })
-        appendRefLink({ cm, ref, link })
+        const refLink = addAnchorByPoint({ point: event, map, validateAnchorName })
+        appendRefLink(cm, refLink)
       },
     })
     menu.insertBefore(item, menu.firstChild)
@@ -1146,12 +1147,11 @@ dumbyContainer.onmousedown = (e) => {
       return
     }
 
-    const { ref, link } = refLink
-    appendRefLink({ cm, ref, link })
-    if (selection === ref) {
+    appendRefLink(cm, refLink)
+    if (selection === refLink.ref) {
       cm.replaceSelection(`[${selection}]`)
     } else {
-      cm.replaceSelection(`[${selection}][${ref}]`)
+      cm.replaceSelection(`[${selection}][${refLink.ref}]`)
     }
   }
 }

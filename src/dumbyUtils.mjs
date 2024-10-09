@@ -121,7 +121,7 @@ const addLeaderLine = (link, target) => {
     start: link,
     end: target,
     hide: true,
-    middleLabel: link.url.searchParams.get('text'),
+    middleLabel: link.title,
     path: 'magnet',
   })
   line.show('draw', { duration: 300 })
@@ -270,12 +270,14 @@ export const addAnchorByPoint = ({
   while (anchorName !== null && !validateAnchorName(anchorName))
   if (anchorName === null) return
 
-  const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id}&text=${anchorName}`
+  const desc = window.prompt("Description", anchorName) ?? anchorName
+
+  const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id}`
   map.renderer.addMarker({
     xy: [x, y],
     title: `${map.id}@${x},${y}`,
     type: 'circle',
   })
 
-  return { ref: anchorName, link }
+  return { ref: anchorName, link, title: desc }
 }
