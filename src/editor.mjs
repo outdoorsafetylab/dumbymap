@@ -487,6 +487,8 @@ cm.on('focus', () => {
 })
 
 cm.on('beforeChange', (_, change) => {
+  textArea.dataset.scrollLine = cm.getCursor().line
+
   // Don't allow more content after YAML doc separator
   if (change.origin && change.origin.match(/^(\+input|paste)$/)) {
     const line = change.to.line
@@ -830,7 +832,6 @@ const addSuggestions = (anchor, suggestions) => {
 cm.on('cursorActivity', _ => {
   menu.style.display = 'none'
   const anchor = cm.getCursor()
-  textArea.dataset.scrollLine = anchor.line
 
   if (insideCodeblockForMap(anchor)) {
     handleTypingInCodeBlock(anchor)
