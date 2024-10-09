@@ -316,7 +316,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
   // Set unique ID for map container
   const mapIdList = []
   const assignMapId = config => {
-    let mapId = config.id.replaceAll('\x20', '_')
+    let mapId = config.id?.replaceAll('\x20', '_')
     if (!mapId) {
       mapId = config.use?.split('/')?.at(-1)
       let counter = 1
