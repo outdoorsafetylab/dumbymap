@@ -965,7 +965,7 @@ new window.MutationObserver(mutaions => {
  */
 const addMapRandomlyByPreset = () => {
   const yamlText = [
-    'apply: dist/default.yml',
+    'apply: ./assets/default.yml',
     'width: 85%',
     'height: 200px',
   ]
