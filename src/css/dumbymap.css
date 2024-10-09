@@ -237,23 +237,6 @@ a[href^='http']:not(:has(img))::after,
     }
   }
 
-  details {
-    display: block;
-    width: fit-content;
-    padding: .3rem 1rem;
-
-    border-radius: 4px;
-
-    background: #F0F0F0;
-
-    summary {
-      cursor: pointer;
-    }
-
-    &:hover {
-      background: #E4E4E7;
-    }
-  }
 }
 
 .menu {
@@ -377,13 +360,14 @@ a[href^='http']:not(:has(img))::after,
 
   details {
     margin-bottom: 0.5em;
+
+    summary {
+      max-width: 60%;
+
+      cursor: pointer;
+    }
   }
 
-  summary {
-    max-width: 60%;
-
-    cursor: pointer;
-  }
 
   details > :not(summary) {
     padding-left: 2em;
@@ -813,5 +797,23 @@ a[href^='http']:not(:has(img))::after,
     bottom: 20px;
 
     background: red;
+  }
+}
+
+.dumby-block details {
+  display: block;
+  width: fit-content;
+  padding: .3rem 1rem;
+
+  border-radius: 4px;
+
+  background: #F0F0F0;
+
+  summary {
+    cursor: pointer;
+  }
+
+  &:hover {
+    background: #E4E4E7;
   }
 }
