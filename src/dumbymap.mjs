@@ -16,7 +16,7 @@ const docLinkSelector = 'a[href^="#"][title^="=>"]'
 const geoLinkSelector = 'a[href^="geo:"]'
 
 /** Default Layouts */
-const layouts = [
+const defaultLayouts = [
   new Layout({ name: 'normal' }),
   new SideBySide({ name: 'side-by-side' }),
   new Overlay({ name: 'overlay' }),
@@ -112,7 +112,7 @@ export const markdown2HTML = (container, mdContent) => {
  * @param {Number} options.delay -- delay of map generation, milliseconds
  * @return {Object} dumbymap -- Include and Elements and Methods about managing contents
  */
-export const generateMaps = (container, { delay, renderCallback } = {}) => {
+export const generateMaps = (container, { layouts = [], delay, renderCallback } = {}) => {
 
   /** Prepare Contaner/HTML Holder/Showcase */
   container.classList.add('Dumby')
@@ -132,7 +132,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
 
   /** Define dumbymap Object */
   const dumbymap = {
-    layouts,
+    layouts: [...defaultLayouts, ...layouts.map(l => typeof l === 'object' ? l : { name: l })],
     container,
     htmlHolder,
     showcase,

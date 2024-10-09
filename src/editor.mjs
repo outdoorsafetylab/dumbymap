@@ -478,7 +478,7 @@ const menuForEditor = (event, menu) => {
 const updateDumbyMap = (callback = null) => {
   markdown2HTML(dumbyContainer, editor.value())
   // debounceForMap(dumbyContainer, afterMapRendered)
-  dumbymap = generateMaps(dumbyContainer, {})
+  dumbymap = generateMaps(dumbyContainer, { layouts: ['sticky'] })
   // Set onscroll callback
   const htmlHolder = dumbymap.htmlHolder
   htmlHolder.onscroll = htmlOnScroll(htmlHolder)
