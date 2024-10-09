@@ -10,15 +10,19 @@ import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
 
+/** Selector of special HTML Elements */
 const mapBlockSelector = 'pre:has(.language-map)'
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
 const geoLinkSelector = 'a[href^="geo:"]'
 
+/** Default Layouts */
 const layouts = [
   new Layout({ name: 'normal' }),
   new SideBySide({ name: 'side-by-side' }),
   new Overlay({ name: 'overlay' }),
 ]
+
+/** Cache across every dumbymap generation */
 const mapCache = {}
 
 /**
@@ -28,12 +32,12 @@ const mapCache = {}
  * @param {String} mdContent -- Texts in Markdown
  */
 export const markdown2HTML = (container, mdContent) => {
-  // Render: Markdown -> HTML {{{
+  /** Prepare Elements for Container */
   container.replaceChildren()
-
   container.innerHTML = '<div class="SemanticHtml"></div>'
   const htmlHolder = container.querySelector('.SemanticHtml')
 
+  /** Prepare MarkdownIt Instance */
   const md = MarkdownIt({
     html: true,
     breaks: true,
@@ -48,11 +52,11 @@ export const markdown2HTML = (container, mdContent) => {
     .use(MarkdownItFrontMatter)
     .use(MarkdownItInjectLinenumbers)
 
-  // Create links with geo scheme
+  /** Set up linkify for GeoLinks */
   const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/
   const coordinateValue = {
     validate: coordinateRegex,
-    normalize: function (match) {
+    normalize: function(match) {
       const [, , x, sep, y] = match.text.match(coordinateRegex)
       match.url = `geo:${y},${x}?xy=${x},${y}`
       match.text = `${x}${sep} ${y}`
@@ -65,6 +69,7 @@ export const markdown2HTML = (container, mdContent) => {
     md.linkify.add(prefix, coordinateValue),
   )
 
+  /** Custom rule for Blocks in DumbyMap */
   // FIXME A better way to generate blocks
   md.renderer.rules.dumby_block_open = () => '<div>'
   md.renderer.rules.dumby_block_close = () => '</div>'
@@ -87,8 +92,9 @@ export const markdown2HTML = (container, mdContent) => {
     state.tokens.push(new state.Token('dumby_block_close', '', -1))
   })
 
+  /** Render HTML */
   htmlHolder.innerHTML = md.render(mdContent)
-
+  /** Post HTML rendered */
   // TODO Do this in markdown-it
   const blocks = htmlHolder.querySelectorAll(':scope > div:not(:has(nav))')
   blocks.forEach(b => {
@@ -97,7 +103,6 @@ export const markdown2HTML = (container, mdContent) => {
   })
 
   return container
-  // }}}
 }
 
 /**
@@ -108,6 +113,8 @@ export const markdown2HTML = (container, mdContent) => {
  * @return {Object} dumbymap -- Include and Elements and Methods about managing contents
  */
 export const generateMaps = (container, { delay, renderCallback } = {}) => {
+
+  /** Prepare Contaner/HTML Holder/Showcase */
   container.classList.add('Dumby')
   container.removeAttribute('data-layout')
   container.setAttribute('data-layout', layouts[0].name)
@@ -117,10 +124,13 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
   const renderPromises = []
+
+  /** Prepare Modal */
   const modalContent = document.createElement('div')
   container.appendChild(modalContent)
   const modal = new PlainModal(modalContent)
 
+  /** Define dumbymap Object */
   const dumbymap = {
     layouts,
     container,
@@ -152,21 +162,16 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
     dumbymap.utils[util] = func.bind(dumbymap)
   })
 
-  // LeaderLine {{{
-
-  Array.from(container.querySelectorAll(docLinkSelector)).filter(
-    utils.createDocLink,
-  )
-
-  // Add GeoLinks
+  /** Create GeoLinks and DocLinks */
+  container.querySelectorAll(docLinkSelector)
+    .forEach(utils.createDocLink)
   container.querySelectorAll(geoLinkSelector)
     .forEach(utils.createGeoLink)
 
-  // }}}
-  // CSS observer {{{
-  // Focus Map {{{
-  // Set focusArea
-
+  /**
+   * mapFocusObserver. observe for map focus
+   * @return {MutationObserver} observer
+   */
   const mapFocusObserver = () =>
     new window.MutationObserver(mutations => {
       const mutation = mutations.at(-1)
@@ -238,11 +243,8 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
         }).finished.finally(afterAnimation)
       }
     })
-  // }}}
-  // Layout {{{
-  // press key to switch layout
 
-  // observe layout change
+  /** Observer for layout changes */
   const layoutObserver = new window.MutationObserver(mutations => {
     const mutation = mutations.at(-1)
     const oldLayout = mutation.oldValue
@@ -281,10 +283,12 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
   })
 
   onRemove(htmlHolder, () => layoutObserver.disconnect())
-  // }}}
-  // }}}
-  // Render Maps {{{
 
+  /**
+   * afterMapRendered. callback of each map rendered
+   *
+   * @param {Object} renderer
+   */
   const afterMapRendered = renderer => {
     const mapElement = renderer.target
     // FIXME
@@ -371,7 +375,11 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
     },
     stepCallback: updateAttributeByStep,
   })
+
+  /** Get render method by converter */
   const render = renderWith(configConverter)
+
+  /** Render each taget element for maps */
   let order = 0
   elementsWithMapConfig.forEach(target => {
     // Get text in code block starts with markdown text '```map'
@@ -428,8 +436,8 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
       clearTimeout(timer)
     })
   })
-  // }}}
-  // Menu {{{
+
+  /** Prepare Context Menu */
   const menu = document.createElement('div')
   menu.className = 'menu'
   menu.style.display = 'none'
@@ -441,7 +449,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
   }
   container.appendChild(menu)
 
-  // Menu Items
+  /** Menu Items for Context Menu */
   container.oncontextmenu = e => {
     menu.replaceChildren()
     menu.style.display = 'block'
@@ -479,7 +487,7 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
     return menu
   }
 
-  // Remove menu when click outside
+  /** Event Handler when clicking outside of Context Manu */
   const actionOutsideMenu = e => {
     if (menu.style.display === 'none') return
     const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
@@ -499,6 +507,6 @@ export const generateMaps = (container, { delay, renderCallback } = {}) => {
   onRemove(htmlHolder, () =>
     document.removeEventListener('click', actionOutsideMenu),
   )
-  // }}}
+
   return Object.seal(dumbymap)
 }
