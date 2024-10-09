@@ -67,25 +67,22 @@ aliases:
     OSM Bright: https://tile.openstreetmap.jp/styles/osm-bright/512/{z}/{x}/{y}.png
     OSM DE: https://tile.openstreetmap.de/{z}/{x}/{y}.png
     OSM CH: https://tile.osm.ch/switzerland/{z}/{x}/{y}.png
-    OSM FR: https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png
-    OSM FR Hot: https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png
+    OSM FR: https://tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png
+    OSM FR Hot: https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png
     OSM BZH: https://tile.openstreetmap.bzh/br/{z}/{x}/{y}.png
     OSM BZH CA: https://tile.openstreetmap.bzh/ca/{z}/{x}/{y}.png
     MemoMaps: https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png
-    OpenTopoMap: https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png
-    Stadia Alidade Smooth: https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.{ext}
-    Staida Alidade Smooth Dark: https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}
-    Stadia OSM Bright: https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.{ext}
-    Stadia Outdoors: https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.{ext}
-    Stadia Toner:  https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.{ext}
-    Stadis Toner Light: https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.{ext}
-    Stadia Water Color: https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.{ext}
-    Stadia Terrain: https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.{ext}
-    Stadia Terrain Background: https://tiles.stadiamaps.com/tiles/stamen_terrain_background/{z}/{x}/{y}{r}.{ext}
+    OpenTopoMap: https://tile.opentopomap.org/{z}/{x}/{y}.png
+    Stadia Alidade Smooth: https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png
+    Staida Alidade Smooth Dark: https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png
+    Stadia OSM Bright: https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}.png
+    Stadia Outdoors: https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}.png
+    Stadia Toner:  https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png
+    Stadis Toner Light: https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}.png
+    Stadia Terrain: https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}.png
+    Stadia Terrain Background: https://tiles.stadiamaps.com/tiles/stamen_terrain_background/{z}/{x}/{y}.png
     BaseMap DE Color: https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_farbe/default/GLOBAL_WEBMERCATOR/{z}/{y}/{x}.png
     BaseMap DE Grey: https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_grau/default/GLOBAL_WEBMERCATOR/{z}/{y}/{x}.png
-    Cycloms: https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png
-    FreeMap SK: https://{s}.freemap.sk/T/{z}/{x}/{y}.jpeg
     MtbMap: http://tile.mtbmap.cz/mtbmap_tiles/{z}/{x}/{y}.png
     MapTiler Basic: https://tile.openstreetmap.jp/styles/maptiler-basic-en/512/{z}/{x}/{y}.png
     MapTiler Toner: https://tile.openstreetmap.jp/styles/maptiler-toner-ja/512/{z}/{x}/{y}.png
@@ -99,7 +96,6 @@ aliases:
     ESRI World Shaded Relief: https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}
     ESRI World Ocean: https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}
     ESRI World Light Gray: https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}
-    ESRI NatGeo World: https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}
   WMTS:
     TAIWAN NLSC: https://wmts.nlsc.gov.tw/wmts
     TAIWAN TERRAIN-RGB: https://osmhacktw.github.io/terrain-rgb/wmts.xml
