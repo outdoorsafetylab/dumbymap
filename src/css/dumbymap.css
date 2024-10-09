@@ -781,3 +781,17 @@ a[href^='http']:not(:has(img))::after,
     opacity: 0.3;
   }
 }
+
+.Dumby[data-layout='sticky'] {
+  .Showcase {
+    display: block;
+    width: 20vw;
+    height: 40vh;
+
+    position: absolute;
+    right: 0;
+    bottom: 0;
+
+    background: red;
+  }
+}

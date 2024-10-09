@@ -126,14 +126,24 @@ After `generateMaps()`, the container has the following structure:
 
 Dumbymap switch layouts by attribute `data-layout` of container. Most of the features are done by pure CSS.
 
-You can add custom layout by options `layouts`:
+You can add custom layout by options `layouts`. For example, the following code add a new layout `sticky` to stick `Showcase` at bottom right corner:
+
+```css
+.Dumby[data-layout='sticky'] {
+  .Showcase {
+    display: block;
+    width: 20vw;
+    height: 40vh;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background: red;
+  }
+}
+```
 
 ```js
-generateMaps(container, {
-  layouts: [
-    "LAYOUT-NAME"
-  ]
-})
+generateMaps(container, { layouts: "sticky" })
 ```
 
 
