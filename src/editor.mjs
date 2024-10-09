@@ -1098,6 +1098,7 @@ dumbyContainer.onmousedown = (e) => {
     lineEnd.style.left = event.clientX + 'px'
     lineEnd.style.top = event.clientY + 'px'
     line.position()
+    dumbymap.utils.renderedMaps().forEach(map => { map.style.cursor = 'crosshair' })
   }
 
   dumbyContainer.onmousemove = onMouseMove
@@ -1106,6 +1107,7 @@ dumbyContainer.onmousedown = (e) => {
     dumbyContainer.onmouseup = null
     line?.remove()
     lineEnd.remove()
+    dumbymap.utils.renderedMaps().forEach(map => map.style.removeProperty('cursor'))
 
     const map = document.elementFromPoint(e.clientX, e.clientY).closest('.mapclay')
     const selection = cm.getSelection()
