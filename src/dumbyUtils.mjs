@@ -265,7 +265,7 @@ export const addAnchorByPoint = ({
 
   do {
     prompt = prompt ? 'Anchor name exists' : 'Name this anchor'
-    anchorName = window.prompt(prompt, `${x}, ${y}`)
+    anchorName = window.prompt(prompt, `${x},${y}`)
   }
   while (anchorName !== null && !validateAnchorName(anchorName))
   if (anchorName === null) return
