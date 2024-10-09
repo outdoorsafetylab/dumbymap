@@ -117,7 +117,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
   /** Prepare Contaner/HTML Holder/Showcase */
   container.classList.add('Dumby')
   container.removeAttribute('data-layout')
-  container.setAttribute('data-layout', layouts[0].name)
+  container.setAttribute('data-layout', defaultLayouts[0].name)
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   const blocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
   const showcase = document.createElement('div')
@@ -252,7 +252,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
 
     // Apply handler for leaving/entering layouts
     if (oldLayout) {
-      layouts
+      dumbymap.layouts
         .find(l => l.name === oldLayout)
         ?.leaveHandler?.call(this, dumbymap)
     }
@@ -263,7 +263,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
       .forEach(ele => ele.removeAttribute('style'))
 
     if (newLayout) {
-      layouts
+      dumbymap.layouts
         .find(l => l.name === newLayout)
         ?.enterHandler?.call(this, dumbymap)
     }
