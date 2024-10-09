@@ -1,6 +1,6 @@
 # Dumbymap
 
-This library generate web maps from Semantic HTML, play around with [demo page](https://outdoorsafetylab.github.io/dumbymap/)
+This library generate web maps from [Semantic HTML], play around with [demo page](https://outdoorsafetylab.github.io/dumbymap/)
 
 > [!CAUTION]
 > API of DumbyMap is not stable now, use it carefully
@@ -32,11 +32,11 @@ Browser (CDN):
 
 ## Semantic HTML
 
-Dumbymap adds several features by Semantic HTML:
+Dumbymap adds several features from contents of Semantic HTML:
 
 ### Code Block for map
 
-Generated from Element fits CSS Selector `:has(.language-map)`
+Generated from Element fits CSS Selector `:has(.language-map)` (by default)
 
 It generates maps by `textContent` in YAML format, done by [mapclay]
 
@@ -103,21 +103,31 @@ It show leader-line to coordinates in target map elements, for example:
 [Taiwan](geo:24,121)
 
 <!-- anchor element -->
-<a href="geo:24,121" title="Here it is!">Taiwan</a>
+<a href="geo:24,121">Taiwan</a>
 
 
 <!-- Links above is transfered to this -->
-<a class="with-leader-line geolink" href="geo:24,121" title="Here it is!">Taiwan</a>
+<a class="with-leader-line geolink" href="geo:24,121">Taiwan</a>
 ```
 
 It changes behaviors by query parameters in link:
 1. If `xy` is specified, GeoLink would use its value instead of value in geo URI scheme
-2. If `id` is specified, GeoLink would only points to map with its value. Can use comma to add multiple id
+1. If `id` is specified, GeoLink would only points to map with its value. Can use comma to add multiple id
+1. If `type` is specified, anchor on map changes appearance (now only support `type=circle`)
 
 For example:
 ```html
 <!-- The following link points to coordinates [274527,2665529] in map element "map1" and "map2"
-<a href="geo:24,121?xy=274527,2665529&id=map1,map2" title="Here it is!">Taiwan</a>
+<a href="geo:24,121?xy=274527,2665529&id=map1,map2">Taiwan</a>
+```
+
+If `title` of element is specified, leader-line use it as label, for example:
+```markdown
+<!-- markdown text -->
+[Taiwan](geo:24,121 "Here it is!")
+
+<!-- anchor element -->
+<a href="geo:24,121" title="Here it is!">Taiwan</a>
 ```
 
 ## Structure
@@ -189,3 +199,4 @@ generateMaps(container, { layouts: "sticky" })
 * [StoryMapJS](https://storymap.knightlab.com/)
 
 [mapclay]: https://github.com/outdoorsafetylab/mapclay
+[Semantic HTML]: https://developer.mozilla.org/en-US/docs/Glossary/Semantics#semantics_in_html
