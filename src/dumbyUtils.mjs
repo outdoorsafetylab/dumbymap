@@ -67,7 +67,7 @@ export function focusDelay () {
  */
 export function switchToNextLayout (reverse = false) {
   const layouts = this.layouts
-  const currentLayoutName = this.container.getAttribute('data-layout')
+  const currentLayoutName = this.container.dataset.layout
   const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
   const padding = reverse ? -1 : 1
   const nextIndex =
@@ -75,7 +75,7 @@ export function switchToNextLayout (reverse = false) {
       ? 0
       : (currentIndex + padding + layouts.length) % layouts.length
   const nextLayout = layouts[nextIndex]
-  this.container.setAttribute('data-layout', nextLayout.name)
+  this.container.dataset.layout = nextLayout.name
 }
 
 /**

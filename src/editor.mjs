@@ -34,10 +34,10 @@ const appendRefLink = ({ cm, ref, link }) => {
  * and the layout is not 'normal', it sets the layout to 'normal' and switch to editing mode
  */
 new window.MutationObserver(() => {
-  const mode = context.getAttribute('data-mode')
-  const layout = dumbyContainer.getAttribute('data-layout')
+  const mode = context.dataset.mode
+  const layout = dumbyContainer.dataset.layout
   if (mode === 'editing' && layout !== 'normal') {
-    dumbyContainer.setAttribute('data-layout', 'normal')
+    dumbyContainer.dataset.layout = 'normal'
   }
 }).observe(context, {
   attributes: true,
@@ -48,8 +48,12 @@ new window.MutationObserver(() => {
  * toggleEditing: toggle editing mode
  */
 const toggleEditing = () => {
-  const mode = context.getAttribute('data-mode')
-  context.setAttribute('data-mode', mode === 'editing' ? '' : 'editing')
+  const mode = context.dataset.mode
+  if (mode === 'editing') {
+    delete context.dataset.mode
+  } else {
+    context.dataset.mode = 'editing'
+  }
 }
 // }}}
 // Set up EasyMDE {{{
@@ -949,9 +953,9 @@ document.onkeydown = e => {
 // Layout Switch {{{
 new window.MutationObserver(mutaions => {
   const mutation = mutaions.at(-1)
-  const layout = dumbyContainer.getAttribute('data-layout')
+  const layout = dumbyContainer.dataset.layout
   if (layout !== 'normal' || mutation.oldValue === 'normal') {
-    context.setAttribute('data-mode', '')
+    delete context.dataset.mode
   }
 }).observe(dumbyContainer, {
   attributes: true,

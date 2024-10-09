@@ -64,7 +64,7 @@ export class SideBySide extends Layout {
       resizeByLeft(pos.left)
     }
     draggable.onDragEnd = _ => {
-      handle.removeAttribute('style')
+      handle.style.cssText = ''
     }
 
     onRemove(bar, () => draggable.remove())
@@ -98,8 +98,8 @@ export class Overlay extends Layout {
    */
   saveLeftTopAsData = element => {
     const { left, top } = element.getBoundingClientRect()
-    element.setAttribute('data-left', left)
-    element.setAttribute('data-top', top)
+    element.dataset.left = left
+    element.dataset.top = top
   }
 
   /**
@@ -178,8 +178,8 @@ export class Overlay extends Layout {
     // Create draggable blocks and set each position by previous one
     let [left, top] = [20, 20]
     blocks.forEach(block => {
-      const originLeft = Number(block.getAttribute('data-left'))
-      const originTop = Number(block.getAttribute('data-top'))
+      const originLeft = Number(block.dataset.left)
+      const originTop = Number(block.dataset.top)
 
       // Create draggable block
       const wrapper = document.createElement('div')
@@ -229,13 +229,13 @@ export class Overlay extends Layout {
       }
       utils.onmouseout = () => {
         wrapper.appendChild(utils)
-        utils.removeAttribute('style')
+        utils.style.cssText = ''
       }
 
       // Close button
       wrapper.querySelector('#close').onclick = () => {
         block.classList.remove('focus')
-        utils.removeAttribute('style')
+        utils.style.cssText = ''
       }
       // Plus/Minus font-size of content
       wrapper.querySelector('#plus-font-size').onclick = () => {

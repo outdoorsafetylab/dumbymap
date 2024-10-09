@@ -56,7 +56,7 @@ export const markdown2HTML = (container, mdContent) => {
   const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/
   const coordinateValue = {
     validate: coordinateRegex,
-    normalize: function(match) {
+    normalize: function (match) {
       const [, , x, sep, y] = match.text.match(coordinateRegex)
       match.url = `geo:${y},${x}?xy=${x},${y}`
       match.text = `${x}${sep} ${y}`
@@ -99,7 +99,7 @@ export const markdown2HTML = (container, mdContent) => {
   const blocks = htmlHolder.querySelectorAll(':scope > div:not(:has(nav))')
   blocks.forEach(b => {
     b.classList.add('dumby-block')
-    b.setAttribute('data-total', blocks.length)
+    b.dataset.total = blocks.length
   })
 
   return container
@@ -113,11 +113,10 @@ export const markdown2HTML = (container, mdContent) => {
  * @return {Object} dumbymap -- Include and Elements and Methods about managing contents
  */
 export const generateMaps = (container, { layouts = [], delay, renderCallback } = {}) => {
-
   /** Prepare Contaner/HTML Holder/Showcase */
   container.classList.add('Dumby')
-  container.removeAttribute('data-layout')
-  container.setAttribute('data-layout', defaultLayouts[0].name)
+  delete container.dataset.layout
+  container.dataset.layout = defaultLayouts[0].name
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   const blocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
   const showcase = document.createElement('div')
@@ -197,7 +196,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
 
         // Placeholder for map in Showcase, it should has the same DOMRect
         const placeholder = target.cloneNode(true)
-        placeholder.removeAttribute('id')
+        delete placeholder.id
         placeholder.className = ''
 
         const parent = target.parentElement
@@ -212,10 +211,10 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
         // To make sure the original height of placeholder is applied, DOM changes seems needed
         // then set data-attribute for CSS selector to change height to 0
         placeholder.getBoundingClientRect()
-        placeholder.setAttribute('data-placeholder', target.id)
+        placeholder.dataset.placeholder = target.id
 
         // To fit showcase, remove all inline style
-        target.removeAttribute('style')
+        target.style.cssText = ''
         target.style.order = placeholder.style.order
         showcase.appendChild(target)
 
@@ -248,7 +247,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
   const layoutObserver = new window.MutationObserver(mutations => {
     const mutation = mutations.at(-1)
     const oldLayout = mutation.oldValue
-    const newLayout = container.getAttribute(mutation.attributeName)
+    const newLayout = container.dataset.layout
 
     // Apply handler for leaving/entering layouts
     if (oldLayout) {
@@ -260,7 +259,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
     Object.values(dumbymap)
       .flat()
       .filter(ele => ele instanceof window.HTMLElement)
-      .forEach(ele => ele.removeAttribute('style'))
+      .forEach(ele => { ele.style.cssText = '' })
 
     if (newLayout) {
       dumbymap.layouts
@@ -293,8 +292,8 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
     const mapElement = renderer.target
     // FIXME
     mapElement.renderer = renderer
-    mapElement.setAttribute('tabindex', '-1')
-    if (mapElement.getAttribute('data-render') === 'fulfilled') {
+    mapElement.tabindex = -1
+    if (mapElement.dataset.render === 'fulfilled') {
       mapCache[mapElement.id] ??= renderer
     } else {
       return
@@ -354,9 +353,9 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
     target.animations = target.animations.then(async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
       if (final) passNum += '\x20'
-      target.setAttribute('data-report', passNum)
+      target.dataset.report = passNum
 
-      if (final) setTimeout(() => target.removeAttribute('data-report'), 100)
+      if (final) setTimeout(() => delete target.dataset.report, 100)
     })
   }
   /**
