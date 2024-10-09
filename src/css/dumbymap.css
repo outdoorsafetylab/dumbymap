@@ -236,6 +236,24 @@ a[href^='http']:not(:has(img))::after,
       animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
     }
   }
+
+  details {
+    display: block;
+    width: fit-content;
+    padding: .3rem 1rem;
+
+    border-radius: 4px;
+
+    background: #F0F0F0;
+
+    summary {
+      cursor: pointer;
+    }
+
+    &:hover {
+      background: #E4E4E7;
+    }
+  }
 }
 
 .menu {
@@ -784,6 +802,7 @@ a[href^='http']:not(:has(img))::after,
 
 .Dumby[data-layout='sticky'] {
   max-width: 80em;
+
   .Showcase {
     display: block;
     width: 20vw;

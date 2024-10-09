@@ -177,20 +177,3 @@ blockquote {
   text-align: center;
 }
 
-details {
-  display: block;
-  width: fit-content;
-  padding: .3rem 1rem;
-
-  border-radius: 4px;
-
-  background: #F0F0F0;
-
-  summary {
-    cursor: pointer;
-  }
-
-  &:hover {
-    background: #E4E4E7;
-  }
-}
