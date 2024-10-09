@@ -20,7 +20,7 @@ let refLinks = []
 const validateAnchorName = anchorName =>
   !refLinks.find(obj => obj.ref === anchorName)
 const appendRefLink = (cm, refLink) => {
-  const {ref, link, title} = refLink
+  const { ref, link, title } = refLink
   let refLinkString = `\n[${ref}]: ${link} "${title ?? ''}"`
   const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
   if (!lastLineIsRefLink) refLinkString = '\n' + refLinkString

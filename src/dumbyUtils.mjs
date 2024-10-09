@@ -106,6 +106,7 @@ const getMarkersFromMaps = link => {
         renderer.addMarker({
           xy: link.xy,
           title: markerTitle,
+          type: link.type,
         })
     })
 }
@@ -152,6 +153,7 @@ export const createGeoLink = (link) => {
   link.xy = xy
   link.classList.add('with-leader-line', 'geolink')
   link.targets = link.url.searchParams.get('id')?.split(',') ?? null
+  link.type = link.url.searchParams.get('type') ?? null
 
   link.lines = []
 
@@ -270,9 +272,9 @@ export const addAnchorByPoint = ({
   while (anchorName !== null && !validateAnchorName(anchorName))
   if (anchorName === null) return
 
-  const desc = window.prompt("Description", anchorName) ?? anchorName
+  const desc = window.prompt('Description', anchorName) ?? anchorName
 
-  const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id}`
+  const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id}&type=circle`
   map.renderer.addMarker({
     xy: [x, y],
     title: `${map.id}@${x},${y}`,
