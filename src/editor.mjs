@@ -312,7 +312,9 @@ const setScrollLine = () => {
     cm.lineAtHeight(cm.getScrollInfo().top, 'local')
   textArea.dataset.scrollLine = lineNumber
 }
-cm.on('scroll', setScrollLine)
+cm.on('scroll', () => {
+  if (cm.hasFocus()) setScrollLine()
+})
 
 /** Sync scroll from CodeMirror to HTML **/
 new window.MutationObserver(() => {
@@ -459,7 +461,7 @@ const menuForEditor = (event, menu) => {
 /**
  * update content of HTML about Dumbymap
  */
-const updateDumbyMap = () => {
+const updateDumbyMap = (callback = null) => {
   markdown2HTML(dumbyContainer, editor.value())
   // debounceForMap(dumbyContainer, afterMapRendered)
   dumbymap = generateMaps(dumbyContainer, {})
@@ -468,14 +470,16 @@ const updateDumbyMap = () => {
   htmlHolder.onscroll = htmlOnScroll(htmlHolder)
   // Set oncontextmenu callback
   dumbymap.utils.setContextMenu(menuForEditor)
-  // Scroll to proper position
-  setScrollLine()
+
+  callback?.(dumbymap)
 }
 updateDumbyMap()
 
 // Re-render HTML by editor content
 cm.on('change', (_, change) => {
-  updateDumbyMap()
+  updateDumbyMap(() => {
+    setScrollLine()
+  })
   addClassToCodeLines()
   completeForCodeBlock(change)
 })
@@ -1066,6 +1070,7 @@ document.addEventListener('selectionchange', () => {
 /** Drag/Drop on map for new reference style link */
 dumbyContainer.onmousedown = (e) => {
   // Check should start drag event for GeoLink
+  if (e.which !== 1) return
   const selection = document.getSelection()
   if (cm.getSelection() === '' || selection.type !== 'Range') return
   const range = selection.getRangeAt(0)
@@ -1093,27 +1098,33 @@ dumbyContainer.onmousedown = (e) => {
     lineEnd.style.left = event.clientX + 'px'
     lineEnd.style.top = event.clientY + 'px'
     line.position()
-    dumbymap.utils.renderedMaps().forEach(map => { map.style.cursor = 'crosshair' })
   }
 
+    context.classList.add('dragging-geolink')
   dumbyContainer.onmousemove = onMouseMove
+  dumbymap.utils.renderedMaps().forEach(map => { map.style.cursor = 'crosshair' })
   dumbyContainer.onmouseup = function (e) {
+    context.classList.remove('dragging-geolink')
     dumbyContainer.onmousemove = null
     dumbyContainer.onmouseup = null
     line?.remove()
     lineEnd.remove()
     dumbymap.utils.renderedMaps().forEach(map => map.style.removeProperty('cursor'))
+    const resumeContent = () => updateDumbyMap(newDumbymap => {
+      const scrollTop = dumbymap.htmlHolder.scrollTop
+      newDumbymap.htmlHolder.scrollBy(0, scrollTop)
+    })
 
     const map = document.elementFromPoint(e.clientX, e.clientY).closest('.mapclay')
     const selection = cm.getSelection()
     if (!map || !selection) {
-      updateDumbyMap()
+      resumeContent()
       return
     }
 
     const refLink = addAnchorByPoint({ point: e, map, validateAnchorName })
     if (!refLink) {
-      updateDumbyMap()
+      resumeContent()
       return
     }
 
