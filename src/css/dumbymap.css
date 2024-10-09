@@ -783,14 +783,15 @@ a[href^='http']:not(:has(img))::after,
 }
 
 .Dumby[data-layout='sticky'] {
+  max-width: 80em;
   .Showcase {
     display: block;
     width: 20vw;
     height: 40vh;
 
     position: absolute;
-    right: 0;
-    bottom: 0;
+    right: 20px;
+    bottom: 20px;
 
     background: red;
   }
