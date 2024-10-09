@@ -89,6 +89,16 @@ a:hover {
   text-decoration: underline;
 }
 
+code {
+  display: inline-block;
+  padding: 0.3em;
+
+  background-color: whitesmoke;
+
+  color: #333;
+  font-size: 1.2em;
+}
+
 pre {
   width: 100%;
 }
@@ -165,4 +175,22 @@ blockquote {
   font-style: italic;
 
   text-align: center;
+}
+
+details {
+  display: block;
+  width: fit-content;
+  padding: .3rem 1rem;
+
+  border-radius: 4px;
+
+  background: #F0F0F0;
+
+  summary {
+    cursor: pointer;
+  }
+
+  &:hover {
+    background: #E4E4E7;
+  }
 }
