@@ -28,9 +28,9 @@
     "dev": "npm run server",
     "lint": "standard --fix",
     "style": "scripts/stylelint.sh",
-    "docs": "jsdoc -c scripts/jsdoc.conf; xdg-open http://localhost:8080/docs/",
+    "docs": "jsdoc -c scripts/jsdoc.conf src/; xdg-open http://localhost:8080/docs/",
     "prepack": "npm run lint && npm run style && npm run build",
-    "postpack": "rm -rf dist/css dist/renderers; ln -sf `pwd`/src/css dist; cp node_modules/easymde/dist/easymde.min.css src/css; ln -sf `pwd`/mapclay/dist/renderers dist"
+    "postpack": "rm -rf dist/css dist/renderers; ln -sf `pwd`/src/css dist; cp node_modules/easymde/dist/easymde.min.css src/css; ln -sf `pwd`/node_modules/mapclay/dist/renderers dist"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^5.1.1",
