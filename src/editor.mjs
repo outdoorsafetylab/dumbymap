@@ -344,9 +344,9 @@ new window.MutationObserver(() => {
   if (line) {
     const [lineNumber, offset] = line.split('/')
 
-    if (!isNaN(lineNumber)) {
-      cm.scrollIntoView({ line: lineNumber, ch: 0 }, offset)
-    }
+    if (!lineNumber || isNaN(lineNumber)) return
+
+    cm.scrollIntoView({ line: lineNumber, ch: 0 }, offset)
   }
 }).observe(dumbyContainer, {
   attributes: true,
@@ -379,7 +379,7 @@ new window.MutationObserver(() => {
   const line = textArea.dataset.scrollLine
   let lineNumber = Number(line)
   let p
-  if (isNaN(lineNumber)) return
+  if (!line || isNaN(lineNumber)) return
 
   const paragraphs = Array.from(dumbymap.htmlHolder.querySelectorAll('p'))
   do {
