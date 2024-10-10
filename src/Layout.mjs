@@ -97,7 +97,7 @@ export class SideBySide extends Layout {
  */
 export class Overlay extends Layout {
   /**
-   * @type {}
+   * @type {String} name - Name of Layout
    */
   name = 'overlay'
 
