@@ -124,8 +124,8 @@ If you want know more, take a look at subjects below:
       <summary>I want more features in map!</summary>
 
       DumbyMap use [mapclay](https://github.com/outdoorsafetylab/mapclay) to render maps.
-      1. You can use \`eval\` options to add custom scripts, see [tutoria](https://github.com/outdoorsafetylab/mapclay?tab=readme-ov-file#run-scripts-after-map-is-created) for more details
-      2. You can use custom Renderer indtead of default ones, see [tutoria](https://github.com/outdoorsafetylab/mapclay?tab=readme-ov-file#renderer) for more details
+      1. You can use \`eval\` options to add custom scripts, see [tutorial](https://github.com/outdoorsafetylab/mapclay?tab=readme-ov-file#run-scripts-after-map-is-created) for more details
+      2. You can use custom Renderer indtead of default ones, see [tutorial](https://github.com/outdoorsafetylab/mapclay?tab=readme-ov-file#renderer) for more details
 
    </details>
 1. [I am an experienced developer, show me what you got!](https://github.com/outdoorsafetylab/dumbymap)
