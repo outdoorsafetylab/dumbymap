@@ -637,8 +637,6 @@ a[href^='http']:not(:has(img))::after,
 }
 
 .draggable-block {
-  /* TODO transition for display */
-  display: none;
   overflow: visible;
   width: fit-content;
 
@@ -650,15 +648,20 @@ a[href^='http']:not(:has(img))::after,
   background: white;
 
   font-size: 0.8rem;
+
+  transition:
+    opacity .3s linear,
+    visibility .3s linear;
+  visibility: hidden;
+  opacity: 0;
   pointer-events: auto;
 
   &:has(.dumby-block.focus) {
-    display: block;
-
-    outline: solid #505050 1px;
-    border-color: #505050;
+    visibility: visible;
+    opacity: 1;
   }
 
+  /** Hide block with map in focus, which is the only element */
   &:has(pre:only-child [data-placeholder]:only-child) {
     display: none;
   }
