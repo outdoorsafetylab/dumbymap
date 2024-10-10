@@ -1,4 +1,4 @@
 #! /bin/bash
 
 shopt -s extglob
-stylelint src/css/!(easymde.min.css) --fix
+stylelint -c scripts/stylelintrc.json src/css/!(easymde.min.css) --fix

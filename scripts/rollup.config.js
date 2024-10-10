@@ -18,14 +18,14 @@ const general = {
   ],
   watch: {
     clearScreen: false,
-    include: ['src/**', 'mapclay/dist/mapclay.mjs'],
+    include: ['src/**', 'node_modules/mapclay/dist/mapclay.mjs'],
   },
   context: 'window',
   plugins: [
     {
       name: 'watch-mapclay',
       buildStart () {
-        const mapclayPath = join(process.cwd(), 'mapclay', 'dist', 'mapclay.mjs')
+        const mapclayPath = join(process.cwd(), 'node_modules', 'mapclay', 'dist', 'mapclay.mjs')
         if (existsSync(mapclayPath)) {
           this.addWatchFile(mapclayPath)
         } else {
@@ -38,15 +38,6 @@ const general = {
       transform (code, id) {
         if (id.includes('node_modules/leader-line/')) {
           return `${code}\nexport default LeaderLine;`
-        }
-        return null
-      },
-    },
-    {
-      name: 'mapclay',
-      resolveId (source) {
-        if (source === 'mapclay' && existsSync(join('.', 'mapclay'))) {
-          return './mapclay/dist/mapclay.mjs'
         }
         return null
       },
