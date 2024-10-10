@@ -140,9 +140,8 @@ export const createGeoLink = (link) => {
   const url = new URL(link.href)
   const xyInParams = url.searchParams.get('xy')?.split(',')?.map(Number)
   const xy = xyInParams ?? url?.href
-    ?.match(/^geo:([0-9.,]+)/)
-    ?.at(1)
-    ?.split(',')
+    ?.match(/^geo:([-]?[0-9.]+),([-]?[0-9.]+)/)
+    ?.splice(1)
     ?.reverse()
     ?.map(Number)
 
