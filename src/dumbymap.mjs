@@ -173,7 +173,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
    * mapFocusObserver. observe for map focus
    * @return {MutationObserver} observer
    */
-  const mapFocusObserver = () =>
+  const mapClassObserver = () =>
     new window.MutationObserver(mutations => {
       const mutation = mutations.at(-1)
       const target = mutation.target
@@ -191,6 +191,13 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
           .renderedMaps()
           .filter(map => map.id !== target.id)
           .forEach(map => map.classList.remove('focus'))
+
+        if (target.classList.contains('focus-manual')) {
+          setTimeout(
+            () => target.classList.remove('focus-manual'),
+            2000,
+          )
+        }
       }
 
       if (shouldBeInShowcase) {
@@ -304,7 +311,7 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
     renderCallback?.(renderer)
 
     // Work with Mutation Observer
-    const observer = mapFocusObserver()
+    const observer = mapClassObserver()
     observer.observe(mapElement, {
       attributes: true,
       attributeFilter: ['class'],

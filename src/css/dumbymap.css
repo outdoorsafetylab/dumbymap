@@ -68,7 +68,7 @@ a[href^='http']:not(:has(img))::after,
 
   transition: flex-basis 300ms ease-in-out;
 
-  &.focus::after {
+  &.focus.focus-manual::after {
     content: 'Map-ID: ' attr(id);
     padding: 0.3rem 0.5rem;
 

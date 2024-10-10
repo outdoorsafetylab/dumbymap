@@ -12,7 +12,7 @@ export function focusNextMap (reverse = false) {
   const nextIndex = (index + (reverse ? -1 : 1)) % renderedList.length
 
   const nextMap = renderedList.at(nextIndex)
-  nextMap.classList.add('focus')
+  nextMap.classList.add('focus', 'focus-manual')
   nextMap.scrollIntoView({ behavior: 'smooth' })
 }
 

@@ -355,7 +355,11 @@ export const toggleBlockFocus = block =>
 export const toggleMapFocus = map =>
   new Item({
     text: 'Toggle Focus',
-    onclick: () => map.classList.toggle('focus'),
+    onclick: () => {
+      if (map.classList.toggle('focus')) {
+        map.classList.add('focus-manual')
+      }
+    },
   })
 
 /**
