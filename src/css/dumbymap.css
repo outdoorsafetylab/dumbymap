@@ -160,32 +160,6 @@ a[href^='http']:not(:has(img))::after,
   }
 }
 
-*:has(> nav) {
-  /* FIXME Hide nav at proper time */
-  display: none;
-  min-width: 120px;
-  padding: 0.5rem;
-
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  z-index: 500;
-
-  border: 2px solid gray;
-  border-radius: 0.5rem;
-
-  background-color: white;
-
-  &:has(> nav:empty) {
-    display: none;
-  }
-
-  ol {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-  }
-}
-
 .dumby-block {
   padding: 1rem 1rem 1rem 2rem;
 
