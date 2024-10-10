@@ -26,10 +26,11 @@ const defaultLayouts = [
 const mapCache = {}
 
 /**
- * markdown2HTML.
+ * Converts Markdown content to HTML and prepares it for DumbyMap rendering
  *
- * @param {HTMLElement} container -- Target Element to include generated HTML contents
- * @param {String} mdContent -- Texts in Markdown
+ * @param {HTMLElement} container - Target Element to include generated HTML contents
+ * @param {string} mdContent - Texts in Markdown format
+ * @returns {Object} An object representing the DumbyMap instance
  */
 export const markdown2HTML = (container, mdContent) => {
   /** Prepare Elements for Container */
@@ -106,11 +107,12 @@ export const markdown2HTML = (container, mdContent) => {
 }
 
 /**
- * generateMaps.
+ * Generates maps based on the provided configuration
  *
- * @param {HTMLElement} container -- Target Element contains HTML contents
- * @param {Number} options.delay -- delay of map generation, milliseconds
- * @return {Object} dumbymap -- Include and Elements and Methods about managing contents
+ * @param {HTMLElement} container - The container element for the maps
+ * @param {Object} options - Configuration options
+ * @param {number} [options.delay=1000] - Delay before rendering maps (in milliseconds)
+ * @param {Function} options.mapCallback - Callback function to be called after map rendering
  */
 export const generateMaps = (container, { layouts = [], delay, renderCallback } = {}) => {
   /** Prepare Contaner/HTML Holder/Showcase */

@@ -1,5 +1,4 @@
 /* global EasyMDE */
-/* eslint no-undef: "error" */
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
@@ -7,18 +6,41 @@ import { addAnchorByPoint } from './dumbyUtils.mjs'
 import { shiftByWindow } from './utils.mjs'
 import LeaderLine from 'leader-line'
 
+/**
+ * @typedef {Object} RefLink
+ * @property {string} ref -- name of link
+ * @property {string} link -- content of link
+ * @property {string|null} title -- title of link
+ */
+
 // Set up Containers {{{
 /** Variables about dumbymap and editor **/
 const url = new URL(window.location)
 const context = document.querySelector('[data-mode]')
 const dumbyContainer = document.querySelector('.DumbyMap')
+dumbyContainer.dataset.scrollLine = ''
 const textArea = document.querySelector('.editor textarea')
 let dumbymap
 
-const refLinkPattern = /\[([^\x5B\x5D]+)\]:\s+(.+)/
+/** Variables about Reference Style Links in Markdown */
+const refLinkPattern = /\[([^\x5B\x5D]+)\]:\s+(\S+)(\s["'](\S+)["'])?/
 let refLinks = []
+
+/**
+ * Validates if the given anchor name is unique
+ *
+ * @param {string} anchorName - The anchor name to validate
+ * @returns {boolean} True if the anchor name is unique, false otherwise
+ */
 const validateAnchorName = anchorName =>
   !refLinks.find(obj => obj.ref === anchorName)
+
+/**
+ * Appends a reference link to the CodeMirror instance
+ *
+ * @param {CodeMirror} cm - The CodeMirror instance
+ * @param {RefLink} refLink - The reference link to append
+ */
 const appendRefLink = (cm, refLink) => {
   const { ref, link, title } = refLink
   let refLinkString = `\n[${ref}]: ${link} "${title ?? ''}"`
@@ -46,7 +68,7 @@ new window.MutationObserver(() => {
   attributeOldValue: true,
 })
 /**
- * toggleEditing: toggle editing mode
+ * Toggles the editing mode
  */
 const toggleEditing = () => {
   const mode = context.dataset.mode
@@ -236,12 +258,15 @@ const editor = new EasyMDE({
 /** CodeMirror Instance **/
 const cm = editor.codemirror
 
-/** Ref Links **/
+/**
+ * getRefLinks from contents of editor
+ * @return {RefLink[]} refLinks
+ */
 const getRefLinks = () => editor.value()
   .split('\n')
   .map(line => {
-    const [, ref, link] = line.match(refLinkPattern) ?? []
-    return { ref, link }
+    const [, ref, link,, title] = line.match(refLinkPattern) ?? []
+    return { ref, link, title }
   })
   .filter(({ ref, link }) => ref && link)
 
@@ -284,8 +309,12 @@ if (url.searchParams.get('content') === 'tutorial') {
 // }}}
 // Set up logic about editor content {{{
 
-/** Sync scroll from HTML to CodeMirror **/
-const htmlOnScroll = (ele) => () => {
+/**
+ * updateScrollLine. Update data attribute by scroll on given element
+ *
+ * @param {HTMLElement} ele
+ */
+const updateScrollLine = (ele) => () => {
   if (textArea.dataset.scrollLine) return
 
   const threshold = ele.scrollTop + window.innerHeight / 2 + 30
@@ -300,14 +329,14 @@ const htmlOnScroll = (ele) => () => {
   const offset = (line.offsetTop + block.offsetTop - ele.scrollTop)
 
   if (linenumber) {
-    dumbyContainer.dataset.scrollLine = linenumber + '/' + offset
+    ele.closest('[data-scroll-line]').dataset.scrollLine = linenumber + '/' + offset
   }
 }
 
 new window.MutationObserver(() => {
   clearTimeout(dumbyContainer.timer)
   dumbyContainer.timer = setTimeout(
-    () => delete dumbyContainer.dataset.scrollLine,
+    () => { dumbyContainer.dataset.scrollLine = '' },
     50,
   )
 
@@ -324,7 +353,11 @@ new window.MutationObserver(() => {
   attributeFilter: ['data-scroll-line'],
 })
 
-const setScrollLine = () => {
+/**
+ * updateScrollLineByCodeMirror.
+ * @param {CodeMirror} cm
+ */
+const updateCMScrollLine = (cm) => {
   if (dumbyContainer.dataset.scrollLine) return
 
   const lineNumber = cm.getCursor()?.line ??
@@ -332,14 +365,14 @@ const setScrollLine = () => {
   textArea.dataset.scrollLine = lineNumber
 }
 cm.on('scroll', () => {
-  if (cm.hasFocus()) setScrollLine()
+  if (cm.hasFocus()) updateCMScrollLine(cm)
 })
 
 /** Sync scroll from CodeMirror to HTML **/
 new window.MutationObserver(() => {
   clearTimeout(textArea.timer)
   textArea.timer = setTimeout(
-    () => delete textArea.dataset.scrollLine,
+    () => { textArea.dataset.scrollLine = '' },
     1000,
   )
 
@@ -486,7 +519,7 @@ const updateDumbyMap = (callback = null) => {
   dumbymap = generateMaps(dumbyContainer)
   // Set onscroll callback
   const htmlHolder = dumbymap.htmlHolder
-  htmlHolder.onscroll = htmlOnScroll(htmlHolder)
+  htmlHolder.onscroll = updateScrollLine(htmlHolder)
   // Set oncontextmenu callback
   dumbymap.utils.setContextMenu(menuForEditor)
 
@@ -497,7 +530,7 @@ updateDumbyMap()
 // Re-render HTML by editor content
 cm.on('change', (_, change) => {
   updateDumbyMap(() => {
-    setScrollLine()
+    updateCMScrollLine(cm)
   })
   addClassToCodeLines()
   completeForCodeBlock(change)

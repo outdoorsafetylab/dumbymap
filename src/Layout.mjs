@@ -2,13 +2,17 @@ import PlainDraggable from 'plain-draggable'
 import { onRemove, animateRectTransition } from './utils'
 
 /**
- * Layout. Basic class for layout
+ * Basic class for layout
  */
 export class Layout {
   /**
-   * constructor.
+   * Creates a new Layout instance
    *
-   * @param {} options
+   * @param {Object} options - The options for the layout
+   * @param {string} options.name - The name of the layout
+   * @param {Function} [options.enterHandler] - Handler called when entering the layout
+   * @param {Function} [options.leaveHandler] - Handler called when leaving the layout
+   * @throws {Error} If the layout name is not provided
    */
   constructor (options = {}) {
     if (!options.name) throw Error('Layout name is not given')
@@ -18,7 +22,9 @@ export class Layout {
   }
 
   /**
-   * valueOf.
+   * Returns the name of the layout
+   *
+   * @returns {string} The name of the layout
    */
   valueOf = () => this.name
 }
@@ -35,9 +41,12 @@ export class SideBySide extends Layout {
   name = 'side-by-side'
 
   /**
-   * enterHandler.
+   * Handler called when entering the Side-By-Side layout
    *
-   * @param {}
+   * @param {Object} options - The options object
+   * @param {HTMLElement} options.container - The main container element
+   * @param {HTMLElement} options.htmlHolder - The HTML content holder
+   * @param {HTMLElement} options.showcase - The showcase element
    */
   enterHandler = ({ container, htmlHolder, showcase }) => {
     const bar = document.createElement('div')
@@ -71,9 +80,10 @@ export class SideBySide extends Layout {
   }
 
   /**
-   * leaveHandler.
+   * Handler called when leaving the Side-By-Side layout
    *
-   * @param {}
+   * @param {Object} options - The options object
+   * @param {HTMLElement} options.container - The main container element
    */
   leaveHandler = ({ container }) => {
     container.querySelector('.bar')?.remove()

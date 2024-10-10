@@ -1,15 +1,28 @@
 import { shiftByWindow } from './utils.mjs'
 
 /**
- * Item. Basic Element for menu item
+ * @typedef {Object} RefLink
+ * @property {string} ref -- name of link
+ * @property {string} link -- content of link
+ * @property {string|null} title -- title of link
+ */
+
+/**
+ * Basic Element for menu item
  *
  * @extends {window.HTMLDivElement}
  */
 export class Item extends window.HTMLDivElement {
   /**
-   * constructor.
+   * Creates a new Item instance
    *
-   * @param {Object}
+   * @param {Object} options - The options for the item
+   * @param {string} [options.text] - The text content of the item
+   * @param {string} [options.innerHTML] - The HTML content of the item
+   * @param {string} [options.title] - The title attribute for the item
+   * @param {Function} [options.onclick] - The click event handler
+   * @param {string} [options.style] - The CSS style string
+   * @param {string[]} [options.className] - Additional CSS classes
    */
   constructor ({ text, innerHTML, title, onclick, style, className }) {
     super()
@@ -30,15 +43,18 @@ export class Item extends window.HTMLDivElement {
 window.customElements.define('menu-item', Item, { extends: 'div' })
 
 /**
- * Folder. Basic Element for menu item, it generate submenu on hover
+ * Basic Element for menu item that generates a submenu on hover
  *
  * @extends {window.HTMLDivElement}
  */
 export class Folder extends window.HTMLDivElement {
   /**
-   * constructor.
+   * Creates a new Folder instance
    *
-   * @param {}
+   * @param {Object} options - The options for the folder
+   * @param {string} [options.text] - The text content of the folder
+   * @param {string} [options.innerHTML] - The HTML content of the folder
+   * @param {Item[]} options.items - The submenu items
    */
   constructor ({ text, innerHTML, items }) {
     super()
@@ -67,9 +83,11 @@ export class Folder extends window.HTMLDivElement {
 window.customElements.define('menu-folder', Folder, { extends: 'div' })
 
 /**
- * pickMapItem.
+ * Creates a menu item for picking a map
  *
- * @param {Function[]} options.utils
+ * @param {Object} options - The options object
+ * @param {Object} options.utils - Utility functions
+ * @returns {Folder} A Folder instance for picking a map
  */
 export const pickMapItem = ({ utils }) =>
   new Folder({
@@ -372,7 +390,7 @@ export const restoreCamera = map =>
  * addRefLink. replace selected text into markdown link by reference style links
  *
  * @param {CodeMirror} cm
- * @param {Object[]} refLinks -- object for { ref, link }
+ * @param {RefLink[]} refLinks
  */
 export const addRefLink = (cm, refLinks) =>
   new Folder({
