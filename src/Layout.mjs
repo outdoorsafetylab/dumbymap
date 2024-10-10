@@ -36,11 +36,6 @@ export class Layout {
  */
 export class SideBySide extends Layout {
   /**
-   * @type {}
-   */
-  name = 'side-by-side'
-
-  /**
    * Handler called when entering the Side-By-Side layout
    *
    * @param {Object} options - The options object
@@ -96,11 +91,6 @@ export class SideBySide extends Layout {
  * @extends {Layout}
  */
 export class Overlay extends Layout {
-  /**
-   * @type {String} name - Name of Layout
-   */
-  name = 'overlay'
-
   /**
    * saveLeftTopAsData.
    *
