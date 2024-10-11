@@ -399,16 +399,22 @@ export const restoreCamera = map =>
 export const addRefLink = (cm, refLinks) =>
   new Folder({
     text: 'Add Link',
-    items: refLinks.map(refLink => new Item({
-      text: refLink.link.startsWith('geo:') ? `@ ${refLink.ref}` : refLink.ref,
-      title: refLink.link,
-      onclick: () => {
-        const selection = cm.getSelection()
-        if (selection === refLink.ref) {
-          cm.replaceSelection(`[${selection}]`)
-        } else {
-          cm.replaceSelection(`[${selection}][${refLink.ref}]`)
-        }
-      },
-    })),
+    items: refLinks.map(refLink => {
+      let text = refLink.ref
+      if (refLink.link.startsWith('geo:')) text = `@ ${text}`
+      if (refLink.title?.match(/^=>/)) text = `=> ${text}`
+
+      return new Item({
+        text,
+        title: refLink.link,
+        onclick: () => {
+          const selection = cm.getSelection()
+          if (selection === refLink.ref) {
+            cm.replaceSelection(`[${selection}]`)
+          } else {
+            cm.replaceSelection(`[${selection}][${refLink.ref}]`)
+          }
+        },
+      })
+    }),
   })
