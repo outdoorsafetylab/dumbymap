@@ -1,6 +1,8 @@
 import LeaderLine from 'leader-line'
 import { insideWindow, insideParent } from './utils'
 
+export const coordPattern = /^geo:([-]?[0-9.]+),([-]?[0-9.]+)/
+
 /**
  * focusNextMap.
  *
@@ -100,11 +102,12 @@ const getMarkersFromMaps = link => {
     .filter(map => link.targets ? link.targets.includes(map.id) : true)
     .map(map => {
       const renderer = map.renderer
-      const markerTitle = `${link.targets ?? 'all'}@${link.xy}`
+      const markerTitle = `${link.targets ?? 'all'}@${link.dataset.xy}`
+      const lonLat = [Number(link.dataset.lon), Number(link.dataset.lat)]
 
       return map.querySelector(`.marker[title="${markerTitle}"]`) ??
         renderer.addMarker({
-          xy: link.xy,
+          xy: lonLat,
           title: markerTitle,
           type: link.type,
         })
@@ -138,26 +141,32 @@ const addLeaderLine = (link, target) => {
  */
 export const createGeoLink = (link) => {
   const url = new URL(link.href)
-  const xyInParams = url.searchParams.get('xy')?.split(',')?.map(Number)
-  const xy = xyInParams ?? url?.href
-    ?.match(/^geo:([-]?[0-9.]+),([-]?[0-9.]+)/)
+  const params = new URLSearchParams(link.search)
+  const xyInParams = params.get('xy')?.split(',')?.map(Number)
+  const [lon, lat] = url.href
+    ?.match(coordPattern)
     ?.splice(1)
     ?.reverse()
     ?.map(Number)
+  const xy = xyInParams ?? [lon, lat]
 
   if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false
 
   // Geo information in link
-  link.url = url
-  link.xy = xy
+  link.dataset.xy = xy
+  link.dataset.lon = lon
+  link.dataset.lat = lat
   link.classList.add('with-leader-line', 'geolink')
-  link.targets = link.url.searchParams.get('id')?.split(',') ?? null
-  link.type = link.url.searchParams.get('type') ?? null
+  // TODO refactor as data attribute
+  link.targets = params.get('id')?.split(',') ?? null
+  link.type = params.get('type') ?? null
 
   link.lines = []
 
   // LeaderLine
   link.onmouseover = () => {
+    if (link.dataset.valid === 'false') return
+
     const anchors = getMarkersFromMaps(link)
     anchors
       .filter(isAnchorVisible)
@@ -169,8 +178,14 @@ export const createGeoLink = (link) => {
   link.onmouseout = () => removeLeaderLines(link)
   link.onclick = (event) => {
     event.preventDefault()
+    if (link.dataset.valid === 'false') return
+
     removeLeaderLines(link)
-    getMarkersFromMaps(link).forEach(updateMapCameraByMarker(link.xy))
+    getMarkersFromMaps(link)
+      .forEach(updateMapCameraByMarker([
+        Number(link.dataset.lon),
+        Number(link.dataset.lat),
+      ]))
   }
   return true
 }
@@ -229,9 +244,9 @@ const removeLeaderLines = link => {
  * @param {Number[]} xy
  * @return {Function} function
  */
-const updateMapCameraByMarker = xy => marker => {
+const updateMapCameraByMarker = lonLat => marker => {
   const renderer = marker.closest('.mapclay')?.renderer
-  renderer.updateCamera({ center: xy }, true)
+  renderer.updateCamera({ center: lonLat }, true)
 }
 
 /**

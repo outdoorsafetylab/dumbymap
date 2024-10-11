@@ -54,8 +54,10 @@
     "markdown-it-front-matter": "^0.2.4",
     "markdown-it-inject-linenumbers": "^0.3.0",
     "markdown-it-toc-done-right": "^4.2.0",
+    "ol": "^10.2.1",
     "plain-draggable": "^2.5.15",
-    "plain-modal": "^1.0.34"
+    "plain-modal": "^1.0.34",
+    "proj4": "^2.12.1"
   },
   "author": "Hsiehg Chin Fan <pham@topo.tw>",
   "homepage": "https://outdoorsafetylab.github.io/dumbymap",

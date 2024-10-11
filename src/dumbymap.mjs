@@ -9,6 +9,8 @@ import { Layout, SideBySide, Overlay } from './Layout'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
+import proj4 from 'proj4'
+import { register, fromEPSGCode } from 'ol/proj/proj4'
 
 /** Selector of special HTML Elements */
 const mapBlockSelector = 'pre:has(.language-map)'
@@ -59,8 +61,8 @@ export const markdown2HTML = (container, mdContent) => {
     validate: coordinateRegex,
     normalize: function (match) {
       const [, , x, sep, y] = match.text.match(coordinateRegex)
-      match.url = `geo:${y},${x}?xy=${x},${y}`
-      match.text = `${x}${sep} ${y}`
+      match.url = `geo:${y},${x}`
+      match.text = `${x}${sep}${y}`
       match.index += match.text.indexOf(x) + 1
       return match
     },
@@ -111,11 +113,17 @@ export const markdown2HTML = (container, mdContent) => {
  *
  * @param {HTMLElement} container - The container element for the maps
  * @param {Object} options - Configuration options
+ * @param {string} options.crs - CRS in EPSG/ESRI code, see epsg.io
  * @param {number} [options.delay=1000] - Delay before rendering maps (in milliseconds)
  * @param {Function} options.mapCallback - Callback function to be called after map rendering
  */
-export const generateMaps = (container, { layouts = [], delay, renderCallback } = {}) => {
-  /** Prepare Contaner/HTML Holder/Showcase */
+export const generateMaps = (container, {
+  crs = 'EPSG:4326',
+  layouts = [],
+  delay,
+  renderCallback,
+} = {}) => {
+  /** Prepare Contaner/HTML-Holder/Showcase */
   container.classList.add('Dumby')
   delete container.dataset.layout
   container.dataset.layout = defaultLayouts[0].name
@@ -159,15 +167,50 @@ export const generateMaps = (container, { layouts = [], delay, renderCallback } 
       switchToNextLayout: throttle(utils.switchToNextLayout, 300),
     },
   }
-  Object.entries(dumbymap.utils).forEach(([util, func]) => {
-    dumbymap.utils[util] = func.bind(dumbymap)
+  Object.entries(dumbymap.utils).forEach(([util, value]) => {
+    if (typeof value === 'function') {
+      dumbymap.utils[util] = value.bind(dumbymap)
+    }
   })
 
   /** Create GeoLinks and DocLinks */
   container.querySelectorAll(docLinkSelector)
     .forEach(utils.createDocLink)
-  container.querySelectorAll(geoLinkSelector)
-    .forEach(utils.createGeoLink)
+
+  /** Set CRS and GeoLinks */
+  register(proj4)
+  fromEPSGCode(crs).then(projection => {
+    const transform = proj4(crs, 'EPSG:4326').forward
+
+    Array.from(container.querySelectorAll(geoLinkSelector))
+      .map(link => {
+        // set coordinate as lat/lon in WGS84
+        const params = new URLSearchParams(link.search)
+        const [y, x] = link.href
+          .match(utils.coordPattern)
+          .splice(1)
+          .map(Number)
+        const [lon, lat] = transform([x, y])
+          .map(value => value.toFixed(6))
+        link.href = `geo:${lat},${lon}`
+
+        // set query strings
+        params.set('xy', `${x},${y}`)
+        params.set('crs', crs)
+        params.set('q', `${lat},${lon}`)
+        link.search = params
+
+        if (projection.getUnits() === 'degrees' &&
+          (lon > 180 || lon < -180 || lat > 90 || lat < -90)
+        ) {
+          link.dataset.valid = false
+          link.title = `Invalid Coordinate, maybe try another crs other than ${crs}`
+        }
+
+        return link
+      })
+      .forEach(utils.createGeoLink)
+  })
 
   /**
    * mapFocusObserver. observe for map focus
