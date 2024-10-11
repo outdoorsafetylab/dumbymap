@@ -1,11 +1,14 @@
 # Dumbymap
 
-This library generate web maps from [Semantic HTML], play around with [demo page](https://outdoorsafetylab.github.io/dumbymap/)
+This library generate web maps from [Semantic HTML], just play around with [demo page](https://outdoorsafetylab.github.io/dumbymap/)
 
 > [!CAUTION]
-> API of DumbyMap is not stable now, use it carefully
+> DumbyMap is not in production stage. API is not stable now, use it carefully
 
 ## Getting Started
+
+Browser (CDN):
+- unpkg: https://unpkg.com/dumbymap@latest/dist/dumbymap.mjs
 
 Node.js:
 
@@ -26,8 +29,7 @@ markdown2HTML(container, '# Heading\n\n```map\nid: foo\nuse: Maplibre\n```\n')
 const dumbymap = generateMaps(container, options ?? {})
 ```
 
-Browser (CDN):
-- unpkg: https://unpkg.com/dumbymap@latest/dist/dumbymap.mjs
+For more information, please visie [docs page](https://outdoorsafetylab.github.io/dumbymap/docs/global.html#generateMaps)
 
 
 ## Semantic HTML
