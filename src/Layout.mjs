@@ -175,6 +175,11 @@ export class Overlay extends Layout {
     // FIXME It is weird rect from this method and this scope are different...
     blocks.forEach(this.saveLeftTopAsData)
 
+    // If no block are focused, focus first three blocks (make them visible)
+    if (!blocks.find(b => b.classList.contains('focus'))) {
+      blocks.slice(0, 3).forEach(b => b.classList.add('focus'))
+    }
+
     // Create draggable blocks and set each position by previous one
     let [left, top] = [20, 20]
     blocks.forEach(block => {
