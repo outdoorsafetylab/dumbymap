@@ -179,7 +179,7 @@ export const generateMaps = (container, {
 
   /** Set CRS and GeoLinks */
   register(proj4)
-  fromEPSGCode(crs).then(() => {
+  fromEPSGCode(crs).then(projection => {
     const transform = proj4(crs, 'EPSG:4326').forward
 
     Array.from(container.querySelectorAll(geoLinkSelector))
@@ -199,6 +199,13 @@ export const generateMaps = (container, {
         params.set('crs', crs)
         params.set('q', `${lat},${lon}`)
         link.search = params
+
+        if (projection.getUnits() === 'degrees' &&
+          (lon > 180 || lon < -180 || lat > 90 || lat < -90)
+        ) {
+          link.dataset.valid = false
+          link.title = `Invalid Coordinate, maybe try another crs other than ${crs}`
+        }
 
         return link
       })

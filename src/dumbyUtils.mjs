@@ -165,6 +165,8 @@ export const createGeoLink = (link) => {
 
   // LeaderLine
   link.onmouseover = () => {
+    if (link.dataset.valid === 'false') return
+
     const anchors = getMarkersFromMaps(link)
     anchors
       .filter(isAnchorVisible)
@@ -176,11 +178,13 @@ export const createGeoLink = (link) => {
   link.onmouseout = () => removeLeaderLines(link)
   link.onclick = (event) => {
     event.preventDefault()
+    if (link.dataset.valid === 'false') return
+
     removeLeaderLines(link)
     getMarkersFromMaps(link)
       .forEach(updateMapCameraByMarker([
         Number(link.dataset.lon),
-        Number(link.dataset.lat)
+        Number(link.dataset.lat),
       ]))
   }
   return true
