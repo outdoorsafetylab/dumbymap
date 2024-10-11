@@ -350,7 +350,7 @@ export const generateMaps = (container, {
     mapElement.renderer = renderer
     mapElement.tabindex = -1
     if (mapElement.dataset.render === 'fulfilled') {
-      mapCache[mapElement.id] ??= renderer
+      mapCache[mapElement.id] = renderer
     } else {
       return
     }
