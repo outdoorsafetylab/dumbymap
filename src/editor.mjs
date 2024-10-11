@@ -190,11 +190,12 @@ const editor = new EasyMDE({
     {
       name: 'tutorial',
       text: '\u{2753}',
-      title: 'Reset for content for tutorial',
+      title: 'Reset contents by tutorial',
       action: () => {
         editor.value(tutorial.md)
         refLinks = getRefLinks()
-        updateDumbyMap()
+        cm.focus()
+        cm.setCursor({ line: 0, ch: 0 })
       },
     },
   ],
