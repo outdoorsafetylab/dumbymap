@@ -5,8 +5,7 @@ export const coordPattern = /^geo:([-]?[0-9.]+),([-]?[0-9.]+)/
 
 /**
  * focusNextMap.
- *
- * @param {Boolean} reverse -- focus previous map
+ * @param {Boolean} reverse - focus previous map
  */
 export function focusNextMap (reverse = false) {
   const renderedList = this.utils.renderedMaps()
@@ -21,7 +20,7 @@ export function focusNextMap (reverse = false) {
 /**
  * focusNextBlock.
  *
- * @param {Boolean} reverse -- focus previous block
+ * @param {Boolean} reverse - focus previous block
  */
 export function focusNextBlock (reverse = false) {
   const blocks = this.blocks.filter(b =>
@@ -44,7 +43,7 @@ export function focusNextBlock (reverse = false) {
  * scrollToBlock. Smoothly scroll to target block.
  * If block is bigger than viewport, then pick strategy wisely.
  *
- * @param {HTMLElement} block -- Scroll to this element
+ * @param {HTMLElement} block - Scroll to this element
  */
 export const scrollToBlock = block => {
   const parentRect = block.parentElement.getBoundingClientRect()
@@ -65,7 +64,7 @@ export function focusDelay () {
 /**
  * switchToNextLayout.
  *
- * @param {Boolean} reverse -- Switch to previous one
+ * @param {Boolean} reverse - Switch to previous one
  */
 export function switchToNextLayout (reverse = false) {
   const layouts = this.layouts
@@ -297,9 +296,9 @@ const isAnchorVisible = anchor => {
 /**
  * addAnchorByPoint.
  *
- * @param {point} options.point -- object has {x, y} for window coordinates
+ * @param {point} options.point - object has {x, y} for window coordinates
  * @param {HTMLElement} options.map
- * @param {Function} options.validateAnchorName -- validate anchor name is OK to use
+ * @param {Function} options.validateAnchorName - validate anchor name is OK to use
  */
 export const addAnchorByPoint = ({
   defaultName,

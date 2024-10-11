@@ -12,7 +12,7 @@ import PlainModal from 'plain-modal'
 import proj4 from 'proj4'
 import { register, fromEPSGCode } from 'ol/proj/proj4'
 
-/** Selector of special HTML Elements */
+/** CSS Selector for main components */
 const mapBlockSelector = 'pre:has(.language-map)'
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
 const geoLinkSelector = 'a[href^="geo:"]'
@@ -175,11 +175,11 @@ export const generateMaps = (container, {
     }
   })
 
-  /** Create DocLinks */
+  /** LINK: Create DocLinks */
   container.querySelectorAll(docLinkSelector)
     .forEach(utils.createDocLink)
 
-  /** Add external symbol on anchors */
+  /** LINK: Add external symbol on anchors */
   container.querySelectorAll('a')
     .forEach(a => {
       if (a.href.startsWith('http') && !a.href.startsWith(window.location.origin)) {
@@ -187,7 +187,7 @@ export const generateMaps = (container, {
       }
     })
 
-  /** Set CRS and GeoLinks */
+  /** LINK: Set CRS and GeoLinks */
   register(proj4)
   fromEPSGCode(crs).then(projection => {
     const transform = proj4(crs, 'EPSG:4326').forward
@@ -417,7 +417,7 @@ export const generateMaps = (container, {
   /**
    * updateAttributeByStep.
    *
-   * @param {Object} -- renderer which is running steps
+   * @param {Object} - renderer which is running steps
    */
   const updateAttributeByStep = ({ results, target, steps }) => {
     let passNum = results.filter(
@@ -442,7 +442,7 @@ export const generateMaps = (container, {
    * config converter for mapclay.renderWith()
    *
    * @param {Object} config
-   * @return {Object} -- converted config
+   * @return {Object} - converted config
    */
   const configConverter = config => ({
     use: config.use ?? 'Leaflet',

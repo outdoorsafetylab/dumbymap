@@ -94,7 +94,7 @@ export class Overlay extends Layout {
   /**
    * saveLeftTopAsData.
    *
-   * @param {} element
+   * @param {HTMLElement} element
    */
   saveLeftTopAsData = element => {
     const { left, top } = element.getBoundingClientRect()
@@ -105,7 +105,7 @@ export class Overlay extends Layout {
   /**
    * addDraggable.
    *
-   * @param {} element
+   * @param {HTMLElement} element
    */
   addDraggable = element => {
     // Make sure current element always on top
@@ -169,7 +169,8 @@ export class Overlay extends Layout {
   /**
    * enterHandler.
    *
-   * @param {}
+   * @param {HTMLElement} options.hemlHolder - Parent element for block
+   * @param {HTMLElement[]} options.blocks
    */
   enterHandler = ({ htmlHolder, blocks }) => {
     // FIXME It is weird rect from this method and this scope are different...
@@ -257,7 +258,8 @@ export class Overlay extends Layout {
   /**
    * leaveHandler.
    *
-   * @param {}
+   * @param {HTMLElement} htmlHolder
+   * @param {HTMLElement[]} blocks
    */
   leaveHandler = ({ htmlHolder, blocks }) => {
     const resumeFromDraggable = block => {

@@ -2,9 +2,9 @@ import { shiftByWindow } from './utils.mjs'
 
 /**
  * @typedef {Object} RefLink
- * @property {string} ref -- name of link
- * @property {string} link -- content of link
- * @property {string|null} title -- title of link
+ * @property {string} ref - name of link
+ * @property {string} link - content of link
+ * @property {string|null} title - title of link
  */
 
 /**
@@ -204,7 +204,9 @@ export class Suggestion extends Item {
   /**
    * constructor.
    *
-   * @param {}
+   * @param {String} options.text
+   * @param {String} options.replace - new text content
+   * @param {CodeMirror} options.cm
    */
   constructor ({ text, replace, cm }) {
     super({ text })
@@ -235,9 +237,9 @@ window.customElements.define('menu-item-suggestion', Suggestion, { extends: 'div
 /**
  * renderResults. return a menu item for reporting render results
  *
- * @param {Object} options.modal -- Ojbect of plain-modal
+ * @param {Object} options.modal - Ojbect of plain-modal
  * @param {HTMLElement} options.modalContent
- * @param {HTMLElement} map -- Rendered map element
+ * @param {HTMLElement} map - Rendered map element
  */
 export const renderResults = ({ modal, modalContent }, map) =>
   new Item({
@@ -366,7 +368,7 @@ export const toggleMapFocus = map =>
  * getCoordinatesByPixels.
  *
  * @param {HTMLElement} map instance
- * @param {Number[]} xy -- pixel of window
+ * @param {Number[]} xy - pixel of window
  */
 export const getCoordinatesByPixels = (map, xy) =>
   new Item({

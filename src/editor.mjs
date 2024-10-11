@@ -9,9 +9,9 @@ import * as tutorial from './tutorial'
 
 /**
  * @typedef {Object} RefLink
- * @property {string} ref -- name of link
- * @property {string} link -- content of link
- * @property {string|null} title -- title of link
+ * @property {string} ref - name of link
+ * @property {string} link - content of link
+ * @property {string|null} title - title of link
  */
 
 // Set up Containers {{{
@@ -291,6 +291,7 @@ const updateScrollLine = (ele) => () => {
   }
 }
 
+/** sync scroll from HTML to CodeMirror */
 new window.MutationObserver(() => {
   clearTimeout(dumbyContainer.timer)
   dumbyContainer.timer = setTimeout(
@@ -377,7 +378,7 @@ addClassToCodeLines()
 /**
  * completeForCodeBlock.
  *
- * @param {Object} change -- codemirror change object
+ * @param {Object} change - codemirror change object
  */
 const completeForCodeBlock = change => {
   const line = change.to.line
@@ -436,8 +437,8 @@ const completeForCodeBlock = change => {
 /**
  * menuForEditor.
  *
- * @param {Event} event -- Event for context menu
- * @param {HTMLElement} menu -- menu of dumbymap
+ * @param {Event} event - Event for context menu
+ * @param {HTMLElement} menu - menu of dumbymap
  */
 const menuForEditor = (event, menu) => {
   event.preventDefault()
@@ -583,7 +584,7 @@ const insideCodeblockForMap = anchor => {
 /**
  * getLineWithRenderer. Get Renderer by cursor position in code block {{{
  *
- * @param {Object} anchor -- Codemirror Anchor Object
+ * @param {Object} anchor - Codemirror Anchor Object
  */
 const getLineWithRenderer = anchor => {
   const currentLine = anchor.line
@@ -686,7 +687,7 @@ const getSuggestionsFromAliases = option =>
 /**
  * handleTypingInCodeBlock. Handler for map codeblock {{{
  *
- * @param {Object} anchor -- Codemirror Anchor Object
+ * @param {Object} anchor - Codemirror Anchor Object
  */
 const handleTypingInCodeBlock = anchor => {
   const text = cm.getLine(anchor.line)
@@ -703,7 +704,7 @@ const handleTypingInCodeBlock = anchor => {
 /**
  * getSuggestions. Get suggestions by current input {{{
  *
- * @param {Object} anchor -- Codemirror Anchor Object
+ * @param {Object} anchor - Codemirror Anchor Object
  */
 const getSuggestions = anchor => {
   const text = cm.getLine(anchor.line)
@@ -823,7 +824,7 @@ const getSuggestions = anchor => {
 /**
  * addSuggestions.  Show element about suggestions {{{
  *
- * @param {Object} anchor -- Codemirror Anchor Object
+ * @param {Object} anchor - Codemirror Anchor Object
  * @param {Suggestion[]} suggestions
  */
 const addSuggestions = (anchor, suggestions) => {
@@ -1102,6 +1103,8 @@ dumbyContainer.onmousedown = (e) => {
     lineEnd.style.left = event.clientX + 'px'
     lineEnd.style.top = event.clientY + 'px'
     line.position()
+
+    // TODO Scroll dumbymap.htmlHolder when cursor is at upper/lower side
   }
 
   context.classList.add('dragging-geolink')
