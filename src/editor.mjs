@@ -20,12 +20,25 @@ import * as tutorial from './tutorial'
 const url = new URL(window.location)
 const pageParams = url.searchParams
 const crs = pageParams.get('crs') ?? 'EPSG:4326'
+const initialLayout = pageParams.get('layout')
 
 /** Variables: dumbymap and editor **/
 const context = document.querySelector('[data-mode]')
+const textArea = document.querySelector('.editor textarea')
 const dumbyContainer = document.querySelector('.DumbyMap')
 dumbyContainer.dataset.scrollLine = ''
-const textArea = document.querySelector('.editor textarea')
+/** Watch: Layout of DumbyMap */
+new window.MutationObserver(mutaions => {
+  const mutation = mutaions.at(-1)
+  const layout = dumbyContainer.dataset.layout
+  if (layout !== 'normal' || mutation.oldValue === 'normal') {
+    delete context.dataset.mode
+  }
+}).observe(dumbyContainer, {
+  attributes: true,
+  attributeFilter: ['data-layout'],
+  attributeOldValue: true,
+})
 let dumbymap
 
 /** Variables: Reference Style Links in Markdown */
@@ -472,7 +485,11 @@ const updateDumbyMap = (callback = null) => {
 
   callback?.(dumbymap)
 }
-updateDumbyMap()
+updateDumbyMap(() => {
+  if (initialLayout) {
+    dumbyContainer.dataset.layout = initialLayout
+  }
+})
 
 // Re-render HTML by editor content
 cm.on('change', (_, change) => {
@@ -931,20 +948,6 @@ document.onkeydown = e => {
 
 // }}}
 // }}}
-// Layout Switch {{{
-new window.MutationObserver(mutaions => {
-  const mutation = mutaions.at(-1)
-  const layout = dumbyContainer.dataset.layout
-  if (layout !== 'normal' || mutation.oldValue === 'normal') {
-    delete context.dataset.mode
-  }
-}).observe(dumbyContainer, {
-  attributes: true,
-  attributeFilter: ['data-layout'],
-  attributeOldValue: true,
-})
-// }}}
-
 /**
  * addMapRandomlyByPreset. insert random text of valid mapclay yaml into editor
  */

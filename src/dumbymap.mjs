@@ -348,16 +348,20 @@ export const generateMaps = (container, {
     const mapElement = renderer.target
     // FIXME
     mapElement.renderer = renderer
+    // Make map not focusable by tab key
     mapElement.tabindex = -1
+
+    // Cache if render is fulfilled
     if (mapElement.dataset.render === 'fulfilled') {
       mapCache[mapElement.id] = renderer
     } else {
       return
     }
 
+    // Simple callback by caller
     renderCallback?.(renderer)
 
-    // Work with Mutation Observer
+    // Watch change of class
     const observer = mapClassObserver()
     observer.observe(mapElement, {
       attributes: true,
@@ -367,6 +371,14 @@ export const generateMaps = (container, {
     onRemove(dumbymap.htmlHolder, () => {
       observer.disconnect()
     })
+
+    // Focus current map is no map is focused
+    if (
+      !dumbymap.utils.renderedMaps().find(map => map.classList.contains('focus')) ||
+      container.querySelectorAll('.mapclay.focus').length === 0
+    ) {
+      mapElement.classList.add('focus')
+    }
   }
 
   // Set unique ID for map container
