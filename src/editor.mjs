@@ -14,15 +14,20 @@ import LeaderLine from 'leader-line'
  */
 
 // Set up Containers {{{
-/** Variables about dumbymap and editor **/
+
+/** Variables: page */
 const url = new URL(window.location)
+const pageParams = url.searchParams
+const crs = pageParams.get('crs') ?? 'EPSG:4326'
+
+/** Variables: dumbymap and editor **/
 const context = document.querySelector('[data-mode]')
 const dumbyContainer = document.querySelector('.DumbyMap')
 dumbyContainer.dataset.scrollLine = ''
 const textArea = document.querySelector('.editor textarea')
 let dumbymap
 
-/** Variables about Reference Style Links in Markdown */
+/** Variables: Reference Style Links in Markdown */
 const refLinkPattern = /\[([^\x5B\x5D]+)\]:\s+(\S+)(\s["'](\S+)["'])?/
 let refLinks = []
 
@@ -516,7 +521,9 @@ const menuForEditor = (event, menu) => {
 const updateDumbyMap = (callback = null) => {
   markdown2HTML(dumbyContainer, editor.value())
   // debounceForMap(dumbyContainer, afterMapRendered)
-  dumbymap = generateMaps(dumbyContainer)
+  dumbymap = generateMaps(dumbyContainer, {
+    crs,
+  })
   // Set onscroll callback
   const htmlHolder = dumbymap.htmlHolder
   htmlHolder.onscroll = updateScrollLine(htmlHolder)

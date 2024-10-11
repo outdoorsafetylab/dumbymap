@@ -111,11 +111,17 @@ export const markdown2HTML = (container, mdContent) => {
  *
  * @param {HTMLElement} container - The container element for the maps
  * @param {Object} options - Configuration options
+ * @param {string} options.crs - CRS in EPSG/ESRI code, see epsg.io
  * @param {number} [options.delay=1000] - Delay before rendering maps (in milliseconds)
  * @param {Function} options.mapCallback - Callback function to be called after map rendering
  */
-export const generateMaps = (container, { layouts = [], delay, renderCallback } = {}) => {
-  /** Prepare Contaner/HTML Holder/Showcase */
+export const generateMaps = (container, {
+  crs = 'EPSG:4326',
+  layouts = [],
+  delay,
+  renderCallback,
+} = {}) => {
+  /** Prepare Contaner/HTML-Holder/Showcase */
   container.classList.add('Dumby')
   delete container.dataset.layout
   container.dataset.layout = defaultLayouts[0].name
