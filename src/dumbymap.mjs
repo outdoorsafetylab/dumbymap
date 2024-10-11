@@ -67,10 +67,14 @@ export const markdown2HTML = (container, mdContent) => {
       return match
     },
   }
-  const patterns = ['[', '(', '📍', '\uFF08', '@', 'geo:', 'twd']
+  const patterns = ['[', '(', '📍', '\uFF08', '@', 'twd']
   patterns.forEach(prefix =>
     md.linkify.add(prefix, coordinateValue),
   )
+  md.linkify.add('geo:', {
+    validate: /(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+    normalize: match => match,
+  })
 
   /** Custom rule for Blocks in DumbyMap */
   // FIXME A better way to generate blocks
