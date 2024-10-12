@@ -163,7 +163,7 @@ export const createGeoLink = (link) => {
 
   link.lines = []
 
-  // LeaderLine
+  // Hover link for LeaderLine
   link.onmouseover = () => {
     if (link.dataset.valid === 'false') return
 
@@ -176,6 +176,8 @@ export const createGeoLink = (link) => {
       })
   }
   link.onmouseout = () => removeLeaderLines(link)
+
+  // Click to move camera
   link.onclick = (event) => {
     event.preventDefault()
     if (link.dataset.valid === 'false') return
@@ -186,6 +188,15 @@ export const createGeoLink = (link) => {
         Number(link.dataset.lon),
         Number(link.dataset.lat),
       ]))
+  }
+
+  // Use middle click to remove markers
+  link.onauxclick = (e) => {
+    if (e.which !== 2) return
+    e.preventDefault()
+    removeLeaderLines(link)
+    getMarkersFromMaps(link)
+      .forEach(marker => marker.remove())
   }
   return true
 }
