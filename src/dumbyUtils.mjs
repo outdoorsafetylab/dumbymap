@@ -250,7 +250,7 @@ export const createDocLink = link => {
  *
  * @param {HTMLAnchorElement} link
  */
-const removeLeaderLines = link => {
+export const removeLeaderLines = link => {
   if (!link.lines) return
   link.lines.forEach(line => line.remove())
   link.lines = []

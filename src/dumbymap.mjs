@@ -224,6 +224,11 @@ export const generateMaps = (container, {
       .forEach(utils.createGeoLink)
   })
 
+  /** LINK: remove all leaderline when onRemove() */
+  onRemove(htmlHolder, () =>
+    htmlHolder.querySelectorAll('.with-leader-line')
+      .forEach(utils.removeLeaderLines),
+  )
   /**
    * mapFocusObserver. observe for map focus
    * @return {MutationObserver} observer
