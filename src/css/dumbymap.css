@@ -761,7 +761,7 @@ root {
 .dragging-geolink {
   user-select: none;
 
-  .dumby-block > :not(:has(.mapclay)) {
+  .dumby-block > :not(:has(.mapclay[data-render="fulfilled"])) {
     opacity: 0.3;
   }
 }

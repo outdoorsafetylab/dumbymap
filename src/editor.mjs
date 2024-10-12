@@ -2,7 +2,7 @@
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
-import { addAnchorByPoint } from './dumbyUtils.mjs'
+import { addAnchorByPoint, createGeoLink } from './dumbyUtils.mjs'
 import { shiftByWindow } from './utils.mjs'
 import LeaderLine from 'leader-line'
 import * as tutorial from './tutorial'
@@ -1084,6 +1084,7 @@ dumbyContainer.onmousedown = (e) => {
   const geoLink = document.createElement('a')
   geoLink.textContent = range.toString()
   geoLink.classList.add('with-leader-line', 'geolink', 'drag')
+  const originContent = range.cloneContents()
   range.deleteContents()
   range.insertNode(geoLink)
 
@@ -1113,15 +1114,16 @@ dumbyContainer.onmousedown = (e) => {
     line?.remove()
     lineEnd.remove()
     dumbymap.utils.renderedMaps().forEach(map => map.style.removeProperty('cursor'))
-    const resumeContent = () => updateDumbyMap(newDumbymap => {
-      const scrollTop = dumbymap.htmlHolder.scrollTop
-      newDumbymap.htmlHolder.scrollBy(0, scrollTop)
-    })
+    const resumeContent = () => {
+      range.deleteContents()
+      range.insertNode(originContent)
+    }
 
-    const map = document.elementFromPoint(e.clientX, e.clientY).closest('.mapclay')
+    const map = document.elementFromPoint(e.clientX, e.clientY)
+      .closest('.mapclay[data-render="fulfilled"]')
     const selection = cm.getSelection()
     if (!map || !selection) {
-      resumeContent()
+      resumeContent('map/selection')
       return
     }
 
@@ -1132,16 +1134,20 @@ dumbyContainer.onmousedown = (e) => {
       validateAnchorName,
     })
     if (!refLink) {
-      resumeContent()
+      resumeContent('reflink')
       return
     }
 
+    const scrollTop = dumbymap.htmlHolder.scrollTop
+    geoLink.href = refLink.link
+    createGeoLink(geoLink)
     appendRefLink(cm, refLink)
     if (selection === refLink.ref) {
       cm.replaceSelection(`[${selection}]`)
     } else {
       cm.replaceSelection(`[${selection}][${refLink.ref}]`)
     }
+    dumbymap.htmlHolder.scrollBy(0, scrollTop)
   }
 }
 
