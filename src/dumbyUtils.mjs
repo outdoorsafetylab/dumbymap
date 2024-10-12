@@ -198,15 +198,26 @@ export const createGeoLink = (link) => {
 export const createDocLink = link => {
   link.classList.add('with-leader-line', 'doclink')
   link.lines = []
+  const label = decodeURIComponent(link.href.split('#')[1])
+  const selector = link.title.split('=>')[1] ?? '#' + label
 
   link.onmouseover = () => {
-    const label = decodeURIComponent(link.href.split('#')[1])
-    const selector = link.title.split('=>')[1] ?? '#' + label
     const targets = document.querySelectorAll(selector)
 
     targets.forEach(target => {
       if (!target?.checkVisibility()) return
 
+      // highlight selected target
+      target.dataset.style = target.style.cssText
+      const rect = target.getBoundingClientRect()
+      const isTiny = rect.width < 100 || rect.height < 100
+      if (isTiny) {
+        target.style.background = 'lightPink'
+      } else {
+        target.style.outline = 'lightPink 6px dashed'
+      }
+
+      // point to selected target
       const line = new LeaderLine({
         start: link,
         end: target,
@@ -224,6 +235,13 @@ export const createDocLink = link => {
   link.onmouseout = () => {
     link.lines.forEach(line => line.remove())
     link.lines.length = 0
+
+    // resume targets from highlight
+    const targets = document.querySelectorAll(selector)
+    targets.forEach(target => {
+      target.style.cssText = target.dataset.style
+      delete target.dataset.style
+    })
   }
 }
 
