@@ -52,7 +52,7 @@ let refLinks = []
  * @returns {boolean} True if the anchor name is unique, false otherwise
  */
 const validateAnchorName = anchorName =>
-  !refLinks.find(obj => obj.ref === anchorName)
+  !refLinks.find(obj => obj.ref.toLowerCase() === anchorName.toLowerCase())
 
 /**
  * Appends a reference link to the CodeMirror instance
