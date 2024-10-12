@@ -1031,7 +1031,8 @@ document.addEventListener('selectionchange', () => {
     const content = selection.getRangeAt(0).toString()
     const parentWithSourceLine = selection.anchorNode.parentElement.closest('.source-line')
     const lineStart = Number(parentWithSourceLine?.dataset?.sourceLine ?? NaN)
-    const lineEnd = Number(parentWithSourceLine?.nextSibling?.dataset?.sourceLine ?? NaN)
+    const nextSourceLine = parentWithSourceLine?.nextSibling?.dataset?.sourceLine
+    const lineEnd = Number(nextSourceLine) ?? cm.doc.size
     // TODO Also return when range contains anchor element
     if (content.includes('\n') || isNaN(lineStart)) {
       cm.setSelection(cm.getCursor())
@@ -1056,16 +1057,16 @@ document.addEventListener('selectionchange', () => {
         while (index === -1) {
           anchor.line += 1
           anchor.ch = 0
-          if (anchor.line >= lineEnd) {
-            cm.setSelection(cm.setCursor())
-            return
-          }
-          index = cm.getLine(anchor.line)?.indexOf(text)
+          if (anchor.line >= lineEnd) return
+
+          index = cm.getLine(anchor.line).indexOf(text)
         }
         anchor.ch = index + text.length
       })
 
-    cm.setSelection({ line: anchor.line, ch: anchor.ch - content.length }, anchor)
+    const focus = { line: anchor.line, ch: anchor.ch - content.length }
+    cm.setSelection(focus, anchor)
+    cm.scrollIntoView(focus)
   }
 })
 
