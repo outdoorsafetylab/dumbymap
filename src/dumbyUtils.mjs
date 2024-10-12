@@ -267,6 +267,7 @@ const isAnchorVisible = anchor => {
  * @param {Function} options.validateAnchorName -- validate anchor name is OK to use
  */
 export const addAnchorByPoint = ({
+  defaultName,
   point,
   map,
   validateAnchorName = () => true,
@@ -281,7 +282,7 @@ export const addAnchorByPoint = ({
 
   do {
     prompt = prompt ? 'Anchor name exists' : 'Name this anchor'
-    anchorName = window.prompt(prompt, `${x},${y}`)
+    anchorName = window.prompt(prompt, defaultName ?? '')
   }
   while (anchorName !== null && !validateAnchorName(anchorName))
   if (anchorName === null) return

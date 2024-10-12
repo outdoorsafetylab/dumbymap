@@ -1124,7 +1124,12 @@ dumbyContainer.onmousedown = (e) => {
       return
     }
 
-    const refLink = addAnchorByPoint({ point: e, map, validateAnchorName })
+    const refLink = addAnchorByPoint({
+      defaultName: geoLink.textContent,
+      point: e,
+      map,
+      validateAnchorName,
+    })
     if (!refLink) {
       resumeContent()
       return
