@@ -23,12 +23,12 @@ You can use it to:
 
 
 If you want know more, take a look at subjects below:
-1. [How to write Markdown text?](https://www.markdownguide.org/basic-syntax/)
+1. [How to write Markdown text?][Markdown]
 1. <details>
       <summary>How to add GeoLink in Markdown</summary>
 
       The following formats are valid for GeoLink:
-      1. Surround coordinated with parenthesis: \`(<x>, <y>)\` or \`(<x>/<y>)\`     
+      1. Surround coordinated with parenthesis: \`(<x>, <y>)\` or \`(<x>/<y>)\`
          For example: (121,23)
       2. Have leading \`@\` symbol: \`@<x>,<y>\` or \`@<x>/<y>\`
          For example: @121/23
@@ -50,7 +50,7 @@ If you want know more, take a look at subjects below:
       1. You can use \`eval\` options to add custom scripts, see [tutorial](https://github.com/outdoorsafetylab/mapclay?tab=readme-ov-file#run-scripts-after-map-is-created) for more details
       2. You can use custom Renderer indtead of default ones, see [tutorial](https://github.com/outdoorsafetylab/mapclay?tab=readme-ov-file#renderer) for more details
    </details>
-1. [I am an experienced developer, show me what you got!](https://github.com/outdoorsafetylab/dumbymap)
+1. [I am an experienced developer, show me what you got!][dumbymap]
 
 
 <!-- footer -->
@@ -59,4 +59,5 @@ If you want know more, take a look at subjects below:
 [Roll a Dice]: #Click%20it! "=>.mde-roll"
 [example-geolink]: geo:24,121?xy=121,24&text=Use%20yellow%20link%20point%20to%20map
 [Markdown]: https://www.markdownguide.org/basic-syntax/
-[Editor]: #This%20is%20editor! "=>.editor"`
+[Editor]: #This%20is%20editor! "=>.editor"
+[dumbymap]: https://github.com/outdoorsafetylab/dumbymap`
