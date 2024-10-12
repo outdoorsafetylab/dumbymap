@@ -177,9 +177,17 @@ export const generateMaps = (container, {
     }
   })
 
-  /** Create GeoLinks and DocLinks */
+  /** Create DocLinks */
   container.querySelectorAll(docLinkSelector)
     .forEach(utils.createDocLink)
+
+  /** Add external symbol on anchors */
+  container.querySelectorAll('a')
+    .forEach(a => {
+      if (a.href.startsWith('http') && !a.href.startsWith(window.location.origin)) {
+        a.classList.add('external')
+      }
+    })
 
   /** Set CRS and GeoLinks */
   register(proj4)

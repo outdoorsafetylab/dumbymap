@@ -48,12 +48,11 @@ root {
   }
 }
 
-a[href^='http']:not(:has(img))::after,
 .external::after {
   content: '';
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   margin-right: 4px;
   margin-left: 2px;
 
