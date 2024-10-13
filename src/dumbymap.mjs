@@ -203,7 +203,7 @@ export const generateMaps = (container, {
           .splice(1)
           .map(Number)
         const [lon, lat] = transform([x, y])
-          .map(value => value.toFixed(6))
+          .map(value => parseFloat(value.toFixed(6)))
         link.href = `geo:${lat},${lon}`
 
         // set query strings

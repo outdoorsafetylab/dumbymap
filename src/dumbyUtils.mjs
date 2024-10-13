@@ -151,7 +151,7 @@ export const createGeoLink = (link) => {
   const xyInParams = params.get('xy')?.split(',')?.map(Number)
   const [lon, lat] = url.href
     ?.match(coordPattern)
-    ?.splice(1)
+    ?.slice(1)
     ?.reverse()
     ?.map(Number)
   const xy = xyInParams ?? [lon, lat]
@@ -310,7 +310,7 @@ export const addAnchorByPoint = ({
   const rect = map.getBoundingClientRect()
   const [x, y] = map.renderer
     .unproject([point.x - rect.left, point.y - rect.top])
-    .map(coord => Number(coord.toFixed(7)))
+    .map(coord => parseFloat(coord.toFixed(6)))
 
   let prompt
   let anchorName
