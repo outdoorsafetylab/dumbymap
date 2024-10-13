@@ -165,6 +165,7 @@ export const createGeoLink = (link) => {
   // TODO refactor as data attribute
   link.targets = params.get('id')?.split(',') ?? null
   link.type = params.get('type') ?? null
+  link.title = 'Left-Click to move Camera, Middle-Click to clean anchor'
 
   link.lines = []
 
