@@ -10,42 +10,46 @@
 
 body {
   width: 100vw;
-  min-width: 700px;
   height: 100vh;
+}
 
-  &[data-mode='editing'] {
-    display: flex;
-    align-items: stretch;
+main {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 700px;
+  height: 100%;
+}
 
-    /* gap: 0.5em; */
+main[data-mode='editing'] {
+  /* gap: 0.5em; */
 
-    padding: 0.5em;
+  padding: 0.5em;
 
-    .Dumby {
-      flex: 0 0 50%;
-      min-width: 45%;
-      max-width: calc(50% - 0.5em);
-      height: 100%;
+  .Dumby {
+    flex: 0 0 50%;
+    min-width: 45%;
+    max-width: calc(50% - 0.5em);
+    height: 100%;
 
-      border: var(--content-border);
-      border-radius: var(--content-border-radius);
-      order: 1;
+    border: var(--content-border);
+    border-radius: var(--content-border-radius);
+    order: 1;
 
-      &.focus {
-        border: var(--content-focus-border);
-        outline: var(--content-focus-border);
-      }
+    &.focus {
+      border: var(--content-focus-border);
+      outline: var(--content-focus-border);
     }
+  }
 
-    .editor {
-      display: block;
-      flex: 0 0 50%;
-      min-width: 45%;
-      max-width: calc(50% - 0.5em);
-      height: 100%;
+  .editor {
+    display: block;
+    flex: 0 0 50%;
+    min-width: 45%;
+    max-width: calc(50% - 0.5em);
+    height: 100%;
 
-      order: 2;
-    }
+    order: 2;
   }
 }
 

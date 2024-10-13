@@ -32,7 +32,7 @@ new window.MutationObserver(mutaions => {
   const mutation = mutaions.at(-1)
   const layout = dumbyContainer.dataset.layout
   if (layout !== 'normal' || mutation.oldValue === 'normal') {
-    delete context.dataset.mode
+    context.dataset.mode = ''
   }
 }).observe(dumbyContainer, {
   attributes: true,
@@ -92,7 +92,7 @@ new window.MutationObserver(() => {
 const toggleEditing = () => {
   const mode = context.dataset.mode
   if (mode === 'editing') {
-    delete context.dataset.mode
+    context.dataset.mode = ''
   } else {
     context.dataset.mode = 'editing'
   }
