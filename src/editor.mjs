@@ -4,7 +4,6 @@ import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
 import { addAnchorByPoint, createGeoLink } from './dumbyUtils.mjs'
 import { shiftByWindow } from './utils.mjs'
-import LeaderLine from 'leader-line'
 import * as tutorial from './tutorial'
 
 /**
@@ -27,9 +26,11 @@ const context = document.querySelector('[data-mode]')
 const textArea = document.querySelector('.editor textarea')
 const dumbyContainer = document.querySelector('.DumbyMap')
 dumbyContainer.dataset.scrollLine = ''
-/** Watch: Layout of DumbyMap */
-new window.MutationObserver(mutaions => {
-  const mutation = mutaions.at(-1)
+/** Watch: DumbyMap */
+new window.MutationObserver(mutations => {
+  const mutation = mutations.at(-1)
+
+  /** Handle layout change */
   const layout = dumbyContainer.dataset.layout
   if (layout !== 'normal' || mutation.oldValue === 'normal') {
     context.dataset.mode = ''
@@ -38,6 +39,8 @@ new window.MutationObserver(mutaions => {
   attributes: true,
   attributeFilter: ['data-layout'],
   attributeOldValue: true,
+  childList: true,
+  subtree: true,
 })
 let dumbymap
 
@@ -1070,88 +1073,3 @@ document.addEventListener('selectionchange', () => {
     cm.scrollIntoView(focus)
   }
 })
-
-/** Drag/Drop on map for new reference style link */
-dumbyContainer.onmousedown = (e) => {
-  // Check should start drag event for GeoLink
-  if (e.which !== 1) return
-  const selection = document.getSelection()
-  if (cm.getSelection() === '' || selection.type !== 'Range') return
-  const range = selection.getRangeAt(0)
-  const rect = range.getBoundingClientRect()
-  const mouseInRange = e.x < rect.right && e.x > rect.left && e.y < rect.bottom && e.y > rect.top
-  if (!mouseInRange) return
-
-  const geoLink = document.createElement('a')
-  geoLink.textContent = range.toString()
-  geoLink.classList.add('with-leader-line', 'geolink', 'drag')
-  const originContent = range.cloneContents()
-  range.deleteContents()
-  range.insertNode(geoLink)
-
-  const lineEnd = document.createElement('div')
-  lineEnd.style.cssText = `position: absolute; left: ${e.clientX}px; top: ${e.clientY}px;`
-  document.body.appendChild(lineEnd)
-
-  const line = new LeaderLine({
-    start: geoLink,
-    end: lineEnd,
-    path: 'magnet',
-  })
-
-  function onMouseMove (event) {
-    lineEnd.style.left = event.clientX + 'px'
-    lineEnd.style.top = event.clientY + 'px'
-    line.position()
-
-    // TODO Scroll dumbymap.htmlHolder when cursor is at upper/lower side
-  }
-
-  context.classList.add('dragging-geolink')
-  dumbyContainer.onmousemove = onMouseMove
-  dumbymap.utils.renderedMaps().forEach(map => { map.style.cursor = 'crosshair' })
-  dumbyContainer.onmouseup = function (e) {
-    context.classList.remove('dragging-geolink')
-    dumbyContainer.onmousemove = null
-    dumbyContainer.onmouseup = null
-    line?.remove()
-    lineEnd.remove()
-    dumbymap.utils.renderedMaps().forEach(map => map.style.removeProperty('cursor'))
-    const resumeContent = () => {
-      range.deleteContents()
-      range.insertNode(originContent)
-    }
-
-    const map = document.elementFromPoint(e.clientX, e.clientY)
-      .closest('.mapclay[data-render="fulfilled"]')
-    const selection = cm.getSelection()
-    if (!map || !selection) {
-      resumeContent('map/selection')
-      return
-    }
-
-    const refLink = addAnchorByPoint({
-      defaultName: geoLink.textContent,
-      point: e,
-      map,
-      validateAnchorName,
-    })
-    if (!refLink) {
-      resumeContent('reflink')
-      return
-    }
-
-    const scrollTop = dumbymap.htmlHolder.scrollTop
-    geoLink.href = refLink.link
-    createGeoLink(geoLink)
-    appendRefLink(cm, refLink)
-    if (selection === refLink.ref) {
-      cm.replaceSelection(`[${selection}]`)
-    } else {
-      cm.replaceSelection(`[${selection}][${refLink.ref}]`)
-    }
-    dumbymap.htmlHolder.scrollBy(0, scrollTop)
-  }
-}
-
-dumbyContainer.ondragstart = () => false

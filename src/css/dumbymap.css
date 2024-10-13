@@ -764,6 +764,16 @@ root {
   .dumby-block > :not(:has(.mapclay[data-render="fulfilled"])) {
     opacity: 0.3;
   }
+
+  * {
+    cursor: not-allowed !important;
+  }
+
+  .mapclay[data-render="fulfilled"] {
+    &, & canvas {
+      cursor: crosshair !important;
+    }
+  }
 }
 
 .Dumby[data-layout='sticky'] {

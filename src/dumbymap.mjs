@@ -11,6 +11,7 @@ import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
 import proj4 from 'proj4'
 import { register, fromEPSGCode } from 'ol/proj/proj4'
+import LeaderLine from 'leader-line'
 
 /** CSS Selector for main components */
 const mapBlockSelector = 'pre:has(.language-map)'
@@ -586,6 +587,86 @@ export const generateMaps = (container, {
   onRemove(htmlHolder, () =>
     document.removeEventListener('click', actionOutsideMenu),
   )
+
+  /** Drag/Drop on map for new GeoLink */
+  container.onmousedown = (e) => {
+    // Check should start drag event for GeoLink
+    const selection = document.getSelection()
+    if (e.which !== 1 || selection.type !== 'Range') return
+
+    const range = selection.getRangeAt(0)
+    const originContent = range.cloneContents()
+    const rect = range.getBoundingClientRect()
+    const mouseInRange = e.x < rect.right && e.x > rect.left && e.y < rect.bottom && e.y > rect.top
+    if (!mouseInRange) return
+
+    const geoLink = document.createElement('a')
+    geoLink.textContent = range.toString()
+    geoLink.classList.add('with-leader-line', 'geolink', 'drag')
+    range.deleteContents()
+    range.insertNode(geoLink)
+
+    const lineEnd = document.createElement('div')
+    lineEnd.className = 'arrow-head'
+    const offsetRect = container.getBoundingClientRect()
+    lineEnd.style.cssText = `
+      position: absolute;
+      padding: 5px;
+      left: ${e.clientX}px;
+      top: ${e.clientY}px;
+      transform: translate(-${offsetRect.left + 5}px, -${offsetRect.top + 5}px);`
+    container.appendChild(lineEnd)
+
+    const line = new LeaderLine({
+      start: geoLink,
+      end: lineEnd,
+      path: 'magnet',
+    })
+
+    function onMouseMove (event) {
+      lineEnd.style.left = event.clientX + 'px'
+      lineEnd.style.top = event.clientY + 'px'
+      line.position()
+
+      // TODO Scroll dumbymap.htmlHolder when cursor is at upper/lower side
+    }
+
+    container.classList.add('dragging-geolink')
+    container.onmousemove = onMouseMove
+    container.onmouseup = function (e) {
+      container.classList.remove('dragging-geolink')
+      container.onmousemove = null
+      container.onmouseup = null
+      geoLink.classList.remove('drag')
+      line?.remove()
+      lineEnd.remove()
+      const resumeContent = () => {
+        range.deleteContents()
+        range.insertNode(originContent)
+      }
+
+      const map = document.elementFromPoint(e.clientX, e.clientY)
+        .closest('.mapclay[data-render="fulfilled"]')
+      if (!map) {
+        resumeContent('map/selection')
+        return
+      }
+
+      const refLink = utils.addAnchorByPoint({
+        defaultName: geoLink.textContent,
+        point: e,
+        map,
+      })
+      if (!refLink) {
+        resumeContent('reflink')
+        return
+      }
+
+      geoLink.href = refLink.link
+      utils.createGeoLink(geoLink)
+    }
+  }
+  container.ondragstart = () => false
 
   return Object.seal(dumbymap)
 }
