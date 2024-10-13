@@ -102,15 +102,21 @@ const getMarkersFromMaps = link => {
     .filter(map => link.targets ? link.targets.includes(map.id) : true)
     .map(map => {
       const renderer = map.renderer
-      const markerTitle = `${link.targets ?? 'all'}@${link.dataset.xy}`
       const lonLat = [Number(link.dataset.lon), Number(link.dataset.lat)]
 
-      return map.querySelector(`.marker[title="${markerTitle}"]`) ??
+      const marker = map.querySelector(`.marker[data-xy="${lonLat}"]`) ??
         renderer.addMarker({
           xy: lonLat,
-          title: markerTitle,
           type: link.type,
         })
+      marker.dataset.xy = lonLat
+      marker.title = new URLSearchParams(link.search).get('xy') ?? lonLat
+      const crs = link.dataset.crs
+      if (crs && crs !== 'EPSG:4326') {
+        marker.title += '@' + link.dataset.crs
+      }
+
+      return marker
     })
 }
 
@@ -153,9 +159,9 @@ export const createGeoLink = (link) => {
   if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false
 
   // Geo information in link
-  link.dataset.xy = xy
   link.dataset.lon = lon
   link.dataset.lat = lat
+  link.dataset.crs = params.get('crs')
   link.classList.add('with-leader-line', 'geolink')
   // TODO refactor as data attribute
   link.targets = params.get('id')?.split(',') ?? null
@@ -319,11 +325,11 @@ export const addAnchorByPoint = ({
   const desc = window.prompt('Description', anchorName) ?? anchorName
 
   const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id}&type=circle`
-  map.renderer.addMarker({
+  const marker = map.renderer.addMarker({
     xy: [x, y],
-    title: `${map.id}@${x},${y}`,
     type: 'circle',
   })
+  marker.dataset.xy = `${x},${y}`
 
   return { ref: anchorName, link, title: desc }
 }
