@@ -101,13 +101,6 @@ export const markdown2HTML = (container, mdContent) => {
 
   /** Render HTML */
   htmlHolder.innerHTML = md.render(mdContent)
-  /** Post HTML rendered */
-  // TODO Do this in markdown-it
-  const blocks = htmlHolder.querySelectorAll(':scope > div:not(:has(nav))')
-  blocks.forEach(b => {
-    b.classList.add('dumby-block')
-    b.dataset.total = blocks.length
-  })
 
   return container
 }
@@ -126,13 +119,18 @@ export const generateMaps = (container, {
   layouts = [],
   delay,
   renderCallback,
+  addBlocks = htmlHolder => Array.from(htmlHolder.children)
+    .map(e => { e.classList.add('dumby-block'); return e }),
 } = {}) => {
   /** Prepare Contaner/HTML-Holder/Showcase */
   container.classList.add('Dumby')
   delete container.dataset.layout
   container.dataset.layout = defaultLayouts[0].name
+
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
-  const blocks = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
+  const blocks = addBlocks(htmlHolder)
+  blocks.forEach(b => b.dataset.total = blocks.length)
+
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
