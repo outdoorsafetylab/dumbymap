@@ -40,7 +40,7 @@ export class Item extends window.HTMLDivElement {
     }
   }
 }
-window.customElements.define('menu-item', Item, { extends: 'div' })
+window.customElements.define('simple-menu-item', Item, { extends: 'div' })
 
 /**
  * Basic Element for menu item that generates a submenu on hover
