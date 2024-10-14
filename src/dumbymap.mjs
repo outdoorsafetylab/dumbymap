@@ -4,7 +4,7 @@ import MarkdownItFootnote from 'markdown-it-footnote'
 import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay'
-import { onRemove, animateRectTransition, throttle, shiftByWindow } from './utils'
+import { onRemove, animateRectTransition, throttle, shiftByWindow, replaceTextNodes } from './utils'
 import { Layout, SideBySide, Overlay } from './Layout'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
@@ -55,27 +55,6 @@ export const markdown2HTML = (container, mdContent) => {
     .use(MarkdownItFootnote)
     .use(MarkdownItFrontMatter)
     .use(MarkdownItInjectLinenumbers)
-
-  /** Set up linkify for GeoLinks */
-  const coordinateRegex = /^(\D*)(-?\d+\.?\d*)\s*([,\x2F\uFF0C])\s*(-?\d+\.?\d*)/
-  const coordinateValue = {
-    validate: coordinateRegex,
-    normalize: function (match) {
-      const [, , x, sep, y] = match.text.match(coordinateRegex)
-      match.url = `geo:${y},${x}`
-      match.text = `${x}${sep}${y}`
-      match.index += match.text.indexOf(x) + 1
-      return match
-    },
-  }
-  const patterns = ['[', '(', '📍', '\uFF08', '@', 'twd']
-  patterns.forEach(prefix =>
-    md.linkify.add(prefix, coordinateValue),
-  )
-  md.linkify.add('geo:', {
-    validate: /(-?\d+\.?\d*),(-?\d+\.?\d*)/,
-    normalize: match => match,
-  })
 
   /** Custom rule for Blocks in DumbyMap */
   // FIXME A better way to generate blocks
@@ -130,7 +109,7 @@ export const generateMaps = (container, {
 
   const htmlHolder = container.querySelector('.SemanticHtml') ?? container
   const blocks = addBlocks(htmlHolder)
-  blocks.forEach(b => b.dataset.total = blocks.length)
+  blocks.forEach(b => { b.dataset.total = blocks.length })
 
   const showcase = document.createElement('div')
   container.appendChild(showcase)
@@ -189,37 +168,32 @@ export const generateMaps = (container, {
     })
 
   /** LINK: Set CRS and GeoLinks */
-  register(proj4)
-  fromEPSGCode(crs).then(projection => {
-    const transform = proj4(crs, 'EPSG:4326').forward
-
-    Array.from(container.querySelectorAll(geoLinkSelector))
-      .map(link => {
-        // set coordinate as lat/lon in WGS84
-        const params = new URLSearchParams(link.search)
-        const [y, x] = link.href
-          .match(utils.coordPattern)
-          .splice(1)
-          .map(Number)
-        const [lon, lat] = transform([x, y])
-          .map(value => parseFloat(value.toFixed(6)))
-        link.href = `geo:${lat},${lon}`
-
-        // set query strings
-        params.set('xy', `${x},${y}`)
-        params.set('crs', crs)
-        params.set('q', `${lat},${lon}`)
-        link.search = params
-
-        if (projection.getUnits() === 'degrees' &&
-          (lon > 180 || lon < -180 || lat > 90 || lat < -90)
-        ) {
-          link.dataset.valid = false
-          link.title = `Invalid Coordinate, maybe try another crs other than ${crs}`
-        }
-
-        return link
+  const setCRS = new Promise(resolve => {
+    register(proj4)
+    fromEPSGCode(crs).then(() => resolve())
+  })
+  const addGeoSchemeByText = new Promise(resolve => {
+    const coordPatterns = [
+      /[\x28\x5B\uFF08]\D*(-?\d+\.?\d*)([\x2F\s])(-?\d+\.?\d*)\D*[\x29\x5D\uFF09]/,
+      /(-?\d+\.?\d*)([,\uFF0C]\s?)(-?\d+\.?\d*)/,
+    ]
+    const re = new RegExp(coordPatterns.map(p => p.source).join('|'), 'g')
+    htmlHolder.querySelectorAll('p')
+      .forEach(p => {
+        replaceTextNodes(p, re, match => {
+          const a = document.createElement('a')
+          a.href = `geo:0,0?xy=${match.at(1)},${match.at(3)}`
+          a.textContent = match.at(0)
+          return a
+        })
       })
+    resolve()
+  })
+
+  Promise.all([setCRS, addGeoSchemeByText]).then(() => {
+    Array.from(container.querySelectorAll(geoLinkSelector))
+      .map(utils.setGeoSchemeByCRS(crs))
+      .filter(link => link instanceof window.HTMLAnchorElement)
       .forEach(utils.createGeoLink)
   })
 

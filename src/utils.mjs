@@ -133,3 +133,47 @@ export const insideParent = (childElement, parentElement) => {
     childRect.bottom > parentRect.top + offset
   )
 }
+
+/**
+ * replaceTextNodes.
+ * @description Search current nodes by pattern, and replace them by new node
+ * @todo refactor to smaller methods
+ * @param {HTMLElement} element
+ * @param {RegExp} pattern
+ * @param {Function} newNode - Create new node by each result of String.prototype.matchAll
+ */
+export const replaceTextNodes = (
+  element,
+  pattern,
+  newNode = (match) => {
+    const link = document.createElement('a')
+    link.textContent(match.at(0))
+    return link
+  },
+) => {
+  const nodeIterator = document.createNodeIterator(
+    element,
+    window.NodeFilter.SHOW_TEXT,
+    node => node.textContent.match(pattern)
+      ? window.NodeFilter.FILTER_ACCEPT
+      : window.NodeFilter.FILTER_REJECT,
+  )
+
+  let node = nodeIterator.nextNode()
+  while (node) {
+    let index = 0
+    for (const match of node.textContent.matchAll(pattern)) {
+      const text = node.textContent.slice(index, match.index)
+      index = match.index + match.at(0).length
+      node.parentElement.insertBefore(document.createTextNode(text), node)
+      node.parentElement.insertBefore(newNode(match), node)
+    }
+    if (index < node.textContent.length) {
+      const text = node.textContent.slice(index)
+      node.parentElement.insertBefore(document.createTextNode(text), node)
+    }
+
+    node.parentElement.removeChild(node)
+    node = nodeIterator.nextNode()
+  }
+}

@@ -1,5 +1,6 @@
 import LeaderLine from 'leader-line'
 import { insideWindow, insideParent } from './utils'
+import proj4 from 'proj4'
 
 export const coordPattern = /^geo:([-]?[0-9.]+),([-]?[0-9.]+)/
 
@@ -332,4 +333,53 @@ export const addAnchorByPoint = ({
   marker.dataset.xy = `${x},${y}`
 
   return { ref: anchorName, link, title: desc }
+}
+
+/**
+ * setGeoSchemeByCRS.
+ * @description Add more information into Anchor Element within Geo Scheme by CRS
+ * @param {String} crs - EPSG/ESRI Code for CRS
+ * @return {Function} - Function for link
+ */
+export const setGeoSchemeByCRS = (crs) => (link) => {
+  const transform = proj4(crs, 'EPSG:4326')
+  const params = new URLSearchParams(link.search)
+  let xy = params.get('xy')?.split(',')?.map(Number)
+
+  // Set coords for Geo Scheme
+  if (link.href.startsWith('geo:0,0')) {
+    if (!xy) return null
+
+    const [lon, lat] = transform.forward(xy)
+      .map(value => parseFloat(value.toFixed(6)))
+    link.href = `geo:${lat},${lon}`
+  }
+
+  const [lat, lon] = link.href
+    .match(coordPattern)
+    .slice(1)
+    .map(Number)
+
+  if (!xy) {
+    xy = transform.inverse([lon, lat])
+    params.set('xy', xy)
+  }
+
+  // set query strings
+  params.set('crs', crs)
+  params.set('q', `${lat},${lon}`)
+  link.search = params
+
+  const unit = proj4(crs).oProj.units
+  const invalidDegree = unit === 'degrees' && (
+    (lon > 180 || lon < -180 || lat > 90 || lat < -90) ||
+    (xy.every(v => v.toString().length < 3))
+  )
+  const invalidMeter = unit === 'm' && xy.find(v => v < 100)
+  if (invalidDegree || invalidMeter) {
+    link.replaceWith(document.createTextNode(link.textContent))
+    return null
+  }
+
+  return link
 }

@@ -2,7 +2,7 @@
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
-import { addAnchorByPoint, createGeoLink } from './dumbyUtils.mjs'
+import { addAnchorByPoint } from './dumbyUtils.mjs'
 import { shiftByWindow } from './utils.mjs'
 import * as tutorial from './tutorial'
 
