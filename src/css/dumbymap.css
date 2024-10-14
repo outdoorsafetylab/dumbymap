@@ -134,7 +134,7 @@ root {
 .with-leader-line:not(:has(> *)) {
   display: inline-block;
   padding-right: 15px;
-  padding-left: 6px;
+  /* padding-left: 6px; */
 
   background-image: url('data:image/svg+xml;charset=utf-8;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cG9seWdvbiBwb2ludHM9IjI0LDAgMCw4IDgsMTEgMCwxOSA1LDI0IDEzLDE2IDE2LDI0IiBmaWxsPSJjb3JhbCIvPjwvc3ZnPg==');
   background-repeat: no-repeat;
