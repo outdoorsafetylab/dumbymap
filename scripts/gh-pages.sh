@@ -1,6 +1,6 @@
 #!/bin/bash
 
-git checkout -- .gitignore index.html && \
+git checkout gh-pages -- .gitignore index.html && \
 npm run build && npm run docs && \
 git branch --force gh-pages HEAD && \
 git checkout gh-pages && \

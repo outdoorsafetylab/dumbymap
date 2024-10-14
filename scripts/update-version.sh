@@ -9,6 +9,6 @@ jq ".version = \"$ANSWER\"" package.json >$TMP
 cat $TMP >package.json
 
 git reset
-git add package.json; git commit -m "chore(relase): $ANSWER"
+git add package.json; git commit -m "chore(release): $ANSWER"
 
 git show HEAD
