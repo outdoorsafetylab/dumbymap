@@ -2,7 +2,7 @@
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
-import { addAnchorByPoint } from './dumbyUtils.mjs'
+import { addMarkerByPoint } from './dumbyUtils.mjs'
 import { shiftByWindow } from './utils.mjs'
 import * as tutorial from './tutorial'
 
@@ -463,8 +463,18 @@ const menuForEditor = (event, menu) => {
   if (map) {
     const item = new menuItem.Item({
       text: 'Add Anchor',
-      onclick: (event) => {
-        const refLink = addAnchorByPoint({ point: event, map, validateAnchorName })
+      onclick: () => {
+        let anchorName
+        do {
+          anchorName = window.prompt(anchorName ? 'Name exists' : 'Name of Anchor')
+        } while (refLinks.find(ref => ref === anchorName))
+        if (anchorName === null) return
+
+        const marker = addMarkerByPoint({ point: [event.clientX, event.clientY], map })
+        const refLink = {
+          ref: anchorName,
+          link: `geo:${marker.dataset.xy.split(',').reverse()}`,
+        }
         appendRefLink(cm, refLink)
       },
     })

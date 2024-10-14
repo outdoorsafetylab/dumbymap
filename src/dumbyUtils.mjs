@@ -190,11 +190,14 @@ export const createGeoLink = (link) => {
     if (link.dataset.valid === 'false') return
 
     removeLeaderLines(link)
-    getMarkersFromMaps(link)
-      .forEach(updateMapCameraByMarker([
+    getMarkersFromMaps(link).forEach(marker => {
+      const map = marker.closest('.mapclay')
+      map.scrollIntoView({ behavior: 'smooth' })
+      updateMapCameraByMarker([
         Number(link.dataset.lon),
         Number(link.dataset.lat),
-      ]))
+      ])(marker)
+    })
   }
 
   // Use middle click to remove markers
@@ -296,43 +299,24 @@ const isAnchorVisible = anchor => {
 }
 
 /**
- * addAnchorByPoint.
+ * addMarkerByPoint.
  *
- * @param {point} options.point - object has {x, y} for window coordinates
+ * @param {Number[]} options.point - page XY
  * @param {HTMLElement} options.map
- * @param {Function} options.validateAnchorName - validate anchor name is OK to use
  */
-export const addAnchorByPoint = ({
-  defaultName,
-  point,
-  map,
-  validateAnchorName = () => true,
-}) => {
+export const addMarkerByPoint = ({ point, map }) => {
   const rect = map.getBoundingClientRect()
-  const [x, y] = map.renderer
-    .unproject([point.x - rect.left, point.y - rect.top])
-    .map(coord => parseFloat(coord.toFixed(6)))
+  const [lon, lat] = map.renderer
+    .unproject([point[0] - rect.left, point[1] - rect.top])
+    .map(value => parseFloat(value.toFixed(6)))
 
-  let prompt
-  let anchorName
-
-  do {
-    prompt = prompt ? 'Anchor name exists' : 'Name this anchor'
-    anchorName = window.prompt(prompt, defaultName ?? '')
-  }
-  while (anchorName !== null && !validateAnchorName(anchorName))
-  if (anchorName === null) return
-
-  const desc = window.prompt('Description', anchorName) ?? anchorName
-
-  const link = `geo:${y},${x}?xy=${x},${y}&id=${map.id}&type=circle`
   const marker = map.renderer.addMarker({
-    xy: [x, y],
+    xy: [lon, lat],
     type: 'circle',
   })
-  marker.dataset.xy = `${x},${y}`
+  marker.dataset.xy = `${lon},${lat}`
 
-  return { ref: anchorName, link, title: desc }
+  return marker
 }
 
 /**
