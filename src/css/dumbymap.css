@@ -134,6 +134,7 @@ root {
 .with-leader-line:not(:has(> *)) {
   display: inline-block;
   padding-right: 15px;
+
   /* padding-left: 6px; */
 
   background-image: url('data:image/svg+xml;charset=utf-8;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cG9seWdvbiBwb2ludHM9IjI0LDAgMCw4IDgsMTEgMCwxOSA1LDI0IDEzLDE2IDE2LDI0IiBmaWxsPSJjb3JhbCIvPjwvc3ZnPg==');
@@ -373,6 +374,25 @@ root {
   padding: 0;
 
   position: relative;
+
+  &.dragging-geolink {
+    user-select: none;
+
+    * {
+      cursor: not-allowed !important;
+    }
+
+    .dumby-block > :not(:has(.mapclay[data-render="fulfilled"])) {
+      opacity: 0.3;
+    }
+
+    .mapclay[data-render="fulfilled"] {
+      &, & canvas {
+        cursor: crosshair !important;
+      }
+    }
+  }
+
 
   &::after {
     content: 'Layout: ' attr(data-layout);
@@ -756,24 +776,6 @@ root {
 
 .bold-options {
   font-weight: bold;
-}
-
-.dragging-geolink {
-  user-select: none;
-
-  .dumby-block > :not(:has(.mapclay[data-render="fulfilled"])) {
-    opacity: 0.3;
-  }
-
-  * {
-    cursor: not-allowed !important;
-  }
-
-  .mapclay[data-render="fulfilled"] {
-    &, & canvas {
-      cursor: crosshair !important;
-    }
-  }
 }
 
 .Dumby[data-layout='sticky'] {
