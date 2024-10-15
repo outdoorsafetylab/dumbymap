@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+  "name": "DumbyMap",
+  "version": "1.0",
+
+  "description": "Add interatctive Map",
+
+  "icons": {
+    "48": "icons/default.ico"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.mozilla.org/*"],
+      "js": ["index.mjs"],
+      "css": [
+        "css/dumbymap.css"
+      ]
+    }
+  ],
+
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting"
+  ]
+}
