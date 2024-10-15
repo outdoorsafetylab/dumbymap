@@ -58,8 +58,8 @@ export const markdown2HTML = (container, mdContent) => {
 
   /** Custom rule for Blocks in DumbyMap */
   // FIXME A better way to generate blocks
-  md.renderer.rules.dumby_block_open = () => '<div>'
-  md.renderer.rules.dumby_block_close = () => '</div>'
+  md.renderer.rules.dumby_block_open = () => '<article>'
+  md.renderer.rules.dumby_block_close = () => '</article>'
   md.core.ruler.before('block', 'dumby_block', state => {
     state.tokens.push(new state.Token('dumby_block_open', '', 1))
   })
@@ -99,17 +99,20 @@ export const generateMaps = (container, {
   layouts = [],
   delay,
   renderCallback,
-  addBlocks = htmlHolder => Array.from(htmlHolder.children)
-    .map(e => { e.classList.add('dumby-block'); return e }),
+  addBlocks = htmlHolder => Array.from(htmlHolder.querySelectorAll('article')),
 } = {}) => {
   /** Prepare Contaner/HTML-Holder/Showcase */
   container.classList.add('Dumby')
   delete container.dataset.layout
   container.dataset.layout = defaultLayouts[0].name
 
-  const htmlHolder = container.querySelector('.SemanticHtml') ?? container
+  const htmlHolder = container.querySelector('.SemanticHtml, :has(article, section)') ?? container.firstElementChild
+  htmlHolder.classList.add('.SemanticHtml')
   const blocks = addBlocks(htmlHolder)
-  blocks.forEach(b => { b.dataset.total = blocks.length })
+  blocks.forEach(b => {
+    b.classList.add('dumby-block')
+    b.dataset.total = blocks.length
+  })
 
   const showcase = document.createElement('div')
   container.appendChild(showcase)
