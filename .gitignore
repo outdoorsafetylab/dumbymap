@@ -1,5 +1,3 @@
-dist/
-docs/
 doc-coverage/
 node_modules/
 package-lock.json
