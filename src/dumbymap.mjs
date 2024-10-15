@@ -165,7 +165,7 @@ export const generateMaps = (container, {
   /** LINK: Add external symbol on anchors */
   container.querySelectorAll('a')
     .forEach(a => {
-      if (a.href.startsWith('http') && !a.href.startsWith(window.location.origin)) {
+      if (typeof a.href === 'string' && a.href.startsWith('http') && !a.href.startsWith(window.location.origin)) {
         a.classList.add('external')
       }
     })
