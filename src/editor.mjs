@@ -497,9 +497,12 @@ updateDumbyMap(() => {
 
 // Re-render HTML by editor content
 cm.on('change', (_, change) => {
-  updateDumbyMap(() => {
-    updateCMScrollLine(cm)
-  })
+  if (change.origin?.match(/\+input|\+delete|paste/)) {
+    textArea.dataset.scrollLine = cm.getCursor().line
+    updateDumbyMap(() => {
+      updateCMScrollLine(cm)
+    })
+  }
   addClassToCodeLines()
   completeForCodeBlock(change)
 })
@@ -511,8 +514,6 @@ cm.on('focus', () => {
 })
 
 cm.on('beforeChange', (_, change) => {
-  textArea.dataset.scrollLine = cm.getCursor().line
-
   // Don't allow more content after YAML doc separator
   if (change.origin && change.origin.match(/^(\+input|paste)$/)) {
     const line = change.to.line
