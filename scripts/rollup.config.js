@@ -5,7 +5,25 @@ import { existsSync } from 'fs'
 import { join } from 'path'
 import { bundleStats } from 'rollup-plugin-bundle-stats'
 
-const production = !process.env.ROLLUP_WATCH
+const prod = process.env.PRODUCTION
+const addon = process.env.ADDON
+
+function resolve (file, origin) {
+  // Your way to resolve local include path
+}
+
+function pathResolve (options) {
+  return {
+    resolveId: function (file, origin) {
+      // Your local include path must either starts with `./` or `../`
+      if (file.startsWith('./') || file.startsWith('../')) {
+        // Return an absolute include path
+        return resolve(file, origin)
+      }
+      return null // Continue to the next plugins!
+    },
+  }
+}
 
 const general = {
   output: [
@@ -13,7 +31,6 @@ const general = {
       dir: './dist',
       format: 'esm',
       entryFileNames: '[name].mjs',
-      sourcemap: 'true',
     },
   ],
   watch: {
@@ -42,12 +59,13 @@ const general = {
         return null
       },
     },
+    pathResolve(),
     node(),
     commonjs(),
-    production && terser({
+    prod && terser({
       keep_fnames: true,
     }),
-    production && bundleStats(),
+    prod && bundleStats(),
   ],
 }
 
@@ -60,4 +78,31 @@ export default [
   },
 ]
   .map(config => ({ ...general, ...config }))
-  .filter((config) => production || config.input.match(/editor/))
+  .filter(config => {
+    if (addon) return config.input.match(/dumbymap/)
+    if (!prod) return config.input.match(/editor/)
+  })
+  .map(config => {
+    if (!addon) return config
+
+    config.output.forEach(o => o.dir = './addon')
+    config.plugins.push({
+      name: 'remove-exports',
+      transform (code, id) {
+        if (id.includes(config.input)) {
+          // remove export keyword for addon
+          const transformedCode = code.replace(/\n(\s*)export\s*/g, '$1')
+          return {
+            code: [
+              transformedCode,
+              'window.generateMaps = generateMaps',
+              'window.mapclay = mapclay',
+            ].join('\n'),
+          }
+        }
+        return null
+      },
+    })
+
+    return config
+  })

@@ -3,7 +3,7 @@ import MarkdownItAnchor from 'markdown-it-anchor'
 import MarkdownItFootnote from 'markdown-it-footnote'
 import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
-import { renderWith, defaultAliases, parseConfigsFromYaml } from 'mapclay'
+import * as mapclay from 'mapclay'
 import { replaceTextNodes, onRemove, animateRectTransition, throttle, shiftByWindow } from './utils'
 import { Layout, SideBySide, Overlay } from './Layout'
 import * as utils from './dumbyUtils'
@@ -86,6 +86,68 @@ export const markdown2HTML = (container, mdContent) => {
 }
 
 /**
+ * defaultBlocks.
+ * @description Default way to get blocks from Semantic HTML
+ * @param {HTMLElement} root
+ */
+const defaultBlocks = root => {
+  const articles = root.querySelectorAll('article')
+  if (articles.length > 2) return articles
+
+  const others = Array.from(
+    root.querySelectorAll(':has(>p, >blockquote, >pre, >ul, >ol, >table, >details)'),
+  )
+    .map(e => {
+      e.classList.add('dumby-block')
+      return e
+    })
+    .filter(e => {
+      const isContained = e.parentElement.closest('.dumby-block')
+      if (isContained) e.classList.remove('dumby-block')
+      return !isContained
+    })
+
+  return others
+}
+
+/**
+ * updateAttributeByStep.
+ * @description Update data attribute by steps of map render
+ * @param {Object} - renderer which is running steps
+ */
+const updateAttributeByStep = ({ results, target, steps }) => {
+  let passNum = results.filter(
+    r => r.type === 'render' && r.state.match(/success|skip/),
+  ).length
+  const total = steps.length
+  passNum += `/${total}`
+
+  const final = results.filter(r => r.type === 'render').length === total
+
+  // FIXME HACK use MutationObserver for animation
+  if (!target.animations) target.animations = Promise.resolve()
+  target.animations = target.animations.then(async () => {
+    await new Promise(resolve => setTimeout(resolve, 100))
+    if (final) passNum += '\x20'
+    target.dataset.report = passNum
+
+    if (final) setTimeout(() => delete target.dataset.report, 100)
+  })
+}
+
+/** Get default render method by converter */
+const defaultRender = mapclay.renderWith(config => ({
+  use: config.use ?? 'Leaflet',
+  width: '100%',
+  ...config,
+  aliases: {
+    ...mapclay.defaultAliases,
+    ...(config.aliases ?? {}),
+  },
+  stepCallback: updateAttributeByStep,
+}))
+
+/**
  * Generates maps based on the provided configuration
  *
  * @param {HTMLElement} container - The container element for the maps
@@ -96,16 +158,19 @@ export const markdown2HTML = (container, mdContent) => {
  */
 export const generateMaps = (container, {
   crs = 'EPSG:4326',
+  initialLayout,
   layouts = [],
   delay,
   renderCallback,
-  addBlocks = htmlHolder => Array.from(htmlHolder.querySelectorAll('article')),
+  addBlocks = defaultBlocks,
+  render = defaultRender,
 } = {}) => {
-  /** Prepare Contaner/HTML-Holder/Showcase */
+  /** Prepare Contaner */
   container.classList.add('Dumby')
   delete container.dataset.layout
-  container.dataset.layout = defaultLayouts[0].name
+  container.dataset.layout = initialLayout ?? defaultLayouts[0].name
 
+  /** Prepare Semantic HTML part and blocks of contents inside */
   const htmlHolder = container.querySelector('.SemanticHtml, :has(article, section)') ?? container.firstElementChild
   htmlHolder.classList.add('.SemanticHtml')
   const blocks = addBlocks(htmlHolder)
@@ -114,12 +179,13 @@ export const generateMaps = (container, {
     b.dataset.total = blocks.length
   })
 
+  /** Prepare Showcase */
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
-  const renderPromises = []
 
-  /** Prepare Modal */
+  /** Prepare Other Variables */
+  const renderPromises = []
   const modalContent = document.createElement('div')
   container.appendChild(modalContent)
   const modal = new PlainModal(modalContent)
@@ -392,63 +458,25 @@ export const generateMaps = (container, {
   const elementsWithMapConfig = Array.from(
     container.querySelectorAll(mapBlockSelector) ?? [],
   )
-  /**
-   * updateAttributeByStep.
-   *
-   * @param {Object} - renderer which is running steps
-   */
-  const updateAttributeByStep = ({ results, target, steps }) => {
-    let passNum = results.filter(
-      r => r.type === 'render' && r.state.match(/success|skip/),
-    ).length
-    const total = steps.length
-    passNum += `/${total}`
-
-    const final = results.filter(r => r.type === 'render').length === total
-
-    // FIXME HACK use MutationObserver for animation
-    if (!target.animations) target.animations = Promise.resolve()
-    target.animations = target.animations.then(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100))
-      if (final) passNum += '\x20'
-      target.dataset.report = passNum
-
-      if (final) setTimeout(() => delete target.dataset.report, 100)
-    })
+  if (elementsWithMapConfig.length === 0) {
+    const map = document.createElement('pre')
+    map.textContent = '#Created by DumbyMap'
+    htmlHolder.insertBefore(map, htmlHolder.firstElementChild)
+    elementsWithMapConfig.push(map)
   }
-  /**
-   * config converter for mapclay.renderWith()
-   *
-   * @param {Object} config
-   * @return {Object} - converted config
-   */
-  const configConverter = config => ({
-    use: config.use ?? 'Leaflet',
-    width: '100%',
-    ...config,
-    aliases: {
-      ...defaultAliases,
-      ...(config.aliases ?? {}),
-    },
-    stepCallback: updateAttributeByStep,
-  })
-
-  /** Get render method by converter */
-  const render = renderWith(configConverter)
 
   /** Render each taget element for maps */
   let order = 0
   elementsWithMapConfig.forEach(target => {
     // Get text in code block starts with markdown text '```map'
     const configText = target
-      .querySelector('.language-map')
       .textContent // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
       // replace it by normal space
       .replace(/\u00A0/g, '\u0020')
 
     let configList = []
     try {
-      configList = parseConfigsFromYaml(configText).map(assignMapId)
+      configList = mapclay.parseConfigsFromYaml(configText).map(assignMapId)
     } catch (_) {
       console.warn('Fail to parse yaml config for element', target)
       return
