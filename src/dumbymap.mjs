@@ -242,11 +242,8 @@ export const generateMaps = (container, {
     fromEPSGCode(crs).then(() => resolve())
   })
   const addGeoSchemeByText = new Promise(resolve => {
-    const coordPatterns = [
-      /[\x28\x5B\uFF08]\D*(-?\d+\.?\d*)([\x2F\s])(-?\d+\.?\d*)\D*[\x29\x5D\uFF09]/,
-      /(-?\d+\.?\d*)([,\uFF0C])(-?\d+\.?\d*)/,
-    ]
-    const re = new RegExp(coordPatterns.map(p => p.source).join('|'), 'g')
+    const coordPatterns = /(-?\d+\.?\d*)([,\x2F\uFF0C])(-?\d+\.?\d*)/
+    const re = new RegExp(coordPatterns, 'g')
     htmlHolder.querySelectorAll('p')
       .forEach(p => {
         replaceTextNodes(p, re, match => {
