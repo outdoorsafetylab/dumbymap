@@ -538,7 +538,7 @@ export const generateMaps = (container, {
   container.oncontextmenu = e => {
     menu.replaceChildren()
     menu.style.display = 'block'
-    menu.style.cssText = `left: ${e.x - menu.offsetParent.offsetLeft + 10}px; top: ${e.y - menu.offsetParent.offsetTop + 5}px;`
+    menu.style.cssText = `left: ${e.clientX - menu.offsetParent.offsetLeft + 10}px; top: ${e.clientY - menu.offsetParent.offsetTop + 5}px;`
     e.preventDefault()
 
     // Menu Items for map
