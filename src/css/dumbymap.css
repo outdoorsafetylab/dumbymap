@@ -161,7 +161,7 @@ root {
   &:hover, &.drag {
     background-image: none;
 
-    font-weight: bolder;
+    /* font-weight: bolder; */
     text-decoration: none;
   }
 }
