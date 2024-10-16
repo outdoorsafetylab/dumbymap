@@ -40,7 +40,9 @@ export class Item extends window.HTMLDivElement {
     }
   }
 }
-window.customElements.define('dumby-menu-item', Item, { extends: 'div' })
+if (!window.customElements.get('dumby-menu-item')) {
+  window.customElements.define('dumby-menu-item', Item, { extends: 'div' })
+}
 
 /**
  * Basic Element for menu item that generates a submenu on hover
@@ -80,7 +82,9 @@ export class Folder extends window.HTMLDivElement {
     }
   }
 }
-window.customElements.define('menu-folder', Folder, { extends: 'div' })
+if (!window.customElements.get('menu-folder')) {
+  window.customElements.define('menu-folder', Folder, { extends: 'div' })
+}
 
 /**
  * Creates a menu item for picking a map
@@ -232,7 +236,9 @@ export class Suggestion extends Item {
     }
   }
 }
-window.customElements.define('menu-item-suggestion', Suggestion, { extends: 'div' })
+if (!window.customElements.get('menu-item-suggestion')) {
+  window.customElements.define('menu-item-suggestion', Suggestion, { extends: 'div' })
+}
 
 /**
  * renderResults. return a menu item for reporting render results
