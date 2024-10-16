@@ -13,7 +13,8 @@
     {
       "matches": [
         "*://*.mozilla.org/*",
-        "*://hackmd.io/*"
+        "*://hackmd.io/*",
+        "*://*.ptt.cc/*"
       ],
       "js": [
         "dumbymap.mjs",
