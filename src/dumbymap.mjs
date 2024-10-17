@@ -171,8 +171,11 @@ export const generateMaps = (container, {
   container.dataset.layout = initialLayout ?? defaultLayouts[0].name
 
   /** Prepare Semantic HTML part and blocks of contents inside */
-  const htmlHolder = container.querySelector('.SemanticHtml, :has(article, section)') ?? container.firstElementChild
+  const htmlHolder = container.querySelector('.SemanticHtml') ??
+    Array.from(container.children).find(e => e.id?.includes('main') || e.className.includes('main')) ??
+    Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
   htmlHolder.classList.add('.SemanticHtml')
+
   const blocks = addBlocks(htmlHolder)
   blocks.forEach(b => {
     b.classList.add('dumby-block')
