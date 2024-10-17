@@ -241,10 +241,10 @@ export const generateMaps = (container, {
     register(proj4)
     fromEPSGCode(crs).then(() => resolve())
   })
-  const addGeoSchemeByText = new Promise(resolve => {
+  const addGeoSchemeByText = (async () => {
     const coordPatterns = /(-?\d+\.?\d*)([,\x2F\uFF0C])(-?\d+\.?\d*)/
     const re = new RegExp(coordPatterns, 'g')
-    htmlHolder.querySelectorAll('p')
+    htmlHolder.querySelectorAll('.dumby-block')
       .forEach(p => {
         replaceTextNodes(p, re, match => {
           const a = document.createElement('a')
@@ -253,8 +253,7 @@ export const generateMaps = (container, {
           return a
         })
       })
-    resolve()
-  })
+  })()
 
   Promise.all([setCRS, addGeoSchemeByText]).then(() => {
     Array.from(container.querySelectorAll(geoLinkSelector))

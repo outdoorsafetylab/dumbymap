@@ -12,6 +12,7 @@ const simpleRender = window.mapclay.renderWith(config => ({
 }))
 
 window.generateMaps(document.querySelector('main') ?? document.body, {
+  crs: url.searchParams.get('crs') ?? 'EPSG:4326',
   initialLayout: '',
   render: simpleRender,
 })

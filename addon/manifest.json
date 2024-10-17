@@ -12,7 +12,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.mozilla.org/*",
+        "*://developer.mozilla.org/*",
         "*://hackmd.io/*",
         "*://*.ptt.cc/*"
       ],
@@ -29,6 +29,7 @@
   "permissions": [
     "activeTab",
     "tabs",
-    "scripting"
+    "scripting",
+    "https://epsg.io/*"
   ]
 }
