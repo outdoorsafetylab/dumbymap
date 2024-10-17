@@ -64,6 +64,8 @@ const validateAnchorName = anchorName =>
  * @param {RefLink} refLink - The reference link to append
  */
 const appendRefLink = (cm, refLink) => {
+  editor.dataset.update = 'false'
+
   const { ref, link, title } = refLink
   let refLinkString = `\n[${ref}]: ${link} "${title ?? ''}"`
   const lastLineIsRefLink = cm.getLine(cm.lastLine()).match(refLinkPattern)
@@ -507,11 +509,13 @@ updateDumbyMap(() => {
 
 // Re-render HTML by editor content
 cm.on('change', (_, change) => {
-  if (change.origin?.match(/\+input|\+delete|paste/)) {
+  if (editor.dataset?.update !== 'false') {
     textArea.dataset.scrollLine = cm.getCursor().line
     updateDumbyMap(() => {
       updateCMScrollLine(cm)
     })
+  } else {
+    delete editor.dataset.update
   }
   addClassToCodeLines()
   completeForCodeBlock(change)
