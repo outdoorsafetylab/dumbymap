@@ -91,7 +91,7 @@ export const markdown2HTML = (container, mdContent) => {
  * @param {HTMLElement} root
  */
 const defaultBlocks = root => {
-  const articles = root.querySelectorAll('article')
+  const articles = Array.from(root.querySelectorAll('article'))
   if (articles.length > 2) return articles
 
   const others = Array.from(
