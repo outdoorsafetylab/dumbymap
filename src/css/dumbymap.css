@@ -141,7 +141,7 @@ root {
   background-repeat: no-repeat;
   background-position: right 2px top 2px;
 
-  color: #555;
+  color: #555 !important;
   background-size: 12px 12px;
 
   &.geolink {
@@ -166,7 +166,7 @@ root {
   }
 }
 
-.Dumby:not([data-layout=""]) .dumby-block {
+.DumbyMap.Dumby[data-layout] .dumby-block {
   padding: 1rem 1rem 1rem 2rem;
 
   position: relative;
@@ -495,7 +495,7 @@ root {
   }
 }
 
-.Dumby[data-layout='normal'] {
+.DumbyMap.Dumby[data-layout='normal'] {
   max-width: 60em;
 
   &::after {
@@ -595,6 +595,35 @@ root {
   }
 }
 
+.Dumby[data-layout='sticky'] {
+  .SemanticHtml {
+    max-width: 60em;
+    margin: 0 auto;
+  }
+
+  .draggable-block {
+    position: fixed;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  .Showcase {
+    display: block;
+    overflow: hidden;
+    width: 20vw;
+    min-width: 10vw;
+    height: 200px;
+    min-height: 100px;
+    resize: both;
+
+    .mapclay {
+      border-radius: 4px !important;
+    }
+  }
+}
+
 .utils {
   display: flex;
   padding-block: 1rem;
@@ -642,6 +671,7 @@ root {
 .draggable-block {
   overflow: visible;
   width: fit-content;
+  height: fit-content;
 
   position: absolute;
 
@@ -659,7 +689,7 @@ root {
   opacity: 0;
   pointer-events: auto;
 
-  &:has(.dumby-block.focus) {
+  &:has(.dumby-block.focus, .mapclay.focus) {
     visibility: visible;
     opacity: 1;
   }
@@ -730,7 +760,7 @@ root {
     position: absolute;
     left: 0;
     top: 0;
-    z-index: 1;
+    z-index: 2;
     border-top-left-radius: 0.3rem;
     border-top-right-radius: 0.3rem;
   }
@@ -780,22 +810,6 @@ root {
 
 .bold-options {
   font-weight: bold;
-}
-
-.Dumby[data-layout='sticky'] {
-  max-width: 80em;
-
-  .Showcase {
-    display: block;
-    width: 20vw;
-    height: 40vh;
-
-    position: absolute;
-    right: 20px;
-    bottom: 20px;
-
-    background: red;
-  }
 }
 
 .dumby-block details {

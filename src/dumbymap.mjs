@@ -5,7 +5,7 @@ import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 import * as mapclay from 'mapclay'
 import { replaceTextNodes, onRemove, animateRectTransition, throttle, shiftByWindow } from './utils'
-import { Layout, SideBySide, Overlay } from './Layout'
+import { Layout, SideBySide, Overlay, Sticky } from './Layout'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
@@ -23,6 +23,7 @@ const defaultLayouts = [
   new Layout({ name: 'normal' }),
   new SideBySide({ name: 'side-by-side' }),
   new Overlay({ name: 'overlay' }),
+  new Sticky({ name: 'sticky' }),
 ]
 
 /** Cache across every dumbymap generation */
@@ -169,13 +170,12 @@ export const generateMaps = (container, {
   /** Prepare Contaner */
   container.classList.add('Dumby')
   delete container.dataset.layout
-  container.dataset.layout = initialLayout ?? defaultLayouts[0].name
 
   /** Prepare Semantic HTML part and blocks of contents inside */
   const htmlHolder = container.querySelector('.SemanticHtml') ??
     Array.from(container.children).find(e => e.id?.includes('main') || e.className.includes('main')) ??
     Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
-  htmlHolder.classList.add('.SemanticHtml')
+  htmlHolder.classList.add('SemanticHtml')
 
   const blocks = addBlocks(htmlHolder)
   blocks.forEach(b => {
@@ -280,13 +280,7 @@ export const generateMaps = (container, {
       const mutation = mutations.at(-1)
       const target = mutation.target
       const focus = target.classList.contains('focus')
-      const shouldBeInShowcase =
-        focus &&
-        showcase.checkVisibility({
-          contentVisibilityAuto: true,
-          opacityProperty: true,
-          visibilityProperty: true,
-        })
+      const shouldBeInShowcase = focus && showcase.checkVisibility()
 
       if (focus) {
         dumbymap.utils
@@ -393,6 +387,7 @@ export const generateMaps = (container, {
   })
 
   onRemove(htmlHolder, () => layoutObserver.disconnect())
+  container.dataset.layout = initialLayout ?? defaultLayouts[0].name
 
   /**
    * afterMapRendered. callback of each map rendered

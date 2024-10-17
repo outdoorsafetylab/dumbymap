@@ -86,6 +86,83 @@ export class SideBySide extends Layout {
 }
 
 /**
+ * addDraggable.
+ *
+ * @param {HTMLElement} element
+ */
+const addDraggable = (element, { snap, left, top } = {}) => {
+  element.classList.add('draggable-block')
+
+  // Make sure current element always on top
+  const siblings = Array.from(
+    element.parentElement?.querySelectorAll(':scope > *') ?? [],
+  )
+  let popTimer = null
+  const onmouseover = () => {
+    popTimer = setTimeout(() => {
+      siblings.forEach(e => e.style.removeProperty('z-index'))
+      element.style.zIndex = '9001'
+    }, 200)
+  }
+  const onmouseout = () => {
+    clearTimeout(popTimer)
+  }
+  element.addEventListener('mouseover', onmouseover)
+  element.addEventListener('mouseout', onmouseout)
+
+  // Add draggable part
+  const draggablePart = document.createElement('div')
+  element.appendChild(draggablePart)
+  draggablePart.className = 'draggable-part'
+  draggablePart.innerHTML = '<div class="handle">\u2630</div>'
+
+  // Add draggable instance
+  const draggable = new PlainDraggable(element, {
+    left,
+    top,
+    handle: draggablePart,
+    snap,
+  })
+
+  // FIXME use pure CSS to hide utils
+  const utils = element.querySelector('.utils')
+  draggable.onDragStart = () => {
+    if (utils) utils.style.display = 'none'
+    element.classList.add('drag')
+  }
+
+  draggable.onDragEnd = () => {
+    if (utils) utils.style = ''
+    element.classList.remove('drag')
+    element.style.zIndex = '9000'
+  }
+
+  // Reposition draggable instance when resized
+  const resizeObserver = new window.ResizeObserver(() => {
+    draggable?.position()
+  })
+  resizeObserver.observe(element)
+
+  // Callback for remove
+  onRemove(element, () => {
+    resizeObserver.disconnect()
+  })
+
+  new window.MutationObserver(() => {
+    if (!element.classList.contains('draggable-block') && draggable) {
+      element.removeEventListener('mouseover', onmouseover)
+      element.removeEventListener('mouseout', onmouseout)
+      resizeObserver.disconnect()
+    }
+  }).observe(element, {
+    attributes: true,
+    attributeFilter: ['class'],
+  })
+
+  return draggable
+}
+
+/**
  * Overlay Layout, Showcase occupies viewport, and HTML content becomes draggable blocks
  *
  * @extends {Layout}
@@ -100,70 +177,6 @@ export class Overlay extends Layout {
     const { left, top } = element.getBoundingClientRect()
     element.dataset.left = left
     element.dataset.top = top
-  }
-
-  /**
-   * addDraggable.
-   *
-   * @param {HTMLElement} element
-   */
-  addDraggable = element => {
-    // Make sure current element always on top
-    const siblings = Array.from(
-      element.parentElement?.querySelectorAll(':scope > *') ?? [],
-    )
-    let popTimer = null
-    element.onmouseover = () => {
-      popTimer = setTimeout(() => {
-        siblings.forEach(e => e.style.removeProperty('z-index'))
-        element.style.zIndex = '9001'
-      }, 200)
-    }
-    element.onmouseout = () => {
-      clearTimeout(popTimer)
-    }
-
-    // Add draggable part
-    const draggablePart = document.createElement('div')
-    element.appendChild(draggablePart)
-    draggablePart.className = 'draggable-part'
-    draggablePart.innerHTML = '<div class="handle">\u2630</div>'
-
-    // Add draggable instance
-    const { left, top } = element.getBoundingClientRect()
-    const draggable = new PlainDraggable(element, {
-      top,
-      left,
-      handle: draggablePart,
-      snap: { x: { step: 20 }, y: { step: 20 } },
-    })
-
-    // FIXME use pure CSS to hide utils
-    const utils = element.querySelector('.utils')
-    draggable.onDragStart = () => {
-      utils.style.display = 'none'
-      element.classList.add('drag')
-    }
-
-    draggable.onDragEnd = () => {
-      utils.style = ''
-      element.classList.remove('drag')
-      element.style.zIndex = '9000'
-    }
-
-    // Reposition draggable instance when resized
-    new window.ResizeObserver(() => {
-      try {
-        draggable.position()
-      } catch (err) {
-        console.warn(err)
-      }
-    }).observe(element)
-
-    // Callback for remove
-    onRemove(element, () => {
-      draggable.remove()
-    })
   }
 
   /**
@@ -182,7 +195,7 @@ export class Overlay extends Layout {
     }
 
     // Create draggable blocks and set each position by previous one
-    let [left, top] = [20, 20]
+    const [left, top] = [20, 20]
     blocks.forEach(block => {
       const originLeft = Number(block.dataset.left)
       const originTop = Number(block.dataset.top)
@@ -210,8 +223,8 @@ export class Overlay extends Layout {
       wrapper.style.left = left + 'px'
       wrapper.style.top = top + 'px'
       htmlHolder.appendChild(wrapper)
-      const { width } = wrapper.getBoundingClientRect()
-      left += width + 30
+      const rect = wrapper.getBoundingClientRect()
+      left += rect.width + 30
       if (left > window.innerWidth) {
         top += 200
         left = left % window.innerWidth
@@ -222,7 +235,14 @@ export class Overlay extends Layout {
         wrapper,
         { left: originLeft, top: originTop },
         { resume: true, duration: 300 },
-      ).finished.finally(() => this.addDraggable(wrapper))
+      ).finished.finally(() => addDraggable(wrapper, {
+        left: rect.left,
+        top: rect.top,
+        snap: {
+          x: { step: 20 },
+          y: { step: 20 },
+        },
+      }))
 
       // Trivial case:
       // This hack make sure utils remains at the same place even when wrapper resized
@@ -269,5 +289,28 @@ export class Overlay extends Layout {
       draggableContainer.remove()
     }
     blocks.forEach(resumeFromDraggable)
+  }
+}
+
+/**
+ * Sticky Layout, Showcase is draggable and stick to viewport
+ *
+ * @extends {Layout}
+ */
+export class Sticky extends Layout {
+  draggable = document.createElement('div')
+
+  enterHandler = ({ showcase }) => {
+    showcase.replaceWith(this.draggable)
+    this.draggable.appendChild(showcase)
+    this.draggableInstance = addDraggable(this.draggable)
+    const rect = this.draggable.getBoundingClientRect()
+    this.draggable.style.cssText = `left: ${window.innerWidth - rect.width - 20}px; top: ${window.innerHeight - rect.height - 20}px;`
+  }
+
+  leaveHandler = ({ showcase }) => {
+    this.draggableInstance?.remove()
+    this.draggable.replaceWith(showcase)
+    this.draggable.querySelectorAll(':scope > :not(.mapclay)').forEach(e => e.remove())
   }
 }
