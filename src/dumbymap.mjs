@@ -457,6 +457,7 @@ export const generateMaps = (container, {
     const mapContainer = document.createElement('pre')
     mapContainer.className = 'mapclay-container'
     mapContainer.textContent = '#Created by DumbyMap'
+    mapContainer.style.cssText = 'display: none;'
     htmlHolder.insertBefore(mapContainer, htmlHolder.firstElementChild)
     elementsWithMapConfig.push(mapContainer)
   }

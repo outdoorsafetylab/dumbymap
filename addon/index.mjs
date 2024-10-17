@@ -34,10 +34,12 @@ const simpleRender = window.mapclay.renderWith(config => ({
   },
 }))
 
-window.generateMaps(document.querySelector('main') ?? document.body, {
-  crs: url.searchParams.get('crs') ?? 'EPSG:4326',
-  addBlocks,
-  initialLayout: 'sticky',
-  render: simpleRender,
-  autoMap: true,
-})
+if (!document.querySelector('.Dumby')) {
+  window.generateMaps(document.querySelector('main') ?? document.body, {
+    crs: url.searchParams.get('crs') ?? 'EPSG:4326',
+    addBlocks,
+    initialLayout: 'sticky',
+    render: simpleRender,
+    autoMap: true,
+  })
+}
