@@ -81,11 +81,12 @@ export default [
   .filter(config => {
     if (addon) return config.input.match(/dumbymap/)
     if (!prod) return config.input.match(/editor/)
+    return true
   })
   .map(config => {
     if (!addon) return config
 
-    config.output.forEach(o => o.dir = './addon')
+    config.output.forEach(o => { o.dir = './addon' })
     config.plugins.push({
       name: 'remove-exports',
       transform (code, id) {
