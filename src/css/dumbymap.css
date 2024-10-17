@@ -464,7 +464,12 @@ root {
 
   font-size: 1.5rem;
 
+  transition:
+    visibility .3s ease-out,
+    opacity .3s ease-out;
+
   visibility: hidden;
+  opacity: 0;
 
   gap: 6px;
 
@@ -512,8 +517,8 @@ root {
   font-size: 0.8rem;
 
   transition:
-  opacity .3s linear,
-  visibility .3s linear;
+    opacity: .3s linear,
+    visibility: .3s linear;
   visibility: hidden;
   opacity: 0;
   pointer-events: auto;
@@ -610,7 +615,7 @@ root {
 
     .utils {
       visibility: visible;
-      animation: fade-in 0.5s;
+      opacity: 1;
     }
 
     > *:not(.draggable-part, .utils) {
