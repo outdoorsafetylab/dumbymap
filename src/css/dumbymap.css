@@ -166,58 +166,6 @@ root {
   }
 }
 
-.DumbyMap.Dumby[data-layout] .dumby-block {
-  padding: 1rem 1rem 1rem 2rem;
-
-  position: relative;
-
-  counter-increment: block;
-
-  &::before {
-    content: '';
-    height: calc(100% - 2rem);
-
-    position: absolute;
-    left: 0.8rem;
-
-    border-left: 0.5em solid #e0e0e0;
-
-    transition: border-color 0.5s linear;
-  }
-
-  &.focus {
-    /* Dress up when block is focus */
-
-    /* background: var(--block-focus-color); */
-    &::before {
-      border-color: chocolate;
-    }
-
-    &::after {
-      content: counter(block) '/' attr(data-total);
-      padding: 0.3rem 0.5rem;
-
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      z-index: 9999;
-
-      border: solid transparent;
-      border-radius: 5px;
-
-      background: gray;
-
-      color: white;
-      font-size: 1.5em;
-      font-weight: bold;
-
-      transform: translate(-50%, -50%);
-      opacity: 0;
-      animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
-    }
-  }
-
-}
 
 .menu {
   display: block;
@@ -492,14 +440,6 @@ root {
 
   .focus {
     z-index: 1;
-  }
-}
-
-.DumbyMap.Dumby[data-layout='normal'] {
-  max-width: 60em;
-
-  &::after {
-    animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
   }
 }
 
