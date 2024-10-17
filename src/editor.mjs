@@ -24,7 +24,7 @@ const initialLayout = pageParams.get('layout')
 /** Variables: dumbymap and editor **/
 const context = document.querySelector('[data-mode]')
 const textArea = document.querySelector('.editor textarea')
-const dumbyContainer = document.querySelector('.Dumby')
+const dumbyContainer = document.querySelector('.DumbyMap')
 dumbyContainer.dataset.scrollLine = ''
 /** Watch: DumbyMap */
 new window.MutationObserver(mutations => {
