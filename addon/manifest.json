@@ -11,8 +11,15 @@
 
   "content_scripts": [
     {
-      "matches": ["*://*.mozilla.org/*"],
-      "js": ["index.mjs"],
+      "matches": [
+        "*://developer.mozilla.org/*",
+        "*://hackmd.io/*",
+        "*://*.ptt.cc/*"
+      ],
+      "js": [
+        "dumbymap.mjs",
+        "index.mjs"
+      ],
       "css": [
         "css/dumbymap.css"
       ]
@@ -22,6 +29,7 @@
   "permissions": [
     "activeTab",
     "tabs",
-    "scripting"
+    "scripting",
+    "https://epsg.io/*"
   ]
 }

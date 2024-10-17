@@ -177,3 +177,35 @@ export const replaceTextNodes = (
     node = nodeIterator.nextNode()
   }
 }
+
+/**
+ * Get the common ancestor of two or more elements
+ * {@link https://gist.github.com/kieranbarker/cd86310d0782b7c52ce90cd7f45bb3eb}
+ * @param {String} selector A valid CSS selector
+ * @returns {Element} The common ancestor
+ */
+export function getCommonAncestor (selector) {
+  // Get the elements matching the selector
+  const elems = document.querySelectorAll(selector)
+
+  // If there are no elements, return null
+  if (elems.length < 1) return null
+
+  // If there's only one element, return it
+  if (elems.length < 2) return elems[0]
+
+  // Otherwise, create a new Range
+  const range = document.createRange()
+
+  // Start at the beginning of the first element
+  range.setStart(elems[0], 0)
+
+  // Stop at the end of the last element
+  range.setEnd(
+    elems[elems.length - 1],
+    elems[elems.length - 1].childNodes.length,
+  )
+
+  // Return the common ancestor
+  return range.commonAncestorContainer
+}

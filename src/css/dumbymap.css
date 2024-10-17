@@ -161,12 +161,12 @@ root {
   &:hover, &.drag {
     background-image: none;
 
-    font-weight: bolder;
+    /* font-weight: bolder; */
     text-decoration: none;
   }
 }
 
-.dumby-block {
+.Dumby:not([data-layout=""]) .dumby-block {
   padding: 1rem 1rem 1rem 2rem;
 
   position: relative;

@@ -1,5 +1,8 @@
 dist/
 docs/
+addon/**js
+addon/**css
+!addon/index**
 doc-coverage/
 node_modules/
 package-lock.json
