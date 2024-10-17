@@ -30,6 +30,7 @@
     "activeTab",
     "tabs",
     "scripting",
-    "https://epsg.io/*"
+    "https://epsg.io/*",
+    "https://cdn.jsdelivr.net/*"
   ]
 }
