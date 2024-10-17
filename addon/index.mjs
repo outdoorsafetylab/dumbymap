@@ -28,7 +28,7 @@ const simpleRender = window.mapclay.renderWith(config => ({
   XYZ: 'https://tile.openstreetmap.jp/styles/osm-bright/512/{z}/{x}/{y}.png',
   ...config,
   aliases: {
-    use: { Leaflet },
+    use: window.mapclay.renderers,
     ...(config.aliases ?? {}),
   },
 }))
