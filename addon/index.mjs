@@ -38,4 +38,5 @@ window.generateMaps(document.querySelector('main') ?? document.body, {
   addBlocks,
   initialLayout: '',
   render: simpleRender,
+  autoMap: true,
 })

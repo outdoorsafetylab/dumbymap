@@ -14,7 +14,7 @@ import { register, fromEPSGCode } from 'ol/proj/proj4'
 import LeaderLine from 'leader-line'
 
 /** CSS Selector for main components */
-const mapBlockSelector = 'pre:has(.language-map)'
+const mapBlockSelector = 'pre:has(.language-map), .mapclay-container'
 const docLinkSelector = 'a[href^="#"][title^="=>"]'
 const geoLinkSelector = 'a[href^="geo:"]'
 
@@ -163,6 +163,7 @@ export const generateMaps = (container, {
   delay,
   renderCallback,
   addBlocks = defaultBlocks,
+  autoMap = false,
   render = defaultRender,
 } = {}) => {
   /** Prepare Contaner */
@@ -457,11 +458,12 @@ export const generateMaps = (container, {
   const elementsWithMapConfig = Array.from(
     container.querySelectorAll(mapBlockSelector) ?? [],
   )
-  if (elementsWithMapConfig.length === 0) {
-    const map = document.createElement('pre')
-    map.textContent = '#Created by DumbyMap'
-    htmlHolder.insertBefore(map, htmlHolder.firstElementChild)
-    elementsWithMapConfig.push(map)
+  if (autoMap && elementsWithMapConfig.length === 0) {
+    const mapContainer = document.createElement('pre')
+    mapContainer.className = 'mapclay-container'
+    mapContainer.textContent = '#Created by DumbyMap'
+    htmlHolder.insertBefore(mapContainer, htmlHolder.firstElementChild)
+    elementsWithMapConfig.push(mapContainer)
   }
 
   /** Render each taget element for maps */
