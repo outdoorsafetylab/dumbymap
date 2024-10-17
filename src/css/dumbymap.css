@@ -166,7 +166,6 @@ root {
   }
 }
 
-
 .menu {
   display: block;
   overflow: visible;
@@ -314,6 +313,17 @@ root {
   }
 }
 
+.point-by-arrow {
+  display: none;
+  padding: 5px;
+
+  position: absolute;
+
+  transform: translate(-50%, -50%);
+  cursor: crosshair;
+  pointer-events: none;
+}
+
 .Dumby {
   overflow: visible;
   width: 100%;
@@ -443,6 +453,174 @@ root {
   }
 }
 
+.utils {
+  display: flex;
+  padding-block: 1rem;
+  padding-inline: 1rem;
+
+  position: absolute;
+  left: 100%;
+  top: calc(-1rem - 3px);
+
+  font-size: 1.5rem;
+
+  visibility: hidden;
+
+  gap: 6px;
+
+  &:hover {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  [id] {
+    padding: 0.2rem 0.4rem;
+
+    border: 3px gray solid;
+    border-radius: 5px;
+
+    background: white;
+
+    user-select: none;
+  }
+
+  #close {
+    cursor: pointer;
+  }
+
+  #plus-font-size {
+    cursor: zoom-in;
+  }
+
+  #minus-font-size {
+    cursor: zoom-out;
+  }
+}
+
+.draggable-block {
+  overflow: visible;
+  width: fit-content;
+  height: fit-content;
+
+  position: absolute;
+
+  border: solid gray 3px;
+  border-radius: 0.5rem;
+
+  background: white;
+
+  font-size: 0.8rem;
+
+  transition:
+  opacity .3s linear,
+  visibility .3s linear;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: auto;
+
+  &:has(.dumby-block.focus, .mapclay.focus) {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Fade out top of contents scrolling */
+  &::before {
+    content: '';
+    display: block;
+    height: 1.5rem;
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    z-index: 1;
+
+    border-radius: 5px;
+
+    background: linear-gradient(0deg, rgb(255 255 255 / 0%), white 60%);
+  }
+
+  .dumby-block {
+    overflow: scroll;
+    min-width: 5rem;
+    max-width: 25vw;
+    min-height: 5rem;
+    max-height: 50vh;
+    margin: 0;
+    padding-block: 1rem 0;
+    padding-inline: 1rem;
+
+    position: relative;
+
+    /* Don't make corner overflow! */
+    border: solid transparent 2px;
+    border-radius: 0.5rem;
+
+    resize: both;
+
+    /* Remove indicator when inside draggable-block */
+    &::before {
+      display: none;
+    }
+
+    /* allow random width/height after resize */
+    &[style*='height'],
+    &[style*='width'] {
+      max-width: unset;
+      max-height: unset;
+    }
+
+    .mapclay {
+      min-width: 200px;
+    }
+  }
+
+  .draggable-part {
+    display: block;
+    overflow: clip;
+    width: 100%;
+    padding-bottom: 0.5em;
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+  }
+
+  .handle {
+    font-size: 1.1rem;
+    text-align: center;
+
+    transition: all 0.3s ease-in-out;
+
+    /* background: white; */
+
+    transform: translate(0, -0.6rem);
+  }
+
+  &.drag,
+  &:has(.draggable-part:hover) {
+    .handle {
+      background: #e1e1e1;
+
+      transform: unset;
+    }
+
+    .utils {
+      visibility: visible;
+      animation: fade-in 0.5s;
+    }
+
+    > *:not(.draggable-part, .utils) {
+      color: gray;
+
+      opacity: 0.7;
+    }
+  }
+}
+
 .Dumby[data-layout='side-by-side'] {
   &::after {
     animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
@@ -564,179 +742,6 @@ root {
   }
 }
 
-.utils {
-  display: flex;
-  padding-block: 1rem;
-  padding-inline: 1rem;
-
-  position: absolute;
-  left: 100%;
-  top: calc(-1rem - 3px);
-
-  font-size: 1.5rem;
-
-  visibility: hidden;
-
-  gap: 6px;
-
-  &:hover {
-    visibility: visible;
-    opacity: 1;
-  }
-
-  [id] {
-    padding: 0.2rem 0.4rem;
-
-    border: 3px gray solid;
-    border-radius: 5px;
-
-    background: white;
-
-    user-select: none;
-  }
-
-  #close {
-    cursor: pointer;
-  }
-
-  #plus-font-size {
-    cursor: zoom-in;
-  }
-
-  #minus-font-size {
-    cursor: zoom-out;
-  }
-}
-
-.draggable-block {
-  overflow: visible;
-  width: fit-content;
-  height: fit-content;
-
-  position: absolute;
-
-  border: solid gray 3px;
-  border-radius: 0.5rem;
-
-  background: white;
-
-  font-size: 0.8rem;
-
-  transition:
-    opacity .3s linear,
-    visibility .3s linear;
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: auto;
-
-  &:has(.dumby-block.focus, .mapclay.focus) {
-    visibility: visible;
-    opacity: 1;
-  }
-
-  /** Hide block with map in focus, which is the only element */
-  &:has(pre:only-child [data-placeholder]:only-child) {
-    display: none;
-  }
-
-  /* Fade out top of contents scrolling */
-  &::before {
-    content: '';
-    display: block;
-    height: 1.5rem;
-
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    z-index: 1;
-
-    border-radius: 5px;
-
-    background: linear-gradient(0deg, rgb(255 255 255 / 0%), white 60%);
-  }
-
-  .dumby-block {
-    overflow: scroll;
-    min-width: 5rem;
-    max-width: 25vw;
-    min-height: 5rem;
-    max-height: 50vh;
-    margin: 0;
-    padding-block: 1rem 0;
-    padding-inline: 1rem;
-
-    position: relative;
-
-    /* Don't make corner overflow! */
-    border: solid transparent 2px;
-    border-radius: 0.5rem;
-
-    resize: both;
-
-    /* Remove indicator when inside draggable-block */
-    &::before {
-      display: none;
-    }
-
-    /* allow random width/height after resize */
-    &[style*='height'],
-    &[style*='width'] {
-      max-width: unset;
-      max-height: unset;
-    }
-
-    .mapclay {
-      min-width: 200px;
-    }
-  }
-
-  .draggable-part {
-    display: block;
-    overflow: clip;
-    width: 100%;
-    padding-bottom: 0.5em;
-
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 2;
-    border-top-left-radius: 0.3rem;
-    border-top-right-radius: 0.3rem;
-  }
-
-  .handle {
-    font-size: 1.1rem;
-    text-align: center;
-
-    transition: all 0.3s ease-in-out;
-
-    /* background: white; */
-
-    transform: translate(0, -0.6rem);
-  }
-
-  &.drag,
-  &:has(.draggable-part:hover) {
-    .handle {
-      background: #e1e1e1;
-
-      transform: unset;
-    }
-
-    .utils {
-      visibility: visible;
-      animation: fade-in 0.5s;
-    }
-
-    > *:not(.draggable-part, .utils) {
-      color: gray;
-
-      opacity: 0.7;
-    }
-  }
-}
-
 .dumby-block:has(pre:only-child [data-placeholder]:only-child) {
   overflow: clip;
 
@@ -770,13 +775,7 @@ root {
   }
 }
 
-.point-by-arrow {
+/** Hide block with map in focus, which is the only element */
+.draggable-block:has(pre:only-child [data-placeholder]:only-child) {
   display: none;
-  padding: 5px;
-
-  position: absolute;
-
-  transform: translate(-50%, -50%);
-  cursor: crosshair;
-  pointer-events: none;
 }
