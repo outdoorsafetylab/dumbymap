@@ -195,7 +195,7 @@ export class Overlay extends Layout {
     }
 
     // Create draggable blocks and set each position by previous one
-    const [left, top] = [20, 20]
+    let [left, top] = [20, 20]
     blocks.forEach(block => {
       const originLeft = Number(block.dataset.left)
       const originTop = Number(block.dataset.top)
