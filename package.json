@@ -31,7 +31,7 @@
     "docs": "jsdoc -c scripts/jsdoc.conf src/; xdg-open http://localhost:8080/docs/",
     "prepack": "npm run lint && npm run style && npm run build",
     "postpack": "rm -rf dist/css dist/renderers; npm run build-resources; ln -sf `pwd`/src/css dist; cp node_modules/easymde/dist/easymde.min.css src/css; ln -sf `pwd`/node_modules/mapclay/dist/renderers dist",
-    "addon": "cp src/css/dumbymap.css addon/css; ADDON=true rollup -c scripts/rollup.config.js"
+    "addon": "cp src/css/dumbymap.css addon/css; ADDON=true rollup -c scripts/rollup.config.js --watch"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^5.1.1",
