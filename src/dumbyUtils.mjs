@@ -218,10 +218,12 @@ export const createGeoLink = (link) => {
  * @param {HTMLElement} Elements contains anchor elements for doclinks
  */
 export const createDocLink = link => {
+  const label = decodeURIComponent(link.href.split('#')[1])
+  const selector = link.title.split('=>')[1] ?? label ? '#' + label : null
+  if (!selector) return false
+
   link.classList.add('with-leader-line', 'doclink')
   link.lines = []
-  const label = decodeURIComponent(link.href.split('#')[1])
-  const selector = link.title.split('=>')[1] ?? '#' + label
 
   link.onmouseover = () => {
     const targets = document.querySelectorAll(selector)
