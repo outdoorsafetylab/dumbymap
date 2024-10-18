@@ -14,8 +14,8 @@ import { register, fromEPSGCode } from 'ol/proj/proj4'
 
 /** CSS Selector for main components */
 const mapBlockSelector = 'pre:has(.language-map), .mapclay-container'
-const docLinkSelector = 'a[href^="#"][title^="=>"]'
-const geoLinkSelector = 'a[href^="geo:"]'
+const docLinkSelector = 'a[href^="#"][title^="=>"]:not(.with-leader-line)'
+const geoLinkSelector = 'a[href^="geo:"]:not(.with-leader-line)'
 
 /** Default Layouts */
 const defaultLayouts = [
@@ -199,7 +199,7 @@ export const generateMaps = (container, {
     container,
     htmlHolder,
     showcase,
-    blocks,
+    get blocks () { return Array.from(htmlHolder.querySelectorAll('.dumby-block')) },
     modal,
     modalContent,
     utils: {
@@ -244,21 +244,21 @@ export const generateMaps = (container, {
     register(proj4)
     fromEPSGCode(crs).then(() => resolve())
   })
-  const addGeoSchemeByText = (async () => {
+  const addGeoSchemeByText = async (ele) => {
     const coordPatterns = /(-?\d+\.?\d*)([,\x2F\uFF0C])(-?\d+\.?\d*)/
     const re = new RegExp(coordPatterns, 'g')
-    htmlHolder.querySelectorAll('.dumby-block')
-      .forEach(p => {
-        replaceTextNodes(p, re, match => {
-          const a = document.createElement('a')
-          a.href = `geo:0,0?xy=${match.at(1)},${match.at(3)}`
-          a.textContent = match.at(0)
-          return a
-        })
-      })
-  })()
+    replaceTextNodes(ele, re, match => {
+      const a = document.createElement('a')
+      a.href = `geo:0,0?xy=${match.at(1)},${match.at(3)}`
+      a.textContent = match.at(0)
+      return a
+    })
+  }
 
-  Promise.all([setCRS, addGeoSchemeByText]).then(() => {
+  const promises = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
+    .map(addGeoSchemeByText)
+
+  Promise.all([setCRS, ...promises]).then(() => {
     Array.from(container.querySelectorAll(geoLinkSelector))
       .map(utils.setGeoSchemeByCRS(crs))
       .filter(link => link instanceof window.HTMLAnchorElement)
@@ -531,42 +531,42 @@ export const generateMaps = (container, {
   container.appendChild(menu)
 
   /** Menu Items for Context Menu */
-  container.oncontextmenu = e => {
-    menu.replaceChildren()
-    menu.style.display = 'block'
-    menu.style.cssText = `left: ${e.clientX - menu.offsetParent.offsetLeft + 10}px; top: ${e.clientY - menu.offsetParent.offsetTop + 5}px;`
-    e.preventDefault()
-
-    // Menu Items for map
-    const map = e.target.closest('.mapclay')
-    if (map?.renderer?.results) {
-      const rect = map.getBoundingClientRect()
-      const [x, y] = [e.x - rect.left, e.y - rect.top]
-      menu.appendChild(menuItem.toggleMapFocus(map))
-      menu.appendChild(menuItem.renderResults(dumbymap, map))
-      menu.appendChild(menuItem.getCoordinatesByPixels(map, [x, y]))
-      menu.appendChild(menuItem.restoreCamera(map))
-    } else {
-      // Toggle block focus
-      const block = e.target.closest('.dumby-block')
-      if (block) {
-        menu.appendChild(menuItem.toggleBlockFocus(block))
-      }
-    }
-
-    // Menu Items for map/block/layout
-    if (!map || map.closest('.Showcase')) {
-      if (dumbymap.utils.renderedMaps().length > 0) {
-        menu.appendChild(menuItem.pickMapItem(dumbymap))
-      }
-      menu.appendChild(menuItem.pickBlockItem(dumbymap))
-      menu.appendChild(menuItem.pickLayoutItem(dumbymap))
-    }
-
-    shiftByWindow(menu)
-
-    return menu
-  }
+  // container.oncontextmenu = e => {
+  //   menu.replaceChildren()
+  //   menu.style.display = 'block'
+  //   menu.style.cssText = `left: ${e.clientX - menu.offsetParent.offsetLeft + 10}px; top: ${e.clientY - menu.offsetParent.offsetTop + 5}px;`
+  //   e.preventDefault()
+  //
+  //   // Menu Items for map
+  //   const map = e.target.closest('.mapclay')
+  //   if (map?.renderer?.results) {
+  //     const rect = map.getBoundingClientRect()
+  //     const [x, y] = [e.x - rect.left, e.y - rect.top]
+  //     menu.appendChild(menuItem.toggleMapFocus(map))
+  //     menu.appendChild(menuItem.renderResults(dumbymap, map))
+  //     menu.appendChild(menuItem.getCoordinatesByPixels(map, [x, y]))
+  //     menu.appendChild(menuItem.restoreCamera(map))
+  //   } else {
+  //     // Toggle block focus
+  //     const block = e.target.closest('.dumby-block')
+  //     if (block) {
+  //       menu.appendChild(menuItem.toggleBlockFocus(block))
+  //     }
+  //   }
+  //
+  //   // Menu Items for map/block/layout
+  //   if (!map || map.closest('.Showcase')) {
+  //     if (dumbymap.utils.renderedMaps().length > 0) {
+  //       menu.appendChild(menuItem.pickMapItem(dumbymap))
+  //     }
+  //     menu.appendChild(menuItem.pickBlockItem(dumbymap))
+  //     menu.appendChild(menuItem.pickLayoutItem(dumbymap))
+  //   }
+  //
+  //   shiftByWindow(menu)
+  //
+  //   return menu
+  // }
 
   /** Event Handler when clicking outside of Context Manu */
   const actionOutsideMenu = e => {
@@ -623,6 +623,50 @@ export const generateMaps = (container, {
       container.onmousemove = null
     }
   }
+
+  /** WIP */
+
+  const blockObserver = (block) =>
+    new window.MutationObserver((mutations) => {
+      const mutation = mutations.at(-1)
+      const nodes = Array.from(mutation.addedNodes)
+      if (!nodes || block.classList.contains('lock')) return
+
+      block.classList.add('lock')
+      addGeoSchemeByText(block).then(() => {
+        Array.from(block.querySelectorAll(geoLinkSelector))
+          .map(utils.setGeoSchemeByCRS(crs))
+          .filter(link => link instanceof window.HTMLAnchorElement)
+          .forEach(utils.createGeoLink)
+        block.classList.remove('lock')
+      })
+    })
+
+  /** WIP */
+  new window.MutationObserver((mutations) => {
+    const mutation = mutations.at(-1)
+    const nodes = Array.from(mutation.addedNodes)
+    if (!nodes.find(node => node instanceof window.HTMLElement)) return
+
+    console.log('udate in htmlHolder', mutations)
+    const blocks = addBlocks(htmlHolder)
+    blocks.forEach(b => {
+      if (!b.classList.contains('dumby-block')) {
+        console.log('add new block', b)
+        blockObserver(b).observe(b, {
+          attributes: true,
+          attributeFilter: ['class'],
+          childList: true,
+          subtree: true,
+        })
+        b.classList.add('dumby-block')
+      }
+      b.dataset.total = blocks.length
+    })
+  }).observe(htmlHolder, {
+    childList: true,
+    subtree: true,
+  })
 
   return Object.seal(dumbymap)
 }
