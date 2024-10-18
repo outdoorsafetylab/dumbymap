@@ -11,7 +11,6 @@ import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
 import proj4 from 'proj4'
 import { register, fromEPSGCode } from 'ol/proj/proj4'
-import LeaderLine from 'leader-line'
 
 /** CSS Selector for main components */
 const mapBlockSelector = 'pre:has(.language-map), .mapclay-container'
@@ -606,62 +605,22 @@ export const generateMaps = (container, {
     const mouseInRange = e.clientX < rect.right && e.clientX > rect.left && e.clientY < rect.bottom && e.clientY > rect.top
     if (!mouseInRange) return
 
-    // link placeholder when dragging
-    container.classList.add('dragging-geolink')
-    const geoLink = document.createElement('a')
-    geoLink.textContent = range.toString()
-    geoLink.classList.add('with-leader-line', 'geolink', 'drag')
-
-    // Replace current content with link
-    const originContent = range.cloneContents()
-    const resumeContent = () => {
-      range.deleteContents()
-      range.insertNode(originContent)
-    }
-    range.deleteContents()
-    range.insertNode(geoLink)
-
-    // Add leader-line
-    const line = new LeaderLine({
-      start: geoLink,
-      end: pointByArrow,
-      path: 'magnet',
-    })
+    const timer = setTimeout(() => {
+      utils.dragForAnchor(container, range, pointByArrow)
+    }, 300)
 
     // Update leader-line with mouse move
     container.onmousemove = (event) => {
       const rect = container.getBoundingClientRect()
       pointByArrow.style.left = `${event.clientX - rect.left}px`
       pointByArrow.style.top = `${event.clientY - rect.top}px`
-      line.position()
-
       // TODO Scroll dumbymap.htmlHolder when cursor is at upper/lower side
     }
     container.onmousemove(e)
-
-    // Handler for dragend
-    container.onmouseup = (e) => {
-      container.classList.remove('dragging-geolink')
-      container.onmousemove = null
+    container.onmouseup = () => {
+      clearTimeout(timer)
       container.onmouseup = null
-      geoLink.classList.remove('drag')
-      line.remove()
-
-      const map = document.elementFromPoint(e.clientX, e.clientY)
-        .closest('.mapclay[data-render="fulfilled"]')
-      if (!map) {
-        resumeContent()
-        return
-      }
-
-      const marker = utils.addMarkerByPoint({ point: [e.clientX, e.clientY], map })
-      if (!marker) {
-        resumeContent()
-        return
-      }
-
-      geoLink.href = `geo:${marker.dataset.xy.split(',').reverse()}`
-      utils.createGeoLink(geoLink)
+      container.onmousemove = null
     }
   }
 

@@ -367,3 +367,67 @@ export const setGeoSchemeByCRS = (crs) => (link) => {
 
   return link
 }
+
+/**
+ * dragForAnchor.
+ *
+ * @param {HTMLElement} container
+ * @param {Range} range
+ */
+export const dragForAnchor = (container, range, endOfLeaderLine) => {
+  // link placeholder when dragging
+  container.classList.add('dragging-geolink')
+  const geoLink = document.createElement('a')
+  geoLink.textContent = range.toString()
+  geoLink.classList.add('with-leader-line', 'geolink', 'drag')
+
+  // Replace current content with link
+  const originContent = range.cloneContents()
+  const resumeContent = () => {
+    range.deleteContents()
+    range.insertNode(originContent)
+  }
+  range.deleteContents()
+  range.insertNode(geoLink)
+
+  // Add leader-line
+  const line = new LeaderLine({
+    start: geoLink,
+    end: endOfLeaderLine,
+    path: 'magnet',
+  })
+
+  const positionObserver = new window.MutationObserver(() => {
+    line.position()
+  })
+  positionObserver.observe(endOfLeaderLine, {
+    attributes: true,
+    attributeFilter: ['style'],
+  })
+
+  // Handler for dragend
+  container.onmouseup = (e) => {
+    container.classList.remove('dragging-geolink')
+    container.onmousemove = null
+    container.onmouseup = null
+    geoLink.classList.remove('drag')
+    positionObserver.disconnect()
+    line.remove()
+
+    const map = document.elementFromPoint(e.clientX, e.clientY)
+      .closest('.mapclay[data-render="fulfilled"]')
+    if (!map) {
+      resumeContent()
+      return
+    }
+
+    const marker = addMarkerByPoint({ point: [e.clientX, e.clientY], map })
+    if (!marker) {
+      resumeContent()
+      return
+    }
+
+    geoLink.href = `geo:${marker.dataset.xy.split(',').reverse()}`
+    createGeoLink(geoLink)
+  }
+}
