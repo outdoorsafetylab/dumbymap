@@ -172,7 +172,7 @@ export const generateMaps = (container, {
 
   /** Prepare Semantic HTML part and blocks of contents inside */
   const htmlHolder = container.querySelector('.SemanticHtml, main, :scope > article') ??
-    Array.from(container.children).find(e => e.id?.includes('main') || e.className?.includes?.('main')) ??
+    Array.from(container.children).find(e => e.id?.match(/main|content/) || e.className?.match?.(/main|content/)) ??
     Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
   htmlHolder.classList.add('SemanticHtml')
 
