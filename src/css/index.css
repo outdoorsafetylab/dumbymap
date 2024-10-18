@@ -240,3 +240,54 @@ main[data-mode='editing'] {
   }
 }
 
+.SemanticHtml {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  gap: 1rem;
+  overflow-y: auto;
+
+  /* Trivial: gray out text not focused */
+  &:has(.dumby-block.focus) {
+    color: gray;
+
+    .dumby-block.focus {
+      color: initial;
+    }
+  }
+
+  :has(> .mapclay, > [data-placeholder]) {
+    display: flex;
+    gap: 0.5em;
+
+    background-color: white;
+  }
+
+  /* if Map not in showcase, add border when focused */
+  .mapclay {
+    border: 3px solid white;
+
+    &.focus {
+      border: 3px solid gray;
+    }
+
+    &[data-render='unfulfilled'] {
+      border: 3px solid crimson;
+
+      opacity: 0.6;
+    }
+  }
+
+  [data-placeholder] {
+    border: 3px solid gray;
+    flex-grow: 0;
+
+    & > * {
+      opacity: 0.3;
+    }
+
+    /* animation: map-fade-out 1s; */
+  }
+}
+
