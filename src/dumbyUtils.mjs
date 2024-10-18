@@ -127,11 +127,12 @@ const getMarkersFromMaps = link => {
  * @param {Element} target
  */
 const addLeaderLine = (link, target) => {
+  const labelText = new URL(link).searchParams.get('text') ?? link.textContent
   const line = new LeaderLine({
     start: link,
     end: target,
     hide: true,
-    middleLabel: link.title,
+    middleLabel: labelText,
     path: 'magnet',
   })
   line.show('draw', { duration: 300 })
