@@ -15,6 +15,7 @@ const blockSelectors = {
   'developer.mozilla': '.section-content',
   'hackmd.io': '#doc > *',
   'www.ptt.cc': '#main-content > span',
+  'prosemirror.net': '.ProseMirror > *',
 }
 const blockSelector = blockSelectors[url.host]
 

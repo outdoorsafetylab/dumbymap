@@ -14,7 +14,8 @@
       "matches": [
         "*://developer.mozilla.org/*",
         "*://hackmd.io/*",
-        "*://*.ptt.cc/*"
+        "*://*.ptt.cc/*",
+        "https://prosemirror.net/examples/*"
       ],
       "js": [
         "dumbymap.mjs",
