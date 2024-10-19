@@ -219,10 +219,10 @@ export class Overlay extends Layout {
       }
 
       // Set DOMRect for wrapper
+      block.replaceWith(wrapper)
       wrapper.appendChild(block)
       wrapper.style.left = left + 'px'
       wrapper.style.top = top + 'px'
-      htmlHolder.appendChild(wrapper)
       const rect = wrapper.getBoundingClientRect()
       left += rect.width + 30
       if (left > window.innerWidth) {
@@ -285,7 +285,7 @@ export class Overlay extends Layout {
     const resumeFromDraggable = block => {
       const draggableContainer = block.closest('.draggable-block')
       if (!draggableContainer) return
-      htmlHolder.appendChild(block)
+      draggableContainer.replaceWith(block)
       draggableContainer.remove()
     }
     blocks.forEach(resumeFromDraggable)
