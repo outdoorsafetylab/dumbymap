@@ -92,7 +92,7 @@ export const markdown2HTML = (container, mdContent) => {
  */
 const defaultBlocks = root => {
   const articles = Array.from(root.querySelectorAll('article'))
-  if (articles.length > 2) return articles
+  if (articles.length > 0) return articles
 
   const others = Array.from(
     root.querySelectorAll(':has(>p, >blockquote, >pre, >ul, >ol, >table, >details)'),
