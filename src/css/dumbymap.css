@@ -416,7 +416,6 @@ root {
   transition:
     visibility .3s ease-out,
     opacity .3s ease-out;
-
   visibility: hidden;
   opacity: 0;
 
@@ -554,17 +553,19 @@ root {
     transform: translate(0, -0.6rem);
   }
 
-  &.drag,
+  &:not(.dragging):has(.draggable-part:hover) {
+    .utils {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+
+  &.dragging,
   &:has(.draggable-part:hover) {
     .handle {
       background: #e1e1e1;
 
       transform: unset;
-    }
-
-    .utils {
-      visibility: visible;
-      opacity: 1;
     }
 
     > *:not(.draggable-part, .utils) {

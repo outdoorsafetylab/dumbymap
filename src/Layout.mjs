@@ -125,15 +125,12 @@ const addDraggable = (element, { snap, left, top } = {}) => {
   })
 
   // FIXME use pure CSS to hide utils
-  const utils = element.querySelector('.utils')
   draggable.onDragStart = () => {
-    if (utils) utils.style.display = 'none'
-    element.classList.add('drag')
+    element.classList.add('dragging')
   }
 
   draggable.onDragEnd = () => {
-    if (utils) utils.style = ''
-    element.classList.remove('drag')
+    element.classList.remove('dragging')
     element.style.zIndex = '9000'
   }
 
@@ -244,24 +241,9 @@ export class Overlay extends Layout {
         },
       }))
 
-      // Trivial case:
-      // This hack make sure utils remains at the same place even when wrapper resized
-      // Prevent DOMRect changes when user clicking plus/minus button many times
-      const utils = wrapper.querySelector('.utils')
-      utils.onmouseover = () => {
-        const { left, top } = utils.getBoundingClientRect()
-        utils.style.cssText = `visibility: visible; z-index: 9000; position: fixed; transition: unset; left: ${left}px; top: ${top}px;`
-        document.body.appendChild(utils)
-      }
-      utils.onmouseout = () => {
-        wrapper.appendChild(utils)
-        utils.style.cssText = ''
-      }
-
       // Close button
       wrapper.querySelector('#close').onclick = () => {
         block.classList.remove('focus')
-        utils.style.cssText = ''
       }
       // Plus/Minus font-size of content
       wrapper.querySelector('#plus-font-size').onclick = () => {
