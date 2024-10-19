@@ -27,10 +27,18 @@
     }
   ],
 
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
+
   "permissions": [
     "activeTab",
     "tabs",
     "scripting",
+    "contextMenus",
     "https://epsg.io/*",
     "https://cdn.jsdelivr.net/*"
   ]
