@@ -276,7 +276,12 @@ export const createDocLink = link => {
  */
 export const removeLeaderLines = link => {
   if (!link.lines) return
-  link.lines.forEach(line => line.remove())
+  link.lines.forEach(line => {
+    line.hide('draw', { duration: 300 })
+    setTimeout(() => {
+      line.remove()
+    }, 300)
+  })
   link.lines = []
 }
 
