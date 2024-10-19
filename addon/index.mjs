@@ -1,3 +1,13 @@
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('receive message', message)
+  sendResponse('received')
+  if (message === 'map-inline') {
+    alert('map')
+    return Promise.resolve('done')
+  }
+  return false
+})
+
 const url = new URL(window.location)
 const use = url.searchParams.get('use')
 if (url.host === 'www.ptt.cc') {
@@ -41,6 +51,6 @@ if (!document.querySelector('.Dumby')) {
     addBlocks,
     initialLayout: 'sticky',
     render: simpleRender,
-    autoMap: true,
+    autoMap: false,
   })
 }

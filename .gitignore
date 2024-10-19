@@ -3,6 +3,7 @@ docs/
 addon/**js
 addon/**css
 !addon/index**
+!addon/background**
 doc-coverage/
 node_modules/
 package-lock.json
