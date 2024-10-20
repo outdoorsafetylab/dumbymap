@@ -2,15 +2,25 @@ console.log('background')
 
 browser.contextMenus.create(
   {
-    id: 'map-inline',
-    title: 'MapInline',
+    id: 'map-inline-add',
+    title: 'Add Links and Maps by content',
+    contexts: ['page'],
+  },
+  () => void browser.runtime.lastError,
+)
+
+browser.contextMenus.create(
+  {
+    id: 'map-inline-open',
+    title: 'Open in DumbyMap',
     contexts: ['page', 'selection'],
   },
   () => void browser.runtime.lastError,
 )
 
 browser.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== 'map-inline') return
+  const id = info.menuItemId
+  if (!id.match(/^map-inline/)) return
 
-  browser.tabs.sendMessage(tab.id, 'map-inline')
+  browser.tabs.sendMessage(tab.id, id)
 })
