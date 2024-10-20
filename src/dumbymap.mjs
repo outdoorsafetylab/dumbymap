@@ -4,7 +4,7 @@ import MarkdownItFootnote from 'markdown-it-footnote'
 import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 import * as mapclay from 'mapclay'
-import { replaceTextNodes, onRemove, animateRectTransition, throttle, shiftByWindow } from './utils'
+import { onRemove, animateRectTransition, throttle, shiftByWindow } from './utils'
 import { Layout, SideBySide, Overlay, Sticky } from './Layout'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
@@ -240,25 +240,13 @@ export const generateMaps = (container, {
     })
 
   /** LINK: Set CRS and GeoLinks */
-  const setCRS = new Promise(resolve => {
+  const setCRS = (async () => {
     register(proj4)
-    fromEPSGCode(crs).then(() => resolve())
-  })
-  const addGeoSchemeByText = (async () => {
-    const coordPatterns = /(-?\d+\.?\d*)([,\x2F\uFF0C])(-?\d+\.?\d*)/
-    const re = new RegExp(coordPatterns, 'g')
-    htmlHolder.querySelectorAll('.dumby-block')
-      .forEach(p => {
-        replaceTextNodes(p, re, match => {
-          const a = document.createElement('a')
-          a.href = `geo:0,0?xy=${match.at(1)},${match.at(3)}`
-          a.textContent = match.at(0)
-          return a
-        })
-      })
+    await fromEPSGCode(crs)
   })()
+  const addGeoScheme = utils.addGeoSchemeByText(htmlHolder)
 
-  Promise.all([setCRS, addGeoSchemeByText]).then(() => {
+  Promise.all([setCRS, addGeoScheme]).then(() => {
     Array.from(container.querySelectorAll(geoLinkSelector))
       .map(utils.setGeoSchemeByCRS(crs))
       .filter(link => link instanceof window.HTMLAnchorElement)

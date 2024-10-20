@@ -1,5 +1,5 @@
 import LeaderLine from 'leader-line'
-import { insideWindow, insideParent } from './utils'
+import { insideWindow, insideParent, replaceTextNodes } from './utils'
 import proj4 from 'proj4'
 
 export const coordPattern = /^geo:([-]?[0-9.]+),([-]?[0-9.]+)/
@@ -438,4 +438,15 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
     geoLink.href = `geo:${marker.dataset.xy.split(',').reverse()}`
     createGeoLink(geoLink)
   }
+}
+
+export const addGeoSchemeByText = async (element) => {
+  const coordPatterns = /(-?\d+\.?\d*)([,\x2F\uFF0C])(-?\d+\.?\d*)/
+  const re = new RegExp(coordPatterns, 'g')
+  replaceTextNodes(element, re, match => {
+    const a = document.createElement('a')
+    a.href = `geo:0,0?xy=${match.at(1)},${match.at(3)}`
+    a.textContent = match.at(0)
+    return a
+  })
 }
