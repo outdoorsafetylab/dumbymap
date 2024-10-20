@@ -212,6 +212,8 @@ export const generateMaps = (container, {
         const originalCallback = container.oncontextmenu
         container.oncontextmenu = (e) => {
           const menu = originalCallback(e)
+          if (!menu) return
+
           menuCallback(e, menu)
           menu.style.transform = ''
           shiftByWindow(menu)
@@ -518,44 +520,46 @@ export const generateMaps = (container, {
   }
   container.appendChild(menu)
 
-  // /** Menu Items for Context Menu */
-  // container.oncontextmenu = e => {
-  //   menu.replaceChildren()
-  //   menu.style.display = 'block'
-  //   menu.style.cssText = `left: ${e.clientX - menu.offsetParent.offsetLeft + 10}px; top: ${e.clientY - menu.offsetParent.offsetTop + 5}px;`
-  //   e.preventDefault()
-  //
-  //   // Menu Items for map
-  //   const map = e.target.closest('.mapclay')
-  //   if (map?.renderer?.results) {
-  //     const rect = map.getBoundingClientRect()
-  //     const [x, y] = [e.x - rect.left, e.y - rect.top]
-  //     menu.appendChild(menuItem.toggleMapFocus(map))
-  //     menu.appendChild(menuItem.renderResults(dumbymap, map))
-  //     menu.appendChild(menuItem.getCoordinatesByPixels(map, [x, y]))
-  //     menu.appendChild(menuItem.restoreCamera(map))
-  //   } else {
-  //     // Toggle block focus
-  //     const block = e.target.closest('.dumby-block')
-  //     if (block) {
-  //       menu.appendChild(menuItem.toggleBlockFocus(block))
-  //     }
-  //   }
-  //
-  //   // Menu Items for map/block/layout
-  //   if (!map || map.closest('.Showcase')) {
-  //     if (dumbymap.utils.renderedMaps().length > 0) {
-  //       menu.appendChild(menuItem.pickMapItem(dumbymap))
-  //     }
-  //     menu.appendChild(menuItem.pickBlockItem(dumbymap))
-  //     menu.appendChild(menuItem.pickLayoutItem(dumbymap))
-  //   }
-  //
-  //   shiftByWindow(menu)
-  //
-  //   return menu
-  // }
-  //
+  /** Menu Items for Context Menu */
+  container.oncontextmenu = e => {
+    const map = e.target.closest('.mapclay')
+    const block = e.target.closest('.dumby-block')
+    if (!block && !map) return
+    e.preventDefault()
+
+    menu.replaceChildren()
+    menu.style.display = 'block'
+    menu.style.cssText = `left: ${e.clientX - menu.offsetParent.offsetLeft + 10}px; top: ${e.clientY - menu.offsetParent.offsetTop + 5}px;`
+
+    // Menu Items for map
+    if (map?.renderer?.results) {
+      const rect = map.getBoundingClientRect()
+      const [x, y] = [e.x - rect.left, e.y - rect.top]
+      menu.appendChild(menuItem.toggleMapFocus(map))
+      menu.appendChild(menuItem.renderResults(dumbymap, map))
+      menu.appendChild(menuItem.getCoordinatesByPixels(map, [x, y]))
+      menu.appendChild(menuItem.restoreCamera(map))
+    } else {
+      // Toggle block focus
+      if (block) {
+        menu.appendChild(menuItem.toggleBlockFocus(block))
+      }
+    }
+
+    // Menu Items for map/block/layout
+    if (!map || map.closest('.Showcase')) {
+      if (dumbymap.utils.renderedMaps().length > 0) {
+        menu.appendChild(menuItem.pickMapItem(dumbymap))
+      }
+      menu.appendChild(menuItem.pickBlockItem(dumbymap))
+      menu.appendChild(menuItem.pickLayoutItem(dumbymap))
+    }
+
+    shiftByWindow(menu)
+
+    return menu
+  }
+
   /** Event Handler when clicking outside of Context Manu */
   const actionOutsideMenu = e => {
     if (menu.style.display === 'none') return
