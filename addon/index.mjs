@@ -1,8 +1,10 @@
+console.log('content script loaded')
+
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('receive message', message)
   sendResponse('received')
   if (message === 'map-inline') {
-    alert('map')
+    alert('msg', message)
     return Promise.resolve('done')
   }
   return false
