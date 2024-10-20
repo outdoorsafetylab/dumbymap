@@ -58,7 +58,7 @@ export const markdown2HTML = (container, mdContent) => {
 
   /** Custom rule for Blocks in DumbyMap */
   // FIXME A better way to generate blocks
-  md.renderer.rules.dumby_block_open = () => '<article>'
+  md.renderer.rules.dumby_block_open = () => '<article class="dumby-block">'
   md.renderer.rules.dumby_block_close = () => '</article>'
   md.core.ruler.before('block', 'dumby_block', state => {
     state.tokens.push(new state.Token('dumby_block_open', '', 1))
@@ -83,31 +83,6 @@ export const markdown2HTML = (container, mdContent) => {
   htmlHolder.innerHTML = md.render(mdContent)
 
   return container
-}
-
-/**
- * defaultBlocks.
- * @description Default way to get blocks from Semantic HTML
- * @param {HTMLElement} root
- */
-const defaultBlocks = root => {
-  const articles = Array.from(root.querySelectorAll('article'))
-  if (articles.length > 0) return articles
-
-  const others = Array.from(
-    root.querySelectorAll(':has(>p, >blockquote, >pre, >ul, >ol, >table, >details)'),
-  )
-    .map(e => {
-      e.classList.add('dumby-block')
-      return e
-    })
-    .filter(e => {
-      const isContained = e.parentElement.closest('.dumby-block')
-      if (isContained) e.classList.remove('dumby-block')
-      return !isContained
-    })
-
-  return others
 }
 
 /**
@@ -162,7 +137,6 @@ export const generateMaps = (container, {
   layouts = [],
   delay,
   renderCallback,
-  addBlocks = defaultBlocks,
   autoMap = false,
   render = defaultRender,
 } = {}) => {
@@ -176,9 +150,8 @@ export const generateMaps = (container, {
     Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
   htmlHolder.classList.add('SemanticHtml')
 
-  const blocks = addBlocks(htmlHolder)
+  const blocks = htmlHolder.querySelectorAll('.dumby-block')
   blocks.forEach(b => {
-    b.classList.add('dumby-block')
     b.dataset.total = blocks.length
   })
 
@@ -199,7 +172,7 @@ export const generateMaps = (container, {
     container,
     htmlHolder,
     showcase,
-    blocks,
+    get blocks () { return Array.from(htmlHolder.querySelectorAll('.dumby-block')) },
     modal,
     modalContent,
     utils: {
