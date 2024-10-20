@@ -1,9 +1,15 @@
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('receive message', message)
   sendResponse('received')
-  if (message === 'map-inline') {
-    alert('map')
-    return Promise.resolve('done')
+  if (message === 'map-inline-add') {
+    alert('Add a map')
+    window.generateMaps(document.querySelector('main') ?? document.body, {
+      crs: url.searchParams.get('crs') ?? 'EPSG:4326',
+      addBlocks,
+      initialLayout: 'sticky',
+      render: simpleRender,
+      autoMap: true,
+    })
   }
   return false
 })
@@ -44,13 +50,3 @@ const simpleRender = window.mapclay.renderWith(config => ({
     ...(config.aliases ?? {}),
   },
 }))
-
-if (!document.querySelector('.Dumby')) {
-  window.generateMaps(document.querySelector('main') ?? document.body, {
-    crs: url.searchParams.get('crs') ?? 'EPSG:4326',
-    addBlocks,
-    initialLayout: 'sticky',
-    render: simpleRender,
-    autoMap: false,
-  })
-}
