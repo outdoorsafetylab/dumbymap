@@ -5,7 +5,7 @@
  * @param {Function} callback
  */
 export const onRemove = (element, callback) => {
-  const parent = element.parentNode
+  const parent = element.parentElement
   if (!parent) throw new Error('The node must already be attached')
 
   const obs = new window.MutationObserver(mutations => {
@@ -138,35 +138,40 @@ export const insideParent = (childElement, parentElement) => {
  * replaceTextNodes.
  * @description Search current nodes by pattern, and replace them by new node
  * @todo refactor to smaller methods
- * @param {HTMLElement} element
+ * @param {HTMLElement} rootNode
  * @param {RegExp} pattern
  * @param {Function} newNode - Create new node by each result of String.prototype.matchAll
  */
 export const replaceTextNodes = (
-  element,
+  rootNode,
   pattern,
-  newNode = (match) => {
+  addNewNode = (match) => {
     const link = document.createElement('a')
     link.textContent(match.at(0))
     return link
   },
 ) => {
   const nodeIterator = document.createNodeIterator(
-    element,
+    rootNode,
     window.NodeFilter.SHOW_TEXT,
-    node => node.textContent.match(pattern)
+    node => node.textContent.match(pattern) && !node.parentElement.closest('code')
       ? window.NodeFilter.FILTER_ACCEPT
       : window.NodeFilter.FILTER_REJECT,
   )
 
   let node = nodeIterator.nextNode()
+  const nodeArray = []
   while (node) {
     let index = 0
     for (const match of node.textContent.matchAll(pattern)) {
       const text = node.textContent.slice(index, match.index)
+      const newNode = addNewNode(match)
+      if (!newNode) continue
+
       index = match.index + match.at(0).length
       node.parentElement.insertBefore(document.createTextNode(text), node)
-      node.parentElement.insertBefore(newNode(match), node)
+      node.parentElement.insertBefore(newNode, node)
+      nodeArray.push(newNode)
     }
     if (index < node.textContent.length) {
       const text = node.textContent.slice(index)
@@ -176,6 +181,8 @@ export const replaceTextNodes = (
     node.parentElement.removeChild(node)
     node = nodeIterator.nextNode()
   }
+
+  return nodeArray
 }
 
 /**

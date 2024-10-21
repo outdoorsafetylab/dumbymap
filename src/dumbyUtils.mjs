@@ -143,7 +143,7 @@ const addLeaderLine = (link, target) => {
 /**
  * Create geolinks, which points to map by geo schema and id
  *
- * @param {HTMLElement} Elements contains anchor elements for doclinks
+ * @param {HTMLElement} Elements contains anchor elements for GeoLinks
  * @returns {Boolean} ture is link is created, false if coordinates are invalid
  */
 export const createGeoLink = (link) => {
@@ -164,6 +164,7 @@ export const createGeoLink = (link) => {
   link.dataset.lat = lat
   link.dataset.crs = params.get('crs')
   link.classList.add('with-leader-line', 'geolink')
+  link.classList.remove('not-geolink')
   // TODO refactor as data attribute
   link.targets = params.get('id')?.split(',') ?? null
   link.type = params.get('type') ?? null
@@ -363,10 +364,8 @@ export const setGeoSchemeByCRS = (crs) => (link) => {
   link.search = params
 
   const unit = proj4(crs).oProj.units
-  const invalidDegree = unit === 'degrees' && (
-    (lon > 180 || lon < -180 || lat > 90 || lat < -90) ||
-    (xy.every(v => v.toString().length < 3))
-  )
+  const invalidDegree = unit === 'degrees' &&
+    (lon > 180 || lon < -180 || lat > 90 || lat < -90)
   const invalidMeter = unit === 'm' && xy.find(v => v < 100)
   if (invalidDegree || invalidMeter) {
     link.replaceWith(document.createTextNode(link.textContent))
@@ -443,9 +442,15 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
 export const addGeoSchemeByText = async (element) => {
   const coordPatterns = /(-?\d+\.?\d*)([,\x2F\uFF0C])(-?\d+\.?\d*)/
   const re = new RegExp(coordPatterns, 'g')
-  replaceTextNodes(element, re, match => {
+
+  return replaceTextNodes(element, re, match => {
+    const [x, y] = [match.at(1), match.at(3)]
+    // Don't process string which can be used as date
+    if (Date.parse(match.at(0) + ' 1990')) return null
+
     const a = document.createElement('a')
-    a.href = `geo:0,0?xy=${match.at(1)},${match.at(3)}`
+    a.className = 'not-geolink'
+    a.href = `geo:0,0?xy=${x},${y}`
     a.textContent = match.at(0)
     return a
   })

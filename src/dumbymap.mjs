@@ -14,8 +14,8 @@ import { register, fromEPSGCode } from 'ol/proj/proj4'
 
 /** CSS Selector for main components */
 const mapBlockSelector = 'pre:has(.language-map), .mapclay-container'
-const docLinkSelector = 'a[href^="#"][title^="=>"]'
-const geoLinkSelector = 'a[href^="geo:"]'
+const docLinkSelector = 'a[href^="#"][title^="=>"]:not(.doclink)'
+const geoLinkSelector = 'a[href^="geo:"]:not(.geolink)'
 
 /** Default Layouts */
 const defaultLayouts = [
@@ -137,31 +137,134 @@ export const generateMaps = (container, {
   layouts = [],
   delay,
   renderCallback,
-  autoMap = false,
+  contentSelector,
   render = defaultRender,
 } = {}) => {
   /** Prepare Contaner */
   container.classList.add('Dumby')
   delete container.dataset.layout
+  container.dataset.crs = crs
+  register(proj4)
 
   /** Prepare Semantic HTML part and blocks of contents inside */
-  const htmlHolder = container.querySelector('.SemanticHtml, main, :scope > article') ??
+  const htmlHolder = container.querySelector(contentSelector) ??
+    container.querySelector('.SemanticHtml, main, :scope > article') ??
     Array.from(container.children).find(e => e.id?.match(/main|content/) || e.className?.match?.(/main|content/)) ??
     Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
   htmlHolder.classList.add('SemanticHtml')
-
-  const blocks = htmlHolder.querySelectorAll('.dumby-block')
-  blocks.forEach(b => {
-    b.dataset.total = blocks.length
-  })
 
   /** Prepare Showcase */
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
 
+  /** WATCH: content of Semantic HTML */
+  const contentObserver = new window.MutationObserver((mutations) => {
+    const mutation = mutations.at(-1)
+    const addedNodes = Array.from(mutation.addedNodes)
+    const removedNodes = Array.from(mutation.removedNodes)
+    if (
+      addedNodes.length === 0 ||
+      [...addedNodes, ...removedNodes].find(node => node.classList?.contains('not-geolink'))
+    ) return
+
+    // Update dumby block
+    if ([...addedNodes, ...removedNodes].find(node => node.classList?.contains('dumby-block'))) {
+      const blocks = container.querySelectorAll('.dumby-block')
+      blocks.forEach(b => {
+        b.dataset.total = blocks.length
+      })
+    }
+
+    // Add GeoLinks/DocLinks by pattern
+    addedNodes.forEach((node) => {
+      if (!(node instanceof window.HTMLElement)) return
+
+      const linksWithGeoScheme = node.matches(geoLinkSelector)
+        ? [node]
+        : Array.from(node.querySelectorAll(geoLinkSelector))
+      linksWithGeoScheme.forEach(utils.createGeoLink)
+
+      const linksWithDocPattern = node.matches(docLinkSelector)
+        ? [node]
+        : Array.from(node.querySelectorAll(docLinkSelector))
+      linksWithDocPattern.forEach(utils.createDocLink)
+
+      // Render each code block with "language-map" class
+      const mapTargets = node.matches(mapBlockSelector)
+        ? [node]
+        : Array.from(node.querySelectorAll(mapBlockSelector))
+      mapTargets.forEach(renderMap)
+    })
+
+    // Add GeoLinks from plain texts
+    const addGeoScheme = addedNodes.map(utils.addGeoSchemeByText)
+    const crsString = container.dataset.crs
+    Promise.all([fromEPSGCode(crsString), ...addGeoScheme]).then((values) => {
+      values.slice(1)
+        .flat()
+        .map(utils.setGeoSchemeByCRS(crsString))
+        .filter(link => link)
+        .forEach(utils.createGeoLink)
+    })
+
+    // Remov all leader lines
+    htmlHolder.querySelectorAll('.with-leader-line')
+      .forEach(utils.removeLeaderLines)
+  })
+
+  contentObserver.observe(container, {
+    childList: true,
+    subtree: true,
+  })
+
+  /** WATCH: Layout changes */
+  const layoutObserver = new window.MutationObserver(mutations => {
+    const mutation = mutations.at(-1)
+    const oldLayout = mutation.oldValue
+    const newLayout = container.dataset.layout
+
+    // Apply handler for leaving/entering layouts
+    if (oldLayout) {
+      dumbymap.layouts
+        .find(l => l.name === oldLayout)
+        ?.leaveHandler?.call(this, dumbymap)
+    }
+
+    Object.values(dumbymap)
+      .flat()
+      .filter(ele => ele instanceof window.HTMLElement)
+      .forEach(ele => { ele.style.cssText = '' })
+
+    if (newLayout) {
+      dumbymap.layouts
+        .find(l => l.name === newLayout)
+        ?.enterHandler?.call(this, dumbymap)
+    }
+
+    // Since layout change may show/hide showcase, the current focused map may need to go into/outside showcase
+    // Reset attribute triggers MutationObserver which is observing it
+    const focusMap =
+      container.querySelector('.mapclay.focus') ??
+      container.querySelector('.mapclay')
+    focusMap?.classList?.add('focus')
+  })
+
+  layoutObserver.observe(container, {
+    attributes: true,
+    attributeFilter: ['data-layout'],
+    attributeOldValue: true,
+  })
+
+  container.dataset.layout = initialLayout ?? defaultLayouts[0].name
+
+  /** WATCH: Disconnect observers when container is removed */
+  onRemove(container, () => {
+    contentObserver.disconnect()
+    layoutObserver.disconnect()
+  })
+
   /** Prepare Other Variables */
-  const renderPromises = []
   const modalContent = document.createElement('div')
   container.appendChild(modalContent)
   const modal = new PlainModal(modalContent)
@@ -172,7 +275,7 @@ export const generateMaps = (container, {
     container,
     htmlHolder,
     showcase,
-    get blocks () { return Array.from(htmlHolder.querySelectorAll('.dumby-block')) },
+    get blocks () { return Array.from(container.querySelectorAll('.dumby-block')) },
     modal,
     modalContent,
     utils: {
@@ -202,39 +305,8 @@ export const generateMaps = (container, {
     }
   })
 
-  /** LINK: Create DocLinks */
-  container.querySelectorAll(docLinkSelector)
-    .forEach(utils.createDocLink)
-
-  /** LINK: Add external symbol on anchors */
-  container.querySelectorAll('a')
-    .forEach(a => {
-      if (typeof a.href === 'string' && a.href.startsWith('http') && !a.href.startsWith(window.location.origin)) {
-        a.classList.add('external')
-      }
-    })
-
-  /** LINK: Set CRS and GeoLinks */
-  const setCRS = (async () => {
-    register(proj4)
-    await fromEPSGCode(crs)
-  })()
-  const addGeoScheme = utils.addGeoSchemeByText(htmlHolder)
-
-  Promise.all([setCRS, addGeoScheme]).then(() => {
-    Array.from(container.querySelectorAll(geoLinkSelector))
-      .map(utils.setGeoSchemeByCRS(crs))
-      .filter(link => link instanceof window.HTMLAnchorElement)
-      .forEach(utils.createGeoLink)
-  })
-
-  /** LINK: remove all leaderline when onRemove() */
-  onRemove(htmlHolder, () =>
-    htmlHolder.querySelectorAll('.with-leader-line')
-      .forEach(utils.removeLeaderLines),
-  )
   /**
-   * mapFocusObserver. observe for map focus
+   * MAP: mapFocusObserver. observe for map focus
    * @return {MutationObserver} observer
    */
   const mapClassObserver = () =>
@@ -310,49 +382,8 @@ export const generateMaps = (container, {
       }
     })
 
-  /** Observer for layout changes */
-  const layoutObserver = new window.MutationObserver(mutations => {
-    const mutation = mutations.at(-1)
-    const oldLayout = mutation.oldValue
-    const newLayout = container.dataset.layout
-
-    // Apply handler for leaving/entering layouts
-    if (oldLayout) {
-      dumbymap.layouts
-        .find(l => l.name === oldLayout)
-        ?.leaveHandler?.call(this, dumbymap)
-    }
-
-    Object.values(dumbymap)
-      .flat()
-      .filter(ele => ele instanceof window.HTMLElement)
-      .forEach(ele => { ele.style.cssText = '' })
-
-    if (newLayout) {
-      dumbymap.layouts
-        .find(l => l.name === newLayout)
-        ?.enterHandler?.call(this, dumbymap)
-    }
-
-    // Since layout change may show/hide showcase, the current focused map may need to go into/outside showcase
-    // Reset attribute triggers MutationObserver which is observing it
-    const focusMap =
-      container.querySelector('.mapclay.focus') ??
-      container.querySelector('.mapclay')
-    focusMap?.classList?.add('focus')
-  })
-  layoutObserver.observe(container, {
-    attributes: true,
-    attributeFilter: ['data-layout'],
-    attributeOldValue: true,
-    characterDataOldValue: true,
-  })
-
-  onRemove(htmlHolder, () => layoutObserver.disconnect())
-  container.dataset.layout = initialLayout ?? defaultLayouts[0].name
-
   /**
-   * afterMapRendered. callback of each map rendered
+   * MAP: afterMapRendered. callback of each map rendered
    *
    * @param {Object} renderer
    */
@@ -380,7 +411,7 @@ export const generateMaps = (container, {
       attributeFilter: ['class'],
       attributeOldValue: true,
     })
-    onRemove(dumbymap.htmlHolder, () => {
+    onRemove(mapElement.closest('.SemanticHtml'), () => {
       observer.disconnect()
     })
 
@@ -394,8 +425,10 @@ export const generateMaps = (container, {
   }
 
   // Set unique ID for map container
-  const mapIdList = []
-  const assignMapId = config => {
+  function assignMapId (config) {
+    const mapIdList = Array.from(document.querySelectorAll('.mapclay'))
+      .map(map => map.id)
+      .filter(id => id)
     let mapId = config.id?.replaceAll('\x20', '_')
     if (!mapId) {
       mapId = config.use?.split('/')?.at(-1)
@@ -410,23 +443,24 @@ export const generateMaps = (container, {
     mapIdList.push(mapId)
     return config
   }
+  //
+  //   if (autoMap && elementsWithMapConfig.length === 0) {
+  //     const mapContainer = document.createElement('pre')
+  //     mapContainer.className = 'mapclay-container'
+  //     mapContainer.textContent = '#Created by DumbyMap'
+  //     mapContainer.style.cssText = 'display: none;'
+  //     htmlHolder.insertBefore(mapContainer, htmlHolder.firstElementChild)
+  //     elementsWithMapConfig.push(mapContainer)
+  //   }
+  //
 
-  // Render each code block with "language-map" class
-  const elementsWithMapConfig = Array.from(
-    container.querySelectorAll(mapBlockSelector) ?? [],
-  )
-  if (autoMap && elementsWithMapConfig.length === 0) {
-    const mapContainer = document.createElement('pre')
-    mapContainer.className = 'mapclay-container'
-    mapContainer.textContent = '#Created by DumbyMap'
-    mapContainer.style.cssText = 'display: none;'
-    htmlHolder.insertBefore(mapContainer, htmlHolder.firstElementChild)
-    elementsWithMapConfig.push(mapContainer)
-  }
-
-  /** Render each taget element for maps */
   let order = 0
-  elementsWithMapConfig.forEach(target => {
+  /**
+   * MAP: Render each taget element for maps
+   *
+   * @param {} target
+   */
+  function renderMap (target) {
     // Get text in code block starts with markdown text '```map'
     const configText = target
       .textContent // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
@@ -463,7 +497,6 @@ export const generateMaps = (container, {
     const timer = setTimeout(
       () => {
         render(target, configList).forEach(renderPromise => {
-          renderPromises.push(renderPromise)
           renderPromise.then(afterMapRendered)
         })
         Array.from(target.children).forEach(e => {
@@ -476,14 +509,14 @@ export const generateMaps = (container, {
       },
       delay ?? 1000,
     )
-    onRemove(htmlHolder, () => {
+    onRemove(target.closest('.SemanticHtml'), () => {
       clearTimeout(timer)
     })
-  })
+  }
 
-  /** Prepare Context Menu */
+  /** MENU: Prepare Context Menu */
   const menu = document.createElement('div')
-  menu.className = 'menu'
+  menu.classList.add('menu', 'dumby-menu')
   menu.style.display = 'none'
   menu.onclick = (e) => {
     const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
@@ -491,9 +524,10 @@ export const generateMaps = (container, {
 
     menu.style.display = 'none'
   }
-  container.appendChild(menu)
+  document.body.appendChild(menu)
+  onRemove(menu, () => console.log('menu.removed'))
 
-  /** Menu Items for Context Menu */
+  /** MENU: Menu Items for Context Menu */
   container.oncontextmenu = e => {
     const map = e.target.closest('.mapclay')
     const block = e.target.closest('.dumby-block')
@@ -502,6 +536,7 @@ export const generateMaps = (container, {
 
     menu.replaceChildren()
     menu.style.display = 'block'
+    console.log(menu.style.display)
     menu.style.cssText = `left: ${e.clientX - menu.offsetParent.offsetLeft + 10}px; top: ${e.clientY - menu.offsetParent.offsetTop + 5}px;`
 
     // Menu Items for map
@@ -533,7 +568,7 @@ export const generateMaps = (container, {
     return menu
   }
 
-  /** Event Handler when clicking outside of Context Manu */
+  /** MENU: Event Handler when clicking outside of Context Manu */
   const actionOutsideMenu = e => {
     if (menu.style.display === 'none') return
     const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
@@ -542,9 +577,9 @@ export const generateMaps = (container, {
     const rect = menu.getBoundingClientRect()
     if (
       e.clientX < rect.left ||
-      e.clientX > rect.left + rect.width ||
-      e.clientY < rect.top ||
-      e.clientY > rect.top + rect.height
+        e.clientX > rect.left + rect.width ||
+        e.clientY < rect.top ||
+        e.clientY > rect.top + rect.height
     ) {
       menu.style.display = 'none'
     }
@@ -554,7 +589,7 @@ export const generateMaps = (container, {
     document.removeEventListener('click', actionOutsideMenu),
   )
 
-  /** Drag/Drop on map for new GeoLink */
+  /** MOUSE: Drag/Drop on map for new GeoLink */
   const pointByArrow = document.createElement('div')
   pointByArrow.className = 'point-by-arrow'
   container.appendChild(pointByArrow)

@@ -42,7 +42,12 @@ new window.MutationObserver(mutations => {
   childList: true,
   subtree: true,
 })
-let dumbymap
+const dumbymap = generateMaps(dumbyContainer, { crs })
+if (initialLayout) {
+  dumbyContainer.dataset.layout = initialLayout
+}
+// Set oncontextmenu callback
+dumbymap.utils.setContextMenu(menuForEditor)
 
 /** Variables: Reference Style Links in Markdown */
 const refLinkPattern = /\[([^\x5B\x5D]+)\]:\s+(\S+)(\s["'](\S+)["'])?/
@@ -445,7 +450,7 @@ const completeForCodeBlock = change => {
  * @param {Event} event - Event for context menu
  * @param {HTMLElement} menu - menu of dumbymap
  */
-const menuForEditor = (event, menu) => {
+function menuForEditor (event, menu) {
   event.preventDefault()
 
   if (document.getSelection().type === 'Range' && cm.getSelection() && refLinks.length > 0) {
@@ -490,22 +495,16 @@ const menuForEditor = (event, menu) => {
 const updateDumbyMap = (callback = null) => {
   markdown2HTML(dumbyContainer, editor.value())
   // debounceForMap(dumbyContainer, afterMapRendered)
-  dumbymap = generateMaps(dumbyContainer, {
-    crs,
-  })
+  // dumbymap = generateMaps(dumbyContainer, {
+  //   crs,
+  // })
   // Set onscroll callback
-  const htmlHolder = dumbymap.htmlHolder
-  htmlHolder.onscroll = updateScrollLine(htmlHolder)
-  // Set oncontextmenu callback
-  dumbymap.utils.setContextMenu(menuForEditor)
+  // const htmlHolder = dumbymap.htmlHolder
+  // htmlHolder.onscroll = updateScrollLine(htmlHolder)
 
   callback?.(dumbymap)
 }
-updateDumbyMap(() => {
-  if (initialLayout) {
-    dumbyContainer.dataset.layout = initialLayout
-  }
-})
+updateDumbyMap()
 
 // Re-render HTML by editor content
 cm.on('change', (_, change) => {
