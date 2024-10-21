@@ -220,7 +220,7 @@ export const createGeoLink = (link) => {
  */
 export const createDocLink = link => {
   const label = decodeURIComponent(link.href.split('#')[1])
-  const selector = link.title.split('=>')[1] ?? label ? '#' + label : null
+  const selector = link.title.split('=>')[1] ?? (label ? '#' + label : null)
   if (!selector) return false
 
   link.classList.add('with-leader-line', 'doclink')
