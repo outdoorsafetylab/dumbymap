@@ -1,15 +1,5 @@
 console.log('content script loaded')
 
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('receive message', message)
-  sendResponse('received')
-  if (message === 'map-inline') {
-    alert('msg', message)
-    return Promise.resolve('done')
-  }
-  return false
-})
-
 const url = new URL(window.location)
 const use = url.searchParams.get('use')
 if (url.host === 'www.ptt.cc') {
@@ -23,17 +13,13 @@ if (url.host === 'www.ptt.cc') {
     })
 }
 
-const blockSelectors = {
-  'developer.mozilla': '.section-content',
-  'hackmd.io': '#doc > *',
-  'www.ptt.cc': '#main-content > span',
-  'prosemirror.net': '.ProseMirror > *',
+const contentSelectors = {
+  'developer.mozilla': ':has(.section-content)',
+  'hackmd.io': '#doc',
+  'www.ptt.cc': '#main-content',
+  'prosemirror.net': '.ProseMirror',
 }
-const blockSelector = blockSelectors[url.host]
-
-const addBlocks = blockSelector
-  ? root => Array.from(root.querySelectorAll(blockSelector))
-  : undefined
+const contentSelector = contentSelectors[url.host]
 
 const simpleRender = window.mapclay.renderWith(config => ({
   use: use ?? 'Leaflet',
@@ -47,12 +33,16 @@ const simpleRender = window.mapclay.renderWith(config => ({
   },
 }))
 
-if (!document.querySelector('.Dumby')) {
-  window.generateMaps(document.querySelector('main') ?? document.body, {
-    crs: url.searchParams.get('crs') ?? 'EPSG:4326',
-    addBlocks,
-    initialLayout: 'sticky',
-    render: simpleRender,
-    autoMap: false,
-  })
-}
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('receive message', message)
+  sendResponse('received')
+  if (message === 'map-inline-add') {
+    window.generateMaps(document.querySelector(contentSelector ?? 'main') ?? document.body, {
+      crs: url.searchParams.get('crs') ?? 'EPSG:4326',
+      initialLayout: 'sticky',
+      render: simpleRender,
+    })
+    return Promise.resolve('done')
+  }
+  return false
+})
