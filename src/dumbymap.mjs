@@ -509,7 +509,7 @@ export const generateMaps = (container, {
 
     if (!target.renderMap) {
       target.renderMap = debounce(
-        () => {
+        (configList) => {
           // Render maps
           render(target, configList).forEach(renderPromise => {
             renderPromise.then(afterMapRendered)
