@@ -381,7 +381,7 @@ export const generateMaps = (container, {
         })
       } else if (showcase.contains(target)) {
         // Check placeholder is inside Semantic HTML
-        const placeholder = htmlHolder.querySelector(
+        const placeholder = dumbymap.htmlHolder.querySelector(
           `[data-placeholder="${target.id}"]`,
         )
         if (!placeholder) { throw Error(`Cannot find placeholder for map "${target.id}"`) }
