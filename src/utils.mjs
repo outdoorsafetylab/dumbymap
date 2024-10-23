@@ -235,3 +235,20 @@ export function getCommonAncestor (selector) {
   // Return the common ancestor
   return range.commonAncestorContainer
 }
+
+/**
+ * full2Half: full-Width Digits To Half-Width.
+ *
+ * @param {String} str
+ */
+export const full2Half = (str) => {
+  // Create a regular expression to match full-width digits (U+FF10 to U+FF19)
+  const fullWidthDigitsRegex = /[\uFF0E\uFF10-\uFF19]/g
+
+  // Replace full-width digits with their half-width equivalents
+  return str.replace(fullWidthDigitsRegex, (match) => {
+    const fullWidthDigit = match.charCodeAt(0)
+    const halfWidthDigit = fullWidthDigit - 65248 // Offset to convert full-width to half-width
+    return String.fromCharCode(halfWidthDigit)
+  })
+}
