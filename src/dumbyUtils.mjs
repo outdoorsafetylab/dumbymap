@@ -419,6 +419,7 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
     geoLink.classList.remove('drag')
     positionObserver.disconnect()
     line.remove()
+    endOfLeaderLine.remove()
 
     const map = document.elementFromPoint(e.clientX, e.clientY)
       .closest('.mapclay[data-render="fulfilled"]')

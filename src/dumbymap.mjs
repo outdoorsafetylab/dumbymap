@@ -522,21 +522,8 @@ export const generateMaps = (container, {
         }, mapDelay,
       )
     }
-    target.renderMap()
+    target.renderMap(configList)
   }
-
-  /** MENU: Prepare Context Menu */
-  const menu = document.createElement('div')
-  menu.classList.add('menu', 'dumby-menu')
-  menu.style.display = 'none'
-  menu.onclick = (e) => {
-    const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
-    if (keepMenu) return
-
-    menu.style.display = 'none'
-  }
-  container.appendChild(menu)
-  window.menu = menu
 
   /** MENU: Menu Items for Context Menu */
   container.oncontextmenu = e => {
@@ -544,6 +531,17 @@ export const generateMaps = (container, {
     const block = e.target.closest('.dumby-block')
     if (!block && !map) return
     e.preventDefault()
+
+    /** MENU: Prepare Context Menu */
+    const menu = document.createElement('div')
+    menu.classList.add('menu', 'dumby-menu')
+    menu.onclick = (e) => {
+      const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
+      if (keepMenu) return
+
+      menu.remove()
+    }
+    container.body.appendChild(menu)
 
     menu.replaceChildren()
     menu.style.display = 'block'
@@ -580,7 +578,8 @@ export const generateMaps = (container, {
 
   /** MENU: Event Handler when clicking outside of Context Manu */
   const actionOutsideMenu = e => {
-    if (menu.style.display === 'none') return
+    const menu = container.querySelector('.dumby-menu')
+    if (!menu) return
     const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
     if (keepMenu) return
 
@@ -591,7 +590,7 @@ export const generateMaps = (container, {
       e.clientY < rect.top ||
       e.clientY > rect.top + rect.height
     ) {
-      menu.style.display = 'none'
+      menu.remove()
     }
   }
   document.addEventListener('click', actionOutsideMenu)
@@ -600,9 +599,6 @@ export const generateMaps = (container, {
   )
 
   /** MOUSE: Drag/Drop on map for new GeoLink */
-  const pointByArrow = document.createElement('div')
-  pointByArrow.className = 'point-by-arrow'
-  container.appendChild(pointByArrow)
   container.ondragstart = () => false
   container.onmousedown = (e) => {
     // Check should start drag event for GeoLink
@@ -614,6 +610,10 @@ export const generateMaps = (container, {
     const rect = range.getBoundingClientRect()
     const mouseInRange = e.clientX < rect.right && e.clientX > rect.left && e.clientY < rect.bottom && e.clientY > rect.top
     if (!mouseInRange) return
+
+    const pointByArrow = document.createElement('div')
+    pointByArrow.className = 'point-by-arrow'
+    container.appendChild(pointByArrow)
 
     const timer = setTimeout(() => {
       utils.dragForAnchor(container, range, pointByArrow)
@@ -629,6 +629,7 @@ export const generateMaps = (container, {
     container.onmousemove(e)
     container.onmouseup = () => {
       clearTimeout(timer)
+      pointByArrow.remove()
       container.onmouseup = null
       container.onmousemove = null
     }
