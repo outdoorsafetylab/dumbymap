@@ -37,9 +37,7 @@ const mapCache = {}
  */
 export const markdown2HTML = (container, mdContent) => {
   /** Prepare Elements for Container */
-  container.replaceChildren()
-  container.innerHTML = '<div class="SemanticHtml"></div>'
-  const htmlHolder = container.querySelector('.SemanticHtml')
+  container.querySelector('.SemanticHtml')?.remove()
 
   /** Prepare MarkdownIt Instance */
   const md = MarkdownIt({
@@ -80,7 +78,10 @@ export const markdown2HTML = (container, mdContent) => {
   })
 
   /** Render HTML */
+  const htmlHolder = document.createElement('div')
+  htmlHolder.className = 'SemanticHtml'
   htmlHolder.innerHTML = md.render(mdContent)
+  container.appendChild(htmlHolder)
 
   return container
 }
@@ -160,6 +161,47 @@ export const generateMaps = (container, {
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
 
+  /** Prepare Other Variables */
+  const modalContent = document.createElement('div')
+  container.appendChild(modalContent)
+  const modal = new PlainModal(modalContent)
+
+  /** Define dumbymap Object */
+  const dumbymap = {
+    layouts: [...defaultLayouts, ...layouts.map(l => typeof l === 'object' ? l : { name: l })],
+    container,
+    get htmlHolder () { return container.querySelector('.SemanticHtml') },
+    get showcase () { return container.querySelector('.Showcase') },
+    get blocks () { return Array.from(container.querySelectorAll('.dumby-block')) },
+    modal,
+    modalContent,
+    utils: {
+      ...utils,
+      renderedMaps: () =>
+        Array.from(
+          container.querySelectorAll('.mapclay[data-render=fulfilled]'),
+        ).sort((a, b) => a.style.order > b.style.order),
+      setContextMenu: (menuCallback) => {
+        const originalCallback = container.oncontextmenu
+        container.oncontextmenu = (e) => {
+          const menu = originalCallback(e)
+          if (!menu) return
+
+          menuCallback(e, menu)
+          menu.style.transform = ''
+          shiftByWindow(menu)
+        }
+      },
+      focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
+      switchToNextLayout: throttle(utils.switchToNextLayout, 300),
+    },
+  }
+  Object.entries(dumbymap.utils).forEach(([util, value]) => {
+    if (typeof value === 'function') {
+      dumbymap.utils[util] = value.bind(dumbymap)
+    }
+  })
+
   /** WATCH: text content of Semantic HTML */
   new window.MutationObserver((mutations) => {
     for (const mutation of mutations) {
@@ -180,7 +222,6 @@ export const generateMaps = (container, {
     subtree: true,
   })
 
-  const counter = 0
   /** WATCH: children of Semantic HTML */
   new window.MutationObserver((mutations) => {
     for (const mutation of mutations) {
@@ -223,52 +264,46 @@ export const generateMaps = (container, {
     }
   }).observe(container, {
     attributes: true,
-    attributesFilter: ['data-init-dumby'],
+    attributeFilter: ['data-init-dumby'],
     childList: true,
     subtree: true,
   })
 
   container.dataset.initDumby = 'true'
 
-  /** Prepare Other Variables */
-  const modalContent = document.createElement('div')
-  container.appendChild(modalContent)
-  const modal = new PlainModal(modalContent)
+  /** WATCH: Layout changes */
+  new window.MutationObserver(mutations => {
+    const mutation = mutations.at(-1)
+    const oldLayout = mutation.oldValue
+    const newLayout = container.dataset.layout
 
-  /** Define dumbymap Object */
-  const dumbymap = {
-    layouts: [...defaultLayouts, ...layouts.map(l => typeof l === 'object' ? l : { name: l })],
-    container,
-    htmlHolder,
-    showcase,
-    get blocks () { return Array.from(container.querySelectorAll('.dumby-block')) },
-    modal,
-    modalContent,
-    utils: {
-      ...utils,
-      renderedMaps: () =>
-        Array.from(
-          container.querySelectorAll('.mapclay[data-render=fulfilled]'),
-        ).sort((a, b) => a.style.order > b.style.order),
-      setContextMenu: (menuCallback) => {
-        const originalCallback = container.oncontextmenu
-        container.oncontextmenu = (e) => {
-          const menu = originalCallback(e)
-          if (!menu) return
-
-          menuCallback(e, menu)
-          menu.style.transform = ''
-          shiftByWindow(menu)
-        }
-      },
-      focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
-      switchToNextLayout: throttle(utils.switchToNextLayout, 300),
-    },
-  }
-  Object.entries(dumbymap.utils).forEach(([util, value]) => {
-    if (typeof value === 'function') {
-      dumbymap.utils[util] = value.bind(dumbymap)
+    // Apply handler for leaving/entering layouts
+    if (oldLayout) {
+      dumbymap.layouts
+        .find(l => l.name === oldLayout)
+        ?.leaveHandler?.call(this, dumbymap)
     }
+
+    Object.values(dumbymap)
+      .filter(ele => ele instanceof window.HTMLElement)
+      .forEach(ele => { ele.style.cssText = '' })
+
+    if (newLayout) {
+      dumbymap.layouts
+        .find(l => l.name === newLayout)
+        ?.enterHandler?.call(this, dumbymap)
+    }
+
+    // Since layout change may show/hide showcase, the current focused map may need to go into/outside showcase
+    // Reset attribute triggers MutationObserver which is observing it
+    const focusMap =
+      container.querySelector('.mapclay.focus') ??
+      container.querySelector('.mapclay')
+    focusMap?.classList?.add('focus')
+  }).observe(container, {
+    attributes: true,
+    attributeFilter: ['data-layout'],
+    attributeOldValue: true,
   })
 
   /**
@@ -473,17 +508,19 @@ export const generateMaps = (container, {
     }
 
     if (!target.renderMap) {
-      target.renderMap = debounce(() => {
-        // Render maps
-        render(target, configList).forEach(renderPromise => {
-          renderPromise.then(afterMapRendered)
-        })
-        Array.from(target.children).forEach(e => {
-          if (e.dataset.render === 'fulfilled') {
-            afterMapRendered(e.renderer)
-          }
-        }), mapDelay
-      })
+      target.renderMap = debounce(
+        () => {
+          // Render maps
+          render(target, configList).forEach(renderPromise => {
+            renderPromise.then(afterMapRendered)
+          })
+          Array.from(target.children).forEach(e => {
+            if (e.dataset.render === 'fulfilled') {
+              afterMapRendered(e.renderer)
+            }
+          })
+        }, mapDelay,
+      )
     }
     target.renderMap()
   }
@@ -498,7 +535,8 @@ export const generateMaps = (container, {
 
     menu.style.display = 'none'
   }
-  document.body.appendChild(menu)
+  container.appendChild(menu)
+  window.menu = menu
 
   /** MENU: Menu Items for Context Menu */
   container.oncontextmenu = e => {
