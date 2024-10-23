@@ -39,7 +39,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message === 'map-inline-add') {
     window.generateMaps(document.querySelector(contentSelector ?? 'main') ?? document.body, {
       crs: url.searchParams.get('crs') ?? 'EPSG:4326',
-      initialLayout: 'sticky',
       render: simpleRender,
     })
     return Promise.resolve('done')
