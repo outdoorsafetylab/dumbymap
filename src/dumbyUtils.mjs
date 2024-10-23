@@ -439,11 +439,11 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
   }
 }
 
-export const addGeoSchemeByText = async (element) => {
+export const addGeoSchemeByText = async (node) => {
   const coordPatterns = /(-?\d+\.?\d*)([,\x2F\uFF0C])(-?\d+\.?\d*)/
   const re = new RegExp(coordPatterns, 'g')
 
-  return replaceTextNodes(element, re, match => {
+  return replaceTextNodes(node, re, match => {
     const [x, y] = [match.at(1), match.at(3)]
     // Don't process string which can be used as date
     if (Date.parse(match.at(0) + ' 1990')) return null

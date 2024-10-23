@@ -89,6 +89,25 @@ export function throttle (func, delay) {
 }
 
 /**
+ * debounce.
+ *
+ * @param {Function} func
+ * @param {Number} delay - milliseconds
+ */
+export function debounce (func, delay = 1000) {
+  let timer = null
+
+  return function (...args) {
+    const context = this
+
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      func.apply(context, args)
+    }, delay)
+  }
+}
+
+/**
  * shiftByWindow. make sure HTMLElement inside viewport
  *
  * @param {HTMLElement} element
@@ -154,7 +173,7 @@ export const replaceTextNodes = (
   const nodeIterator = document.createNodeIterator(
     rootNode,
     window.NodeFilter.SHOW_TEXT,
-    node => node.textContent.match(pattern) && !node.parentElement.closest('code')
+    node => node.textContent.match(pattern) && !node.parentElement.closest('pre,code,a')
       ? window.NodeFilter.FILTER_ACCEPT
       : window.NodeFilter.FILTER_REJECT,
   )

@@ -30,22 +30,17 @@ dumbyContainer.dataset.scrollLine = ''
 new window.MutationObserver(mutations => {
   const mutation = mutations.at(-1)
 
-  /** Handle layout change */
+  // Handle layout change
   const layout = dumbyContainer.dataset.layout
-  if (layout !== 'normal' || mutation.oldValue === 'normal') {
+  if (layout && (layout !== 'normal' || mutation.oldValue === 'normal')) {
     context.dataset.mode = ''
   }
 }).observe(dumbyContainer, {
   attributes: true,
   attributeFilter: ['data-layout'],
   attributeOldValue: true,
-  childList: true,
-  subtree: true,
 })
-const dumbymap = generateMaps(dumbyContainer, { crs })
-if (initialLayout) {
-  dumbyContainer.dataset.layout = initialLayout
-}
+const dumbymap = generateMaps(dumbyContainer, { crs, initialLayout })
 // Set oncontextmenu callback
 dumbymap.utils.setContextMenu(menuForEditor)
 
@@ -430,19 +425,6 @@ const completeForCodeBlock = change => {
     }
   }
 }
-
-/* Disable debounce temporarily */
-// const debounceForMap = (() => {
-//   const timer = null
-//
-//   return function (...args) {
-//     dumbymap = generateMaps.apply(this, args)
-// clearTimeout(timer);
-// timer = setTimeout(() => {
-//   dumbymap = generateMaps.apply(this, args)
-// }, 10);
-//   }
-// })()
 
 /**
  * menuForEditor.
