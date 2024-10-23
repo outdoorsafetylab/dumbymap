@@ -171,7 +171,7 @@ pre:has(.mapclay) {
 }
 
 .menu {
-  display: block;
+  display: none;
   overflow: visible;
   width: fit-content;
   min-width: 10rem;
