@@ -135,7 +135,7 @@ pre:has(.mapclay) {
   }
 }
 
-.with-leader-line:not(:has(> *)) {
+.with-leader-line:not(:has(img)) {
   display: inline-block;
   padding-right: 15px;
 
