@@ -258,8 +258,7 @@ export const createDocLink = link => {
     })
   }
   link.onmouseout = () => {
-    link.lines.forEach(line => line.remove())
-    link.lines.length = 0
+    link.onmouseout = () => removeLeaderLines(link)
 
     // resume targets from highlight
     const targets = document.querySelectorAll(selector)
