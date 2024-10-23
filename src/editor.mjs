@@ -49,15 +49,6 @@ const refLinkPattern = /\[([^\x5B\x5D]+)\]:\s+(\S+)(\s["'](\S+)["'])?/
 let refLinks = []
 
 /**
- * Validates if the given anchor name is unique
- *
- * @param {string} anchorName - The anchor name to validate
- * @returns {boolean} True if the anchor name is unique, false otherwise
- */
-const validateAnchorName = anchorName =>
-  !refLinks.find(obj => obj.ref.toLowerCase() === anchorName.toLowerCase())
-
-/**
  * Appends a reference link to the CodeMirror instance
  *
  * @param {CodeMirror} cm - The CodeMirror instance

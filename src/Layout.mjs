@@ -263,7 +263,7 @@ export class Overlay extends Layout {
    * @param {HTMLElement} htmlHolder
    * @param {HTMLElement[]} blocks
    */
-  leaveHandler = ({ htmlHolder, blocks }) => {
+  leaveHandler = ({ blocks }) => {
     const resumeFromDraggable = block => {
       const draggableContainer = block.closest('.draggable-block')
       if (!draggableContainer) return

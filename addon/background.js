@@ -1,12 +1,9 @@
-console.log('background')
-
 browser.contextMenus.create(
   {
     id: 'map-inline-add',
     title: 'Add Links and Maps by content',
     contexts: ['page'],
   },
-  () => void browser.runtime.lastError,
 )
 
 browser.contextMenus.create(
