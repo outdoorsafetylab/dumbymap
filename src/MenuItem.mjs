@@ -1,4 +1,5 @@
 import { shiftByWindow } from './utils.mjs'
+import * as utils from './dumbyUtils.mjs'
 
 /**
  * @typedef {Object} RefLink
@@ -426,3 +427,38 @@ export const addRefLink = (cm, refLinks) =>
       })
     }),
   })
+
+/**
+ * setGeoLinkTypeItem.
+ *
+ * @param {HTMLAnchorElement} link
+ * @param {String} text
+ * @param {String} type
+ */
+export const setGeoLinkTypeItem = ({ link, text, type }) => {
+  const params = new URLSearchParams(link.search)
+  return new Item({
+    text,
+    onclick: () => {
+      params.set('type', type)
+      link.search = params
+      utils.removeLeaderLines(link)
+      utils.getMarkersFromMaps(link)
+        .forEach(marker => marker.remove())
+      utils.getMarkersFromMaps(link)
+    },
+  })
+}
+
+/**
+ * setGeoLinkType.
+ *
+ * @param {HTMLAnchorElement} link
+ */
+export const setGeoLinkType = (link) => new Folder({
+  text: 'Marker Type',
+  items: [
+    setGeoLinkTypeItem({ link, text: 'Pin', type: 'pin' }),
+    setGeoLinkTypeItem({ link, text: 'Circle', type: 'circle' }),
+  ],
+})

@@ -93,7 +93,8 @@ export function removeBlockFocus () {
  * @param {HTMLAnchorElement} link
  * @return {HTMLElement[]} markers
  */
-const getMarkersFromMaps = link => {
+export const getMarkersFromMaps = link => {
+  const params = new URLSearchParams(link.search)
   const maps = Array.from(
     link.closest('.Dumby')
       .querySelectorAll('.mapclay[data-render="fulfilled"]'),
@@ -107,7 +108,7 @@ const getMarkersFromMaps = link => {
       const marker = map.querySelector(`.marker[data-xy="${lonLat}"]`) ??
         renderer.addMarker({
           xy: lonLat,
-          type: link.type,
+          type: params.get('type') ?? null,
         })
       marker.dataset.xy = lonLat
       marker.title = new URLSearchParams(link.search).get('xy') ?? lonLat
@@ -167,7 +168,6 @@ export const createGeoLink = (link) => {
   link.classList.remove('not-geolink')
   // TODO refactor as data attribute
   link.targets = params.get('id')?.split(',') ?? null
-  link.type = params.get('type') ?? null
   link.title = 'Left-Click to move Camera, Middle-Click to clean anchor'
 
   link.lines = []

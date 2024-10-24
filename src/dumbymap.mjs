@@ -555,9 +555,16 @@ export const generateMaps = (container, {
       if (geoLink.classList.contains('from-text')) {
         menu.appendChild(new menuItem.Item({
           text: 'Delete',
-          onclick: () => geoLink.replaceWith(document.createTextNode(geoLink.textContent)),
+          onclick: () => {
+            utils.getMarkersFromMaps(geoLink)
+              .forEach(m => m.remove())
+            geoLink.replaceWith(
+              document.createTextNode(geoLink.textContent),
+            )
+          },
         }))
       }
+      menu.appendChild(menuItem.setGeoLinkType(geoLink))
       return
     }
 
