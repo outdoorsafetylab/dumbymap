@@ -12,12 +12,12 @@ import PlainModal from 'plain-modal'
 import proj4 from 'proj4'
 import { register, fromEPSGCode } from 'ol/proj/proj4'
 
-/** CSS Selector for main components */
+/** VAR: CSS Selector for main components */
 const mapBlockSelector = 'pre:has(code[class*=map]), .mapclay-container'
 const docLinkSelector = 'a[href^="#"][title^="=>"]:not(.doclink)'
 const geoLinkSelector = 'a[href^="geo:"]:not(.geolink)'
 
-/** Default Layouts */
+/** VAR: Default Layouts */
 const defaultLayouts = [
   new Layout({ name: 'normal' }),
   new SideBySide({ name: 'side-by-side' }),
@@ -25,7 +25,7 @@ const defaultLayouts = [
   new Sticky({ name: 'sticky' }),
 ]
 
-/** Cache across every dumbymap generation */
+/** VAR: Cache across every dumbymap generation */
 const mapCache = {}
 
 /**
