@@ -543,7 +543,7 @@ export const generateMaps = (container, {
       menu.remove()
     }
     container.appendChild(menu)
-    new MutationObserver(() => {
+    new window.MutationObserver(() => {
       menu.style.display = 'block'
       menu.style.left = (e.clientX - menu.offsetParent.offsetLeft + 10) + 'px'
       menu.style.top = (e.clientY - menu.offsetParent.offsetTop + 5) + 'px'

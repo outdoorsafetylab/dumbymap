@@ -1,5 +1,7 @@
 import { shiftByWindow } from './utils.mjs'
+/* eslint-disable no-unused-vars */
 import { GeoLink, removeLeaderLines } from './Link.mjs'
+/* eslint-enable */
 import * as markers from './marker.mjs'
 
 /**
@@ -465,7 +467,7 @@ export const setGeoLinkType = (link) => new Folder({
     .map(([key, value]) => {
       return setGeoLinkTypeItem({
         link,
-        title: key.at(0).toUpperCase() + key.slice(1),
+        title: value.name ?? key.at(0).toUpperCase() + key.slice(1),
         innerHTML: value.html,
         type: key,
         style: 'min-width: unset; width: fit-content; padding: 10px; margin: auto auto;',
