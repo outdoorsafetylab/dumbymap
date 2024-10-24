@@ -527,25 +527,46 @@ export const generateMaps = (container, {
 
   /** MENU: Menu Items for Context Menu */
   container.oncontextmenu = e => {
+    container.querySelectorAll('.dumby-menu').forEach(m => m.remove())
     const map = e.target.closest('.mapclay')
     const block = e.target.closest('.dumby-block')
-    if (!block && !map) return
+    const geoLink = e.target.closest('.geolink')
+    if (!block && !map && !geoLink) return
     e.preventDefault()
 
-    /** MENU: Prepare Context Menu */
+    // Add menu element
     const menu = document.createElement('div')
     menu.classList.add('menu', 'dumby-menu')
     menu.onclick = (e) => {
-      const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
-      if (keepMenu) return
-
+      if (e.target.closest('.keep-menu')) return
       menu.remove()
     }
-    container.body.appendChild(menu)
+    container.appendChild(menu)
+    new MutationObserver(() => {
+      menu.style.display = 'block'
+      menu.style.left = (e.clientX - menu.offsetParent.offsetLeft + 10) + 'px'
+      menu.style.top = (e.clientY - menu.offsetParent.offsetTop + 5) + 'px'
+      clearTimeout(menu.timer)
+    }).observe(menu, { childList: true })
+    menu.timer = setTimeout(() => menu.remove(), 100)
 
-    menu.replaceChildren()
-    menu.style.display = 'block'
-    menu.style.cssText = `left: ${e.clientX - menu.offsetParent.offsetLeft + 10}px; top: ${e.clientY - menu.offsetParent.offsetTop + 5}px;`
+    // Menu Items for GeoLink
+    if (geoLink) {
+      if (geoLink.classList.contains('from-text')) {
+        menu.appendChild(new menuItem.Item({
+          text: 'Delete',
+          onclick: () => {
+            utils.getMarkersFromMaps(geoLink)
+              .forEach(m => m.remove())
+            geoLink.replaceWith(
+              document.createTextNode(geoLink.textContent),
+            )
+          },
+        }))
+      }
+      menu.appendChild(menuItem.setGeoLinkType(geoLink))
+      return
+    }
 
     // Menu Items for map
     if (map?.renderer?.results) {

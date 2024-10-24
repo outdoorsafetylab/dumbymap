@@ -93,7 +93,8 @@ export function removeBlockFocus () {
  * @param {HTMLAnchorElement} link
  * @return {HTMLElement[]} markers
  */
-const getMarkersFromMaps = link => {
+export const getMarkersFromMaps = link => {
+  const params = new URLSearchParams(link.search)
   const maps = Array.from(
     link.closest('.Dumby')
       .querySelectorAll('.mapclay[data-render="fulfilled"]'),
@@ -107,7 +108,7 @@ const getMarkersFromMaps = link => {
       const marker = map.querySelector(`.marker[data-xy="${lonLat}"]`) ??
         renderer.addMarker({
           xy: lonLat,
-          type: link.type,
+          type: params.get('type') ?? null,
         })
       marker.dataset.xy = lonLat
       marker.title = new URLSearchParams(link.search).get('xy') ?? lonLat
@@ -167,7 +168,6 @@ export const createGeoLink = (link) => {
   link.classList.remove('not-geolink')
   // TODO refactor as data attribute
   link.targets = params.get('id')?.split(',') ?? null
-  link.type = params.get('type') ?? null
   link.title = 'Left-Click to move Camera, Middle-Click to clean anchor'
 
   link.lines = []
@@ -385,7 +385,7 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
   container.classList.add('dragging-geolink')
   const geoLink = document.createElement('a')
   geoLink.textContent = range.toString()
-  geoLink.classList.add('with-leader-line', 'geolink', 'drag')
+  geoLink.classList.add('with-leader-line', 'geolink', 'drag', 'from-text')
 
   // Replace current content with link
   const originContent = range.cloneContents()
@@ -439,6 +439,11 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
   }
 }
 
+/**
+ * addGeoSchemeByText.
+ *
+ * @param {Node} node
+ */
 export const addGeoSchemeByText = async (node) => {
   const digit = '[\\d\\uFF10-\\uFF19]'
   const decimal = '[.\\uFF0E]'
@@ -451,7 +456,7 @@ export const addGeoSchemeByText = async (node) => {
     if (Date.parse(match.at(0) + ' 1990')) return null
 
     const a = document.createElement('a')
-    a.className = 'not-geolink'
+    a.className = 'not-geolink from-text'
     a.href = `geo:0,0?xy=${x},${y}`
     a.textContent = match.at(0)
     return a
