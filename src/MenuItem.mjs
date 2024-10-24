@@ -1,5 +1,6 @@
 import { shiftByWindow } from './utils.mjs'
 import { GeoLink, removeLeaderLines } from './Link.mjs'
+import * as markers from './marker.mjs'
 
 /**
  * @typedef {Object} RefLink
@@ -59,7 +60,7 @@ export class Folder extends window.HTMLDivElement {
    * @param {string} [options.innerHTML] - The HTML content of the folder
    * @param {Item[]} options.items - The submenu items
    */
-  constructor ({ text, innerHTML, items }) {
+  constructor ({ text, innerHTML, items, style }) {
     super()
     this.innerHTML = innerHTML ?? text
     this.classList.add('folder', 'menu-item')
@@ -70,7 +71,7 @@ export class Folder extends window.HTMLDivElement {
       const submenu = document.createElement('div')
       submenu.className = 'sub-menu'
       const offset = this.items.length > 1 ? '-20px' : '0px'
-      submenu.style.cssText = `position: absolute; left: 105%; top: ${offset};`
+      submenu.style.cssText = `${style ?? ''}position: absolute; left: 105%; top: ${offset};`
       this.items.forEach(item => submenu.appendChild(item))
       submenu.onmouseleave = () => submenu.remove()
 
@@ -435,10 +436,10 @@ export const addRefLink = (cm, refLinks) =>
  * @param {String} text
  * @param {String} type
  */
-export const setGeoLinkTypeItem = ({ link, text, type }) => {
+export const setGeoLinkTypeItem = ({ link, type, ...others }) => {
   const params = new URLSearchParams(link.search)
   return new Item({
-    text,
+    ...others,
     className: ['keep-menu'],
     onclick: () => {
       params.set('type', type)
@@ -458,8 +459,16 @@ export const setGeoLinkTypeItem = ({ link, text, type }) => {
  */
 export const setGeoLinkType = (link) => new Folder({
   text: 'Marker Type',
-  items: [
-    setGeoLinkTypeItem({ link, text: 'Pin', type: 'pin' }),
-    setGeoLinkTypeItem({ link, text: 'Circle', type: 'circle' }),
-  ],
+  style: 'min-width: unset; display: grid; grid-template-columns: repeat(5, 1fr);',
+  items: Object.entries(markers)
+    .sort(([, a], [, b]) => (a.order ?? 9999) > (b.order ?? 9999))
+    .map(([key, value]) => {
+      return setGeoLinkTypeItem({
+        link,
+        title: key.at(0).toUpperCase() + key.slice(1),
+        innerHTML: value.html,
+        type: key,
+        style: 'min-width: unset; width: fit-content; padding: 10px; margin: auto auto;',
+      })
+    }),
 })

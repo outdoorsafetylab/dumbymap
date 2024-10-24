@@ -1,5 +1,6 @@
 import LeaderLine from 'leader-line'
 import { insideWindow, insideParent } from './utils'
+import * as markers from './marker.mjs'
 
 /** VAR: pattern for coodinates */
 export const coordPattern = /^geo:([-]?[0-9.]+),([-]?[0-9.]+)/
@@ -106,11 +107,19 @@ export class GeoLink extends window.HTMLAnchorElement {
       .map(map => {
         const renderer = map.renderer
         const lonLat = [Number(this.dataset.lon), Number(this.dataset.lat)]
+        const type = params.get('type') ?? 'pin'
+        const svg = markers[type]
+        const element = document.createElement('div')
+        element.style.cssText = `width: ${svg.size[0]}px; height: ${svg.size[1]}px;`
+        element.innerHTML = svg.html
 
         const marker = map.querySelector(`.marker[data-xy="${lonLat}"]`) ??
           renderer.addMarker({
             xy: lonLat,
-            type: params.get('type') ?? null,
+            element,
+            type,
+            anchor: svg.anchor,
+            size: svg.size,
           })
         marker.dataset.xy = lonLat
         marker.title = new URLSearchParams(this.search).get('xy') ?? lonLat
