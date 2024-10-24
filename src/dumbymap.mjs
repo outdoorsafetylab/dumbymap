@@ -530,7 +530,8 @@ export const generateMaps = (container, {
     container.querySelectorAll('.dumby-menu').forEach(m => m.remove())
     const map = e.target.closest('.mapclay')
     const block = e.target.closest('.dumby-block')
-    if (!block && !map) return
+    const geoLink = e.target.closest('.geolink')
+    if (!block && !map && !geoLink) return
     e.preventDefault()
 
     // Add menu element
@@ -548,6 +549,17 @@ export const generateMaps = (container, {
       clearTimeout(menu.timer)
     }).observe(menu, { childList: true })
     menu.timer = setTimeout(() => menu.remove(), 100)
+
+    // Menu Items for GeoLink
+    if (geoLink) {
+      if (geoLink.classList.contains('from-text')) {
+        menu.appendChild(new menuItem.Item({
+          text: 'Delete',
+          onclick: () => geoLink.replaceWith(document.createTextNode(geoLink.textContent)),
+        }))
+      }
+      return
+    }
 
     // Menu Items for map
     if (map?.renderer?.results) {

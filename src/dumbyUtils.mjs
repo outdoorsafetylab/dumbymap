@@ -385,7 +385,7 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
   container.classList.add('dragging-geolink')
   const geoLink = document.createElement('a')
   geoLink.textContent = range.toString()
-  geoLink.classList.add('with-leader-line', 'geolink', 'drag')
+  geoLink.classList.add('with-leader-line', 'geolink', 'drag', 'from-text')
 
   // Replace current content with link
   const originContent = range.cloneContents()
@@ -439,6 +439,11 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
   }
 }
 
+/**
+ * addGeoSchemeByText.
+ *
+ * @param {Node} node
+ */
 export const addGeoSchemeByText = async (node) => {
   const digit = '[\\d\\uFF10-\\uFF19]'
   const decimal = '[.\\uFF0E]'
@@ -451,7 +456,7 @@ export const addGeoSchemeByText = async (node) => {
     if (Date.parse(match.at(0) + ' 1990')) return null
 
     const a = document.createElement('a')
-    a.className = 'not-geolink'
+    a.className = 'not-geolink from-text'
     a.href = `geo:0,0?xy=${x},${y}`
     a.textContent = match.at(0)
     return a
