@@ -1,5 +1,5 @@
 import { shiftByWindow } from './utils.mjs'
-import * as utils from './dumbyUtils.mjs'
+import { GeoLink, removeLeaderLines } from './Link.mjs'
 
 /**
  * @typedef {Object} RefLink
@@ -431,7 +431,7 @@ export const addRefLink = (cm, refLinks) =>
 /**
  * setGeoLinkTypeItem.
  *
- * @param {HTMLAnchorElement} link
+ * @param {GeoLink} link
  * @param {String} text
  * @param {String} type
  */
@@ -439,13 +439,14 @@ export const setGeoLinkTypeItem = ({ link, text, type }) => {
   const params = new URLSearchParams(link.search)
   return new Item({
     text,
+    className: ['keep-menu'],
     onclick: () => {
       params.set('type', type)
       link.search = params
-      utils.removeLeaderLines(link)
-      utils.getMarkersFromMaps(link)
+      removeLeaderLines(link)
+      link.getMarkersFromMaps()
         .forEach(marker => marker.remove())
-      utils.getMarkersFromMaps(link)
+      link.getMarkersFromMaps()
     },
   })
 }

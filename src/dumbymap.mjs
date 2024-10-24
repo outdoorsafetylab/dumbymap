@@ -6,6 +6,7 @@ import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 import * as mapclay from 'mapclay'
 import { onRemove, animateRectTransition, throttle, debounce, shiftByWindow } from './utils'
 import { Layout, SideBySide, Overlay, Sticky } from './Layout'
+import { GeoLink, DocLink } from './Link.mjs'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
@@ -209,7 +210,7 @@ export const generateMaps = (container, {
       if (node.matches?.('.mapclay') || node.closest?.('.mapclay')) return
 
       // Add GeoLinks from plain texts
-      addGeoLinksByText(node)
+      utils.addGeoSchemeByText(node)
 
       // Render Map
       const mapTarget = node.parentElement?.closest(mapBlockSelector)
@@ -245,9 +246,9 @@ export const generateMaps = (container, {
 
       // Add GeoLinks/DocLinks by pattern
       target.querySelectorAll(geoLinkSelector)
-        .forEach(utils.createGeoLink)
+        .forEach(GeoLink.replaceWith)
       target.querySelectorAll(docLinkSelector)
-        .forEach(utils.createDocLink)
+        .forEach(DocLink.replaceWith)
 
       // Add GeoLinks from text nodes
       // const addedNodes = Array.from(mutation.addedNodes)
@@ -318,7 +319,7 @@ export const generateMaps = (container, {
       values.at(-1)
         .map(utils.setGeoSchemeByCRS(crsString))
         .filter(link => link)
-        .forEach(utils.createGeoLink)
+        .forEach(GeoLink.replaceWith)
     })
   }
 
@@ -556,7 +557,7 @@ export const generateMaps = (container, {
         menu.appendChild(new menuItem.Item({
           text: 'Delete',
           onclick: () => {
-            utils.getMarkersFromMaps(geoLink)
+            geoLink.getMarkersFromMaps()
               .forEach(m => m.remove())
             geoLink.replaceWith(
               document.createTextNode(geoLink.textContent),
@@ -637,7 +638,7 @@ export const generateMaps = (container, {
     container.appendChild(pointByArrow)
 
     const timer = setTimeout(() => {
-      utils.dragForAnchor(container, range, pointByArrow)
+      utils.addGeoLinkByDrag(container, range, pointByArrow)
     }, 300)
 
     // Update leader-line with mouse move

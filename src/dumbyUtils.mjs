@@ -1,8 +1,7 @@
 import LeaderLine from 'leader-line'
-import { insideWindow, insideParent, replaceTextNodes, full2Half } from './utils'
+import { replaceTextNodes, full2Half } from './utils'
 import proj4 from 'proj4'
-
-export const coordPattern = /^geo:([-]?[0-9.]+),([-]?[0-9.]+)/
+import { coordPattern, GeoLink } from './Link.mjs'
 
 /**
  * focusNextMap.
@@ -88,225 +87,6 @@ export function removeBlockFocus () {
 }
 
 /**
- * getMarkersFromMaps. Get marker elements by GeoLink
- *
- * @param {HTMLAnchorElement} link
- * @return {HTMLElement[]} markers
- */
-export const getMarkersFromMaps = link => {
-  const params = new URLSearchParams(link.search)
-  const maps = Array.from(
-    link.closest('.Dumby')
-      .querySelectorAll('.mapclay[data-render="fulfilled"]'),
-  )
-  return maps
-    .filter(map => link.targets ? link.targets.includes(map.id) : true)
-    .map(map => {
-      const renderer = map.renderer
-      const lonLat = [Number(link.dataset.lon), Number(link.dataset.lat)]
-
-      const marker = map.querySelector(`.marker[data-xy="${lonLat}"]`) ??
-        renderer.addMarker({
-          xy: lonLat,
-          type: params.get('type') ?? null,
-        })
-      marker.dataset.xy = lonLat
-      marker.title = new URLSearchParams(link.search).get('xy') ?? lonLat
-      const crs = link.dataset.crs
-      if (crs && crs !== 'EPSG:4326') {
-        marker.title += '@' + link.dataset.crs
-      }
-
-      return marker
-    })
-}
-
-/**
- * addLeaderLine, from link element to target element
- *
- * @param {HTMLAnchorElement} link
- * @param {Element} target
- */
-const addLeaderLine = (link, target) => {
-  const labelText = new URL(link).searchParams.get('text') ?? link.textContent
-  const line = new LeaderLine({
-    start: link,
-    end: target,
-    hide: true,
-    middleLabel: labelText,
-    path: 'magnet',
-  })
-  line.show('draw', { duration: 300 })
-
-  return line
-}
-
-/**
- * Create geolinks, which points to map by geo schema and id
- *
- * @param {HTMLElement} Elements contains anchor elements for GeoLinks
- * @returns {Boolean} ture is link is created, false if coordinates are invalid
- */
-export const createGeoLink = (link) => {
-  const url = new URL(link.href)
-  const params = new URLSearchParams(link.search)
-  const xyInParams = params.get('xy')?.split(',')?.map(Number)
-  const [lon, lat] = url.href
-    ?.match(coordPattern)
-    ?.slice(1)
-    ?.reverse()
-    ?.map(Number)
-  const xy = xyInParams ?? [lon, lat]
-
-  if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false
-
-  // Geo information in link
-  link.dataset.lon = lon
-  link.dataset.lat = lat
-  link.dataset.crs = params.get('crs')
-  link.classList.add('with-leader-line', 'geolink')
-  link.classList.remove('not-geolink')
-  // TODO refactor as data attribute
-  link.targets = params.get('id')?.split(',') ?? null
-  link.title = 'Left-Click to move Camera, Middle-Click to clean anchor'
-
-  link.lines = []
-
-  // Hover link for LeaderLine
-  link.onmouseover = () => {
-    if (link.dataset.valid === 'false') return
-
-    const anchors = getMarkersFromMaps(link)
-    anchors
-      .filter(isAnchorVisible)
-      .forEach(anchor => {
-        const line = addLeaderLine(link, anchor)
-        link.lines.push(line)
-      })
-  }
-  link.onmouseout = () => removeLeaderLines(link)
-
-  // Click to move camera
-  link.onclick = (event) => {
-    event.preventDefault()
-    if (link.dataset.valid === 'false') return
-
-    removeLeaderLines(link)
-    getMarkersFromMaps(link).forEach(marker => {
-      const map = marker.closest('.mapclay')
-      map.scrollIntoView({ behavior: 'smooth' })
-      updateMapCameraByMarker([
-        Number(link.dataset.lon),
-        Number(link.dataset.lat),
-      ])(marker)
-    })
-  }
-
-  // Use middle click to remove markers
-  link.onauxclick = (e) => {
-    if (e.which !== 2) return
-    e.preventDefault()
-    removeLeaderLines(link)
-    getMarkersFromMaps(link)
-      .forEach(marker => marker.remove())
-  }
-  return true
-}
-
-/**
- * CreateDocLink.
- *
- * @param {HTMLElement} Elements contains anchor elements for doclinks
- */
-export const createDocLink = link => {
-  const label = decodeURIComponent(link.href.split('#')[1])
-  const selector = link.title.split('=>')[1] ?? (label ? '#' + label : null)
-  if (!selector) return false
-
-  link.classList.add('with-leader-line', 'doclink')
-  link.lines = []
-
-  link.onmouseover = () => {
-    const targets = document.querySelectorAll(selector)
-
-    targets.forEach(target => {
-      if (!target?.checkVisibility()) return
-
-      // highlight selected target
-      target.dataset.style = target.style.cssText
-      const rect = target.getBoundingClientRect()
-      const isTiny = rect.width < 100 || rect.height < 100
-      if (isTiny) {
-        target.style.background = 'lightPink'
-      } else {
-        target.style.outline = 'lightPink 6px dashed'
-      }
-
-      // point to selected target
-      const line = new LeaderLine({
-        start: link,
-        end: target,
-        middleLabel: LeaderLine.pathLabel({
-          text: label,
-          fontWeight: 'bold',
-        }),
-        hide: true,
-        path: 'magnet',
-      })
-      link.lines.push(line)
-      line.show('draw', { duration: 300 })
-    })
-  }
-  link.onmouseout = () => {
-    link.onmouseout = () => removeLeaderLines(link)
-
-    // resume targets from highlight
-    const targets = document.querySelectorAll(selector)
-    targets.forEach(target => {
-      target.style.cssText = target.dataset.style
-      delete target.dataset.style
-    })
-  }
-}
-
-/**
- * removeLeaderLines. clean lines start from link
- *
- * @param {HTMLAnchorElement} link
- */
-export const removeLeaderLines = link => {
-  if (!link.lines) return
-  link.lines.forEach(line => {
-    line.hide('draw', { duration: 300 })
-    setTimeout(() => {
-      line.remove()
-    }, 300)
-  })
-  link.lines = []
-}
-
-/**
- * updateMapByMarker. get function for updating map camera by marker
- *
- * @param {Number[]} xy
- * @return {Function} function
- */
-const updateMapCameraByMarker = lonLat => marker => {
-  const renderer = marker.closest('.mapclay')?.renderer
-  renderer.updateCamera({ center: lonLat }, true)
-}
-
-/**
- * isAnchorVisible. check anchor(marker) is visible for current map camera
- *
- * @param {Element} anchor
- */
-const isAnchorVisible = anchor => {
-  const mapContainer = anchor.closest('.mapclay')
-  return insideWindow(anchor) && insideParent(anchor, mapContainer)
-}
-
-/**
  * addMarkerByPoint.
  *
  * @param {Number[]} options.point - page XY
@@ -325,6 +105,30 @@ export const addMarkerByPoint = ({ point, map }) => {
   marker.dataset.xy = `${lon},${lat}`
 
   return marker
+}
+
+/**
+ * addGeoSchemeByText.
+ *
+ * @param {Node} node
+ */
+export const addGeoSchemeByText = async (node) => {
+  const digit = '[\\d\\uFF10-\\uFF19]'
+  const decimal = '[.\\uFF0E]'
+  const coordPatterns = `(-?${digit}+${decimal}?${digit}*)([,\x2F\uFF0C])(-?${digit}+${decimal}?${digit}*)`
+  const re = new RegExp(coordPatterns, 'g')
+
+  return replaceTextNodes(node, re, match => {
+    const [x, y] = [full2Half(match.at(1)), full2Half(match.at(3))]
+    // Don't process string which can be used as date
+    if (Date.parse(match.at(0) + ' 1990')) return null
+
+    const a = document.createElement('a')
+    a.className = 'not-geolink from-text'
+    a.href = `geo:0,0?xy=${x},${y}`
+    a.textContent = match.at(0)
+    return a
+  })
 }
 
 /**
@@ -375,17 +179,17 @@ export const setGeoSchemeByCRS = (crs) => (link) => {
 }
 
 /**
- * dragForAnchor.
+ * addGeoLinkByDrag.
  *
  * @param {HTMLElement} container
  * @param {Range} range
  */
-export const dragForAnchor = (container, range, endOfLeaderLine) => {
+export const addGeoLinkByDrag = (container, range, endOfLeaderLine) => {
   // link placeholder when dragging
   container.classList.add('dragging-geolink')
-  const geoLink = document.createElement('a')
-  geoLink.textContent = range.toString()
-  geoLink.classList.add('with-leader-line', 'geolink', 'drag', 'from-text')
+  const link = document.createElement('a')
+  link.textContent = range.toString()
+  link.classList.add('with-leader-line', 'geolink', 'drag', 'from-text')
 
   // Replace current content with link
   const originContent = range.cloneContents()
@@ -394,11 +198,11 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
     range.insertNode(originContent)
   }
   range.deleteContents()
-  range.insertNode(geoLink)
+  range.insertNode(link)
 
   // Add leader-line
   const line = new LeaderLine({
-    start: geoLink,
+    start: link,
     end: endOfLeaderLine,
     path: 'magnet',
   })
@@ -416,7 +220,7 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
     container.classList.remove('dragging-geolink')
     container.onmousemove = null
     container.onmouseup = null
-    geoLink.classList.remove('drag')
+    link.classList.remove('drag')
     positionObserver.disconnect()
     line.remove()
     endOfLeaderLine.remove()
@@ -434,31 +238,7 @@ export const dragForAnchor = (container, range, endOfLeaderLine) => {
       return
     }
 
-    geoLink.href = `geo:${marker.dataset.xy.split(',').reverse()}`
-    createGeoLink(geoLink)
+    link.href = `geo:${marker.dataset.xy.split(',').reverse()}`
+    GeoLink.replaceWith(link)
   }
-}
-
-/**
- * addGeoSchemeByText.
- *
- * @param {Node} node
- */
-export const addGeoSchemeByText = async (node) => {
-  const digit = '[\\d\\uFF10-\\uFF19]'
-  const decimal = '[.\\uFF0E]'
-  const coordPatterns = `(-?${digit}+${decimal}?${digit}*)([,\x2F\uFF0C])(-?${digit}+${decimal}?${digit}*)`
-  const re = new RegExp(coordPatterns, 'g')
-
-  return replaceTextNodes(node, re, match => {
-    const [x, y] = [full2Half(match.at(1)), full2Half(match.at(3))]
-    // Don't process string which can be used as date
-    if (Date.parse(match.at(0) + ' 1990')) return null
-
-    const a = document.createElement('a')
-    a.className = 'not-geolink from-text'
-    a.href = `geo:0,0?xy=${x},${y}`
-    a.textContent = match.at(0)
-    return a
-  })
 }
