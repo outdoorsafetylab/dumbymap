@@ -49,7 +49,7 @@ export const GeoLink = (link) => {
   link.classList.add('with-leader-line', 'geolink')
   link.classList.remove('not-geolink')
   // TODO refactor as data attribute
-  link.title = 'Left-Click to move Camera, Middle-Click to clean anchor'
+  link.title = 'Left-Click:\t move camera\nMiddle-Click: remove markers\nRight-Click:\t open menu'
   link.targets = params.get('id')?.split(',') ?? null
   link.lines = []
 
@@ -62,8 +62,10 @@ export const GeoLink = (link) => {
         start: link,
         end: anchor,
         hide: true,
-        middleLabel: labelText,
-        path: 'magnet',
+        middleLabel: LeaderLine.pathLabel({
+          text: labelText,
+          fontWeight: 'bold',
+        }),
         path: link.dataset.linePath ?? 'magnet',
       })
       line.show('draw', { duration: 300 })
