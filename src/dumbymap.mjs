@@ -532,6 +532,7 @@ export const generateMaps = (container, {
     const map = e.target.closest('.mapclay')
     const block = e.target.closest('.dumby-block')
     const geoLink = e.target.closest('.geolink')
+    const linkWithLine = e.target.closest('.with-leader-line')
     if (!block && !map && !geoLink) return
     e.preventDefault()
 
@@ -550,6 +551,10 @@ export const generateMaps = (container, {
       clearTimeout(menu.timer)
     }).observe(menu, { childList: true })
     menu.timer = setTimeout(() => menu.remove(), 100)
+
+    if (linkWithLine) {
+      menu.appendChild(menuItem.setLeaderLineType(linkWithLine))
+    }
 
     // Menu Items for GeoLink
     if (geoLink) {

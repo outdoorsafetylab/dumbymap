@@ -474,3 +474,22 @@ export const setGeoLinkType = (link) => new Folder({
       })
     }),
 })
+
+/**
+ * set type of leader-line
+ *
+ * @param {GeoLink | DocLink} link
+ */
+export const setLeaderLineType = (link) => new Folder({
+  text: 'Line Type',
+  items: ['magnet', 'straight', 'grid', 'fluid']
+    .map(path => new Item({
+      text: path,
+      className: ['keep-menu'],
+      onclick: () => {
+        link.dataset.linePath = path
+        removeLeaderLines(link)
+        link.onmouseover()
+      },
+    })),
+})

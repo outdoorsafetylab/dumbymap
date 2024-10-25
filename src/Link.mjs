@@ -64,6 +64,7 @@ export const GeoLink = (link) => {
         hide: true,
         middleLabel: labelText,
         path: 'magnet',
+        path: link.dataset.linePath ?? 'magnet',
       })
       line.show('draw', { duration: 300 })
 
@@ -181,7 +182,7 @@ export const DocLink = (link) => {
           fontWeight: 'bold',
         }),
         hide: true,
-        path: 'magnet',
+        path: link.dataset.linePath ?? 'magnet',
       })
       link.lines.push(line)
       line.show('draw', { duration: 300 })
