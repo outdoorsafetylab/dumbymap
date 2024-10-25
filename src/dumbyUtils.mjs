@@ -238,6 +238,6 @@ export const addGeoLinkByDrag = (container, range, endOfLeaderLine) => {
     }
 
     link.href = `geo:${marker.dataset.xy.split(',').reverse()}`
-    GeoLink.replaceWith(link)
+    GeoLink(link)
   }
 }

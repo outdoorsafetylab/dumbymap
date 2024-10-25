@@ -1,6 +1,6 @@
 import { shiftByWindow } from './utils.mjs'
 /* eslint-disable no-unused-vars */
-import { GeoLink, removeLeaderLines } from './Link.mjs'
+import { GeoLink, getMarkersFromMaps, removeLeaderLines } from './Link.mjs'
 /* eslint-enable */
 import * as markers from './marker.mjs'
 
@@ -447,9 +447,9 @@ export const setGeoLinkTypeItem = ({ link, type, ...others }) => {
       params.set('type', type)
       link.search = params
       removeLeaderLines(link)
-      link.getMarkersFromMaps()
+      getMarkersFromMaps(link)
         .forEach(marker => marker.remove())
-      link.getMarkersFromMaps()
+      getMarkersFromMaps(link)
     },
   })
 }
