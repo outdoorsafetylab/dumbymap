@@ -48,7 +48,7 @@ export class GeoLink extends window.HTMLAnchorElement {
     this.lines = []
 
     // Hover link for LeaderLine
-    this.onmouseover = () => this.getMarkersFromMaps(this)
+    this.onmouseover = () => this.getMarkersFromMaps()
       .filter(isAnchorVisible)
       .forEach(anchor => {
         const labelText = new URL(this).searchParams.get('text') ?? this.textContent

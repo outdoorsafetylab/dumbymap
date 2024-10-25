@@ -100,7 +100,6 @@ export const addMarkerByPoint = ({ point, map }) => {
 
   const marker = map.renderer.addMarker({
     xy: [lon, lat],
-    type: 'circle',
   })
   marker.dataset.xy = `${lon},${lat}`
 
