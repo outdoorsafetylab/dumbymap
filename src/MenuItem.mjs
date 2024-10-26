@@ -31,7 +31,7 @@ export class Item extends window.HTMLDivElement {
   constructor ({ text, innerHTML, title, onclick, style, className }) {
     super()
     this.innerHTML = innerHTML ?? text
-    this.title = title
+    if (title) this.title = title
     this.onclick = onclick
     this.style.cssText = style
     this.classList.add('menu-item')
