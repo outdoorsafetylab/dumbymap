@@ -546,8 +546,8 @@ export const generateMaps = (container, {
     container.appendChild(menu)
     new window.MutationObserver(() => {
       menu.style.display = 'block'
-      menu.style.left = (e.clientX - menu.offsetParent.offsetLeft + 10) + 'px'
-      menu.style.top = (e.clientY - menu.offsetParent.offsetTop + 5) + 'px'
+      menu.style.left = (e.layerX + 10) + 'px'
+      menu.style.top = (e.layerY + 5) + 'px'
       clearTimeout(menu.timer)
     }).observe(menu, { childList: true })
     menu.timer = setTimeout(() => menu.remove(), 100)
