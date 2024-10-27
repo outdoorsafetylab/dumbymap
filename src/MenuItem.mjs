@@ -1,7 +1,7 @@
 import { shiftByWindow } from './utils.mjs'
-/* eslint-disable no-unused-vars */
+import { addMarkerByPoint } from './dumbyUtils.mjs'
+/* eslint-disable-next-line no-unused-vars */
 import { GeoLink, getMarkersFromMaps, removeLeaderLines } from './Link.mjs'
-/* eslint-enable */
 import * as markers from './marker.mjs'
 
 /**
@@ -494,4 +494,32 @@ export const setLeaderLineType = (link) => new Folder({
         link.onmouseover()
       },
     })),
+})
+
+/**
+ * addMarker.
+ *
+ * @param {Object} options
+ * @param {HTMLElement} options.map - map element
+ * @param {Number[]} options.point - xy values in pixel
+ * @param {Function} options.isNameValid - check marker name is valid
+ * @param {Function} options.callback
+ */
+export const addMarker = ({
+  map,
+  point,
+  isNameValid = () => true,
+  callback = null,
+}) => new Item({
+  text: 'Add Marker',
+  onclick: () => {
+    let markerName
+    do {
+      markerName = window.prompt(markerName ? 'Name exists' : 'Marker Name')
+    } while (markerName && !isNameValid(markerName))
+    if (markerName === null) return
+
+    const marker = addMarkerByPoint({ point, map })
+    callback?.(marker)
+  },
 })

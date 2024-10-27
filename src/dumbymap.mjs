@@ -543,10 +543,11 @@ export const generateMaps = (container, {
       menu.remove()
     }
     container.appendChild(menu)
+    const containerRect = container.getBoundingClientRect()
     new window.MutationObserver(() => {
       menu.style.display = 'block'
-      menu.style.left = (e.layerX + 10) + 'px'
-      menu.style.top = (e.layerY + 5) + 'px'
+      menu.style.left = (e.pageX - containerRect.left + 10) + 'px'
+      menu.style.top = (e.pageY - containerRect.top + 5) + 'px'
       clearTimeout(menu.timer)
     }).observe(menu, { childList: true })
     menu.timer = setTimeout(() => menu.remove(), 100)
@@ -575,13 +576,22 @@ export const generateMaps = (container, {
     }
 
     // Menu Items for map
-    if (map?.renderer?.results) {
+    if (map?.dataset?.render === 'fulfilled') {
       const rect = map.getBoundingClientRect()
       const [x, y] = [e.x - rect.left, e.y - rect.top]
       menu.appendChild(menuItem.toggleMapFocus(map))
       menu.appendChild(menuItem.renderResults(dumbymap, map))
-      menu.appendChild(menuItem.getCoordinatesByPixels(map, [x, y]))
-      menu.appendChild(menuItem.restoreCamera(map))
+      menu.appendChild(new menuItem.Folder({
+        text: 'Actions',
+        items: [
+          menuItem.getCoordinatesByPixels(map, [x, y]),
+          menuItem.restoreCamera(map),
+          menuItem.addMarker({
+            point: [e.pageX, e.pageY],
+            map,
+          }),
+        ],
+      }))
     } else {
       // Toggle block focus
       if (block) {

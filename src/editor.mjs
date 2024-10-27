@@ -2,6 +2,7 @@
 import { markdown2HTML, generateMaps } from './dumbymap'
 import { defaultAliases, parseConfigsFromYaml } from 'mapclay'
 import * as menuItem from './MenuItem'
+/* eslint-disable-next-line no-unused-vars */
 import { addMarkerByPoint } from './dumbyUtils.mjs'
 import { shiftByWindow } from './utils.mjs'
 import * as tutorial from './tutorial'
@@ -54,6 +55,7 @@ let refLinks = []
  * @param {CodeMirror} cm - The CodeMirror instance
  * @param {RefLink} refLink - The reference link to append
  */
+/* eslint-disable-next-line no-unused-vars */
 const appendRefLink = (cm, refLink) => {
   editor.dataset.update = 'false'
 
@@ -439,27 +441,27 @@ function menuForEditor (event, menu) {
     menu.appendChild(switchToEditingMode)
   }
 
-  const map = event.target.closest('.mapclay')
-  if (map) {
-    const item = new menuItem.Item({
-      text: 'Add Anchor',
-      onclick: () => {
-        let anchorName
-        do {
-          anchorName = window.prompt(anchorName ? 'Name exists' : 'Name of Anchor')
-        } while (refLinks.find(ref => ref === anchorName))
-        if (anchorName === null) return
-
-        const marker = addMarkerByPoint({ point: [event.clientX, event.clientY], map })
-        const refLink = {
-          ref: anchorName,
-          link: `geo:${marker.dataset.xy.split(',').reverse()}`,
-        }
-        appendRefLink(cm, refLink)
-      },
-    })
-    menu.insertBefore(item, menu.firstChild)
-  }
+  // const map = event.target.closest('.mapclay')
+  // if (map) {
+  //   const item = new menuItem.Item({
+  //     text: 'Add Anchor',
+  //     onclick: () => {
+  //       let anchorName
+  //       do {
+  //         anchorName = window.prompt(anchorName ? 'Name exists' : 'Name of Anchor')
+  //       } while (refLinks.find(ref => ref === anchorName))
+  //       if (anchorName === null) return
+  //
+  //       const marker = addMarkerByPoint({ point: [event.clientX, event.clientY], map })
+  //       const refLink = {
+  //         ref: anchorName,
+  //         link: `geo:${marker.dataset.xy.split(',').reverse()}`,
+  //       }
+  //       appendRefLink(cm, refLink)
+  //     },
+  //   })
+  //   menu.insertBefore(item, menu.firstChild)
+  // }
 }
 
 /**
