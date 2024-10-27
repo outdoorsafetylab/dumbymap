@@ -49,7 +49,7 @@ export const GeoLink = (link) => {
   link.classList.add('with-leader-line', 'geolink')
   link.classList.remove('not-geolink')
   // TODO refactor as data attribute
-  link.title = 'Left-Click:\t move camera\nMiddle-Click: remove markers\nRight-Click:\t open menu'
+  link.title = 'Left-Click:\t\tmove camera\nMiddle-Click:\tremove markers\nRight-Click:\t\topen menu'
   link.targets = params.get('id')?.split(',') ?? null
   link.lines = []
 
