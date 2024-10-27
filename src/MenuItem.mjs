@@ -28,10 +28,11 @@ export class Item extends window.HTMLDivElement {
    * @param {string} [options.style] - The CSS style string
    * @param {string[]} [options.className] - Additional CSS classes
    */
-  constructor ({ text, innerHTML, title, onclick, style, className }) {
+  constructor ({ id, text, innerHTML, title, onclick, style, className }) {
     super()
-    this.innerHTML = innerHTML ?? text
+    if (id) this.id = id
     if (title) this.title = title
+    this.innerHTML = innerHTML ?? text
     this.onclick = onclick
     this.style.cssText = style
     this.classList.add('menu-item')
@@ -62,8 +63,9 @@ export class Folder extends window.HTMLDivElement {
    * @param {string} [options.innerHTML] - The HTML content of the folder
    * @param {Item[]} options.items - The submenu items
    */
-  constructor ({ text, innerHTML, items, style }) {
+  constructor ({ id, text, innerHTML, items, style }) {
     super()
+    if (id) this.id = id
     this.innerHTML = innerHTML ?? text
     this.classList.add('folder', 'menu-item')
     this.items = items
