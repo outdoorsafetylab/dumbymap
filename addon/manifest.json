@@ -9,6 +9,10 @@
     "48": "icons/default.ico"
   },
 
+  "browser_action": {
+    "default_title": "Map-Inline"
+  },
+
   "content_scripts": [
     {
       "matches": [
@@ -39,7 +43,6 @@
     "tabs",
     "scripting",
     "contextMenus",
-    "https://epsg.io/*",
-    "https://cdn.jsdelivr.net/*"
+    "<all_urls>"
   ]
 }
