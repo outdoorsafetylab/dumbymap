@@ -142,7 +142,7 @@ export const generateMaps = (container, {
   contentSelector,
   render = defaultRender,
 } = {}) => {
-  /** Prepare Contaner */
+  /** Prepare: Contaner */
   if (container.classList.contains('Dumby')) return
   container.classList.add('Dumby')
   delete container.dataset.layout
@@ -150,24 +150,24 @@ export const generateMaps = (container, {
   container.dataset.layout = initialLayout ?? defaultLayouts.at(0).name
   register(proj4)
 
-  /** Prepare Semantic HTML part and blocks of contents inside */
+  /** Prepare: Semantic HTML part and blocks of contents inside */
   const htmlHolder = container.querySelector(contentSelector) ??
     container.querySelector('.SemanticHtml, main, :scope > article') ??
     Array.from(container.children).find(e => e.id?.match(/main|content/) || e.className?.match?.(/main|content/)) ??
     Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
   htmlHolder.classList.add('SemanticHtml')
 
-  /** Prepare Showcase */
+  /** Prepare: Showcase */
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
 
-  /** Prepare Other Variables */
+  /** Prepare: Other Variables */
   const modalContent = document.createElement('div')
   container.appendChild(modalContent)
   const modal = new PlainModal(modalContent)
 
-  /** Define dumbymap Object */
+  /** VAR: dumbymap Object */
   const dumbymap = {
     layouts: [...defaultLayouts, ...layouts.map(l => typeof l === 'object' ? l : { name: l })],
     container,
