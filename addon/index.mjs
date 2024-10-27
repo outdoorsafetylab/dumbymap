@@ -1,3 +1,5 @@
+/* global browser */
+/* eslint-disable-next-line no-console */
 console.log('content script loaded')
 
 const url = new URL(window.location)
@@ -34,6 +36,7 @@ const simpleRender = window.mapclay.renderWith(config => ({
 }))
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  /* eslint-disable-next-line no-console */
   console.log('receive message', message)
   sendResponse('received')
   if (message === 'map-inline-add') {

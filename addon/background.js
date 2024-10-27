@@ -1,3 +1,5 @@
+/* global browser */
+
 browser.contextMenus.create(
   {
     id: 'map-inline-add',
@@ -12,7 +14,7 @@ browser.contextMenus.create(
     title: 'Open in DumbyMap',
     contexts: ['page', 'selection'],
   },
-  () => void browser.runtime.lastError,
+  () => browser.runtime.lastError,
 )
 
 browser.contextMenus.onClicked.addListener((info, tab) => {
