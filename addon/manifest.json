@@ -43,7 +43,6 @@
     "tabs",
     "scripting",
     "contextMenus",
-    "https://epsg.io/*",
-    "https://cdn.jsdelivr.net/*"
+    "<all_urls>"
   ]
 }
