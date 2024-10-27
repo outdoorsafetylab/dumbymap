@@ -531,9 +531,8 @@ export const generateMaps = (container, {
     container.querySelectorAll('.dumby-menu').forEach(m => m.remove())
     const map = e.target.closest('.mapclay')
     const block = e.target.closest('.dumby-block')
-    const geoLink = e.target.closest('.geolink')
     const linkWithLine = e.target.closest('.with-leader-line')
-    if (!block && !map && !geoLink) return
+    if (!block && !map && !linkWithLine) return
     e.preventDefault()
 
     // Add menu element
@@ -552,15 +551,12 @@ export const generateMaps = (container, {
     }).observe(menu, { childList: true })
     menu.timer = setTimeout(() => menu.remove(), 100)
 
-    if (linkWithLine) {
-      menu.appendChild(menuItem.setLeaderLineType(linkWithLine))
-    }
-
-    // Menu Items for GeoLink
+    // Menu Items for Links
+    const geoLink = e.target.closest('.geolink')
     if (geoLink) {
       if (geoLink.classList.contains('from-text')) {
         menu.appendChild(new menuItem.Item({
-          text: 'Delete',
+          innerHTML: '<strong style="color: red;">DELETE</strong>',
           onclick: () => {
             getMarkersFromMaps(geoLink)
               .forEach(m => m.remove())
@@ -571,6 +567,10 @@ export const generateMaps = (container, {
         }))
       }
       menu.appendChild(menuItem.setGeoLinkType(geoLink))
+    }
+
+    if (linkWithLine) {
+      menu.appendChild(menuItem.setLeaderLineType(linkWithLine))
       return
     }
 
