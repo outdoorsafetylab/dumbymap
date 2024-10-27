@@ -9,6 +9,10 @@
     "48": "icons/default.ico"
   },
 
+  "browser_action": {
+    "default_title": "Map-Inline"
+  },
+
   "content_scripts": [
     {
       "matches": [

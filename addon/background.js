@@ -21,3 +21,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
 
   browser.tabs.sendMessage(tab.id, id)
 })
+
+browser.browserAction.onClicked.addListener((info) => {
+  browser.tabs.sendMessage(info.id, 'map-inline-add')
+})
