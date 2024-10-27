@@ -131,12 +131,11 @@ export const addGeoSchemeByText = async (node) => {
 }
 
 /**
- * setGeoSchemeByCRS.
  * @description Add more information into Anchor Element within Geo Scheme by CRS
  * @param {String} crs - EPSG/ESRI Code for CRS
  * @return {Function} - Function for link
  */
-export const setGeoSchemeByCRS = (crs) => (link) => {
+export const updateGeoSchemeByCRS = (crs) => (link) => {
   const transform = proj4(crs, 'EPSG:4326')
   const params = new URLSearchParams(link.search)
   let xy = params.get('xy')?.split(',')?.map(Number)

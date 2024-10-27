@@ -317,7 +317,7 @@ export const generateMaps = (container, {
     const crsString = container.dataset.crs
     Promise.all([fromEPSGCode(crsString), addGeoScheme]).then((values) => {
       values.at(-1)
-        .map(utils.setGeoSchemeByCRS(crsString))
+        .map(utils.updateGeoSchemeByCRS(crsString))
         .filter(link => link)
         .forEach(GeoLink)
     })
