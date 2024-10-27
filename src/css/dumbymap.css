@@ -281,10 +281,11 @@ pre:has(.mapclay) {
 
   background: white;
 
+  color: black;
+
   transform: translate(-50%, -50%);
   overflow-y: scroll;
   white-space: pre;
-  color: black;
 
   h3 {
     margin-top: 1em;
