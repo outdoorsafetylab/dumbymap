@@ -1,13 +1,13 @@
 aliases:
   use:
     Leaflet:
-      value: ./dist/renderers/leaflet.mjs
+      value: https://outdoorsafetylab.github.io/dumbymap/dist/renderers/leaflet.mjs
       description: Leaflet is the leading open-source JavaScript library for mobile-friendly interactive maps. It has all the mapping features most developers ever need.
     Maplibre:
-      value: ./dist/renderers/maplibre.mjs
+      value: https://outdoorsafetylab.github.io/dumbymap/dist/renderers/maplibre.mjs
       description: MapLibre GL JS is a TypeScript library that uses WebGL to render interactive maps from vector tiles in a browser. The customization of the map comply with the MapLibre Style Spec.
     Openlayers:
-      value: ./dist/renderers/openlayers.mjs
+      value: https://outdoorsafetylab.github.io/dumbymap/dist/renderers/openlayers.mjs
       description: OpenLayers makes it easy to put a dynamic map in any web page. It can display map tiles, vector data and markers loaded from any source. OpenLayers has been developed to further the use of geographic information of all kinds.
   width:
     One-Third: 33%
