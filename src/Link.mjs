@@ -3,8 +3,7 @@ import { insideWindow, insideParent } from './utils'
 import * as markers from './marker.mjs'
 
 /**
- * GeoLink: anchor element with geo scheme and properties about maps
- * @typedef {Object} GeoLink
+ * @typedef {Object} GeoLink - anchor element with geo scheme and properties about maps
  * @extends HTMLAnchorElement
  * @property {string[]} targets - ids of target map elements
  * @property {LeaderLine[]} lines

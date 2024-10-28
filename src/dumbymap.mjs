@@ -128,19 +128,22 @@ const defaultRender = mapclay.renderWith(config => ({
  * Generates maps based on the provided configuration
  *
  * @param {HTMLElement} container - The container element for the maps
- * @param {Object} options - Configuration options
+ * @param {Object} options
+ * @param {String} options.contentSelector - CSS selector for Semantic HTML
  * @param {string} options.crs - CRS in EPSG/ESRI code, see epsg.io
- * @param {number} [options.delay=1000] - Delay before rendering maps (in milliseconds)
- * @param {Function} options.mapCallback - Callback function to be called after map rendering
+ * @param {string} options.initialLayout
+ * @param {number} [options.delay=1000] mapDelay - Delay before rendering maps (in milliseconds)
+ * @param {Function} options.render - Render function for maps
+ * @param {Function} options.renderCallback - Callback function to be called after map rendering
  */
 export const generateMaps = (container, {
+  contentSelector,
   crs = 'EPSG:4326',
   initialLayout,
   layouts = [],
   mapDelay = 1000,
-  renderCallback,
-  contentSelector,
   render = defaultRender,
+  renderCallback = () => null,
 } = {}) => {
   /** Prepare: Contaner */
   if (container.classList.contains('Dumby')) return
@@ -534,7 +537,7 @@ export const generateMaps = (container, {
     if (!block && !map && !linkWithLine) return
     e.preventDefault()
 
-    // Add menu element
+    /** Add HTMLElement for menu */
     const menu = document.createElement('div')
     menu.classList.add('menu', 'dumby-menu')
     menu.onclick = (e) => {
@@ -584,7 +587,7 @@ export const generateMaps = (container, {
       return
     }
 
-    // Menu Items for map
+    /** Menu Items for map */
     if (map) {
       const rect = map.getBoundingClientRect()
       const [x, y] = [e.x - rect.left, e.y - rect.top]
@@ -612,13 +615,13 @@ export const generateMaps = (container, {
         }))
       }
     } else {
-      // Toggle block focus
+      /** Toggle block focus */
       if (block) {
         menu.appendChild(menuItem.toggleBlockFocus(block))
       }
     }
 
-    // Menu Items for map/block/layout
+    /** Menu Items for picking map/block/layout */
     if (!map || map.closest('.Showcase')) {
       if (dumbymap.utils.renderedMaps().length > 0) {
         menu.appendChild(menuItem.pickMapItem(dumbymap))
