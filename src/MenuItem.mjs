@@ -523,3 +523,36 @@ export const addMarker = ({
     callback?.(marker)
   },
 })
+
+/**
+ * editByRawText.
+ *
+ * @param {HTMLElement} ele
+ */
+export const editMapByRawText = (ele) => new Item({
+  text: 'Edit by Raw Text',
+  onclick: () => {
+    const maps = Array.from(ele.querySelectorAll('.mapclay'))
+    if (!maps) return false
+
+    const rect = ele.getBoundingClientRect()
+    const textArea = document.createElement('textarea')
+    textArea.className = 'edit-map'
+    textArea.style.cssText = `width: ${rect.width}px; height: ${rect.height}px;`
+    textArea.value = maps.map(map => map.dataset.mapclay ?? '')
+      .join('---')
+      .replaceAll(',', '\n')
+      .replaceAll(/["{}]/g, '')
+      .replaceAll(/:(\w)/g, ': $1')
+
+    textArea.addEventListener('focusout', () => {
+      const code = document.createElement('code')
+      code.className = 'map'
+      code.textContent = textArea.value
+      textArea.replaceWith(code)
+    })
+    ele.replaceChildren(textArea)
+
+    return true
+  },
+})

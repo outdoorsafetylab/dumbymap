@@ -551,7 +551,17 @@ export const generateMaps = (container, {
     }).observe(menu, { childList: true })
     menu.timer = setTimeout(() => menu.remove(), 100)
 
-    // Menu Items for Links
+    /** Menu Item for editing map */
+    const mapEditor = e.target.closest('.edit-map')
+    if (mapEditor) {
+      menu.appendChild(new menuItem.Item({
+        text: 'Finish Editig',
+        onclick: () => mapEditor.blur(),
+      }))
+      return
+    }
+
+    /** Menu Items for Links */
     const geoLink = e.target.closest('.geolink')
     if (geoLink) {
       if (geoLink.classList.contains('from-text')) {
@@ -575,22 +585,31 @@ export const generateMaps = (container, {
     }
 
     // Menu Items for map
-    if (map?.dataset?.render === 'fulfilled') {
+    if (map) {
       const rect = map.getBoundingClientRect()
       const [x, y] = [e.x - rect.left, e.y - rect.top]
-      menu.appendChild(menuItem.toggleMapFocus(map))
-      menu.appendChild(menuItem.renderResults(dumbymap, map))
       menu.appendChild(new menuItem.Folder({
-        text: 'Actions',
+        text: 'Edit Map',
         items: [
-          menuItem.getCoordinatesByPixels(map, [x, y]),
-          menuItem.restoreCamera(map),
-          menuItem.addMarker({
-            point: [e.pageX, e.pageY],
-            map,
-          }),
+          menuItem.editMapByRawText(map.parentElement),
         ],
       }))
+      menu.appendChild(menuItem.renderResults(dumbymap, map))
+
+      if (map.dataset.render === 'fulfilled') {
+        menu.appendChild(menuItem.toggleMapFocus(map))
+        menu.appendChild(new menuItem.Folder({
+          text: 'Actions',
+          items: [
+            menuItem.getCoordinatesByPixels(map, [x, y]),
+            menuItem.restoreCamera(map),
+            menuItem.addMarker({
+              point: [e.pageX, e.pageY],
+              map,
+            }),
+          ],
+        }))
+      }
     } else {
       // Toggle block focus
       if (block) {

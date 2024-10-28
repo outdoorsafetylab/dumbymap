@@ -901,6 +901,7 @@ cm.on('keydown', (_, e) => {
 })
 
 document.onkeydown = e => {
+  if (document.activeElement.matches('textarea')) return null
   if (e.altKey && e.ctrlKey && e.key === 'm') {
     toggleEditing()
     e.preventDefault()

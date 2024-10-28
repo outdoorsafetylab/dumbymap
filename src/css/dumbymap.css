@@ -740,3 +740,10 @@ pre:has(.mapclay) {
 .draggable-block:has(pre:only-child [data-placeholder]:only-child) {
   display: none;
 }
+
+textarea .edit-map {
+  text-wrap: nowrap;
+
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
