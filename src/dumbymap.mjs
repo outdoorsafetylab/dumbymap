@@ -227,7 +227,7 @@ export const generateMaps = (container, {
   new window.MutationObserver((mutations) => {
     for (const mutation of mutations) {
       const target = mutation.target
-      if (target.matches?.('.mapclay') || target.closest?.('.mapclay')) return
+      if (target.matches?.('.mapclay') || target.closest?.('.mapclay')) continue
 
       // In case observer triggered by data attribute
       if (mutation.type === 'attribute') {
@@ -235,8 +235,7 @@ export const generateMaps = (container, {
       }
 
       // Update dumby block
-      const dumbyBlockChanges = [...mutation.addedNodes, ...mutation.removedNodes]
-        .find(node => node.classList?.contains('dumby-block'))
+      const dumbyBlockChanges = target.querySelectorAll('.dumby-block')
       if (dumbyBlockChanges) {
         const blocks = container.querySelectorAll('.dumby-block')
         blocks.forEach(b => {
