@@ -588,6 +588,7 @@ export const generateMaps = (container, {
     if (map) {
       const rect = map.getBoundingClientRect()
       const [x, y] = [e.x - rect.left, e.y - rect.top]
+      menu.appendChild(menuItem.simplePlaceholder(`MAP ID: ${map.id}`))
       menu.appendChild(new menuItem.Folder({
         text: 'Edit Map',
         items: [

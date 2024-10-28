@@ -92,6 +92,11 @@ if (!window.customElements.get('menu-folder')) {
   window.customElements.define('menu-folder', Folder, { extends: 'div' })
 }
 
+export const simplePlaceholder = (text) => new Item({
+  text,
+  style: 'width: fit-content; margin: 0 auto; color: gray; pointer-events: none; font-size: 0.8rem; line-height: 1; font-weight: bolder;',
+})
+
 /**
  * Creates a menu item for picking a map
  *
