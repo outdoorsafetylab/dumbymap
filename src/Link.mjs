@@ -133,11 +133,7 @@ export const getMarkersFromMaps = (link) => {
           size: svg.size,
         })
       marker.dataset.xy = lonLat
-      marker.title = new URLSearchParams(link.search).get('xy') ?? lonLat
-      const crs = link.dataset.crs
-      if (crs && crs !== 'EPSG:4326') {
-        marker.title += '@' + link.dataset.crs
-      }
+      marker.title = link.textContent
 
       return marker
     })

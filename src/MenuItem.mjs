@@ -519,7 +519,7 @@ export const addMarker = ({
     } while (markerName && !isNameValid(markerName))
     if (markerName === null) return
 
-    const marker = addMarkerByPoint({ point, map })
+    const marker = addMarkerByPoint({ point, map, title: markerName })
     callback?.(marker)
   },
 })

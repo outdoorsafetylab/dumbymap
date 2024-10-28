@@ -92,7 +92,7 @@ export function removeBlockFocus () {
  * @param {Number[]} options.point - page XY
  * @param {HTMLElement} options.map
  */
-export const addMarkerByPoint = ({ point, map }) => {
+export const addMarkerByPoint = ({ point, map, title }) => {
   const rect = map.getBoundingClientRect()
   const [lon, lat] = map.renderer
     .unproject([point[0] - rect.left, point[1] - rect.top])
@@ -102,6 +102,7 @@ export const addMarkerByPoint = ({ point, map }) => {
     xy: [lon, lat],
   })
   marker.dataset.xy = `${lon},${lat}`
+  if (title) marker.title = title
 
   return marker
 }
