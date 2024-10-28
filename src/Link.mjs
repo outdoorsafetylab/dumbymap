@@ -128,9 +128,6 @@ export const getMarkersFromMaps = (link) => {
         renderer.addMarker({
           xy: lonLat,
           element,
-          // FIXME In conten script, leaflet cannot render marker with HTMLElement
-          // so pass html string here
-          html: svg.html,
           type,
           anchor: svg.anchor,
           size: svg.size,
