@@ -135,6 +135,7 @@ const defaultRender = mapclay.renderWith(config => ({
  * @param {number} [options.delay=1000] mapDelay - Delay before rendering maps (in milliseconds)
  * @param {Function} options.render - Render function for maps
  * @param {Function} options.renderCallback - Callback function to be called after map rendering
+ * @param {String | null} options.defaultApply
  */
 export const generateMaps = (container, {
   contentSelector,
@@ -144,6 +145,7 @@ export const generateMaps = (container, {
   mapDelay = 1000,
   render = defaultRender,
   renderCallback = () => null,
+  defaultApply = 'https://outdoorsafetylab.github.io/dumbymap/assets/default.yml',
 } = {}) => {
   /** Prepare: Contaner */
   if (container.classList.contains('Dumby')) return
@@ -179,6 +181,7 @@ export const generateMaps = (container, {
     get blocks () { return Array.from(container.querySelectorAll('.dumby-block')) },
     modal,
     modalContent,
+    aliases: {},
     utils: {
       ...utils,
       renderedMaps: () =>
@@ -478,6 +481,7 @@ export const generateMaps = (container, {
    */
   function renderMap (target) {
     if (!target.isConnected) return
+    target.classList.add('map-container')
 
     // Get text in code block starts with markdown text '```map'
     const configText = target
@@ -510,7 +514,7 @@ export const generateMaps = (container, {
         .forEach(e => e.remove())
     }
 
-    if (!target.renderMap) {
+    if (!target.renderMap || target.dataset.render === 'no-delay') {
       target.renderMap = debounce(
         (configList) => {
           // Render maps
@@ -522,7 +526,7 @@ export const generateMaps = (container, {
               afterMapRendered(e.renderer)
             }
           })
-        }, mapDelay,
+        }, target.dataset.render === 'no-delay' ? 0 : mapDelay,
       )
     }
     target.renderMap(configList)
@@ -592,12 +596,7 @@ export const generateMaps = (container, {
       const rect = map.getBoundingClientRect()
       const [x, y] = [e.x - rect.left, e.y - rect.top]
       menu.appendChild(menuItem.simplePlaceholder(`MAP ID: ${map.id}`))
-      menu.appendChild(new menuItem.Folder({
-        text: 'Edit Map',
-        items: [
-          menuItem.editMapByRawText(map.parentElement),
-        ],
-      }))
+      menu.appendChild(menuItem.editMap(map, dumbymap))
       menu.appendChild(menuItem.renderResults(dumbymap, map))
 
       if (map.dataset.render === 'fulfilled') {
@@ -692,6 +691,20 @@ export const generateMaps = (container, {
       container.onmouseup = null
       container.onmousemove = null
     }
+  }
+
+  /** Get default applied config */
+  if (defaultApply) {
+    fetch(defaultApply)
+      .then(res => res.text())
+      .then(rawText => {
+        const config = mapclay.parseConfigsFromYaml(rawText)?.at(0)
+        Object.entries(config.aliases)
+          .forEach(([option, aliases]) => {
+            dumbymap.aliases[option] = aliases
+          })
+      })
+      .catch(err => console.warn(`Fail to get aliases from ${defaultApply}`, err))
   }
 
   /** Return Object for utils */

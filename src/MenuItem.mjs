@@ -3,6 +3,7 @@ import { addMarkerByPoint } from './dumbyUtils.mjs'
 /* eslint-disable-next-line no-unused-vars */
 import { GeoLink, getMarkersFromMaps, removeLeaderLines } from './Link.mjs'
 import * as markers from './marker.mjs'
+import { parseConfigsFromYaml } from 'mapclay'
 
 /**
  * @typedef {Object} RefLink
@@ -77,7 +78,10 @@ export class Folder extends window.HTMLDivElement {
       const offset = this.items.length > 1 ? '-20px' : '0px'
       submenu.style.cssText = `${style ?? ''}position: absolute; left: 105%; top: ${offset};`
       this.items.forEach(item => submenu.appendChild(item))
-      submenu.onmouseleave = () => submenu.remove()
+      submenu.onmouseleave = () => {
+        if (submenu.querySelectorAll('.sub-menu').length > 0) return
+        submenu.remove()
+      }
 
       // hover effect
       this.parentElement
@@ -98,7 +102,7 @@ export const simplePlaceholder = (text) => new Item({
 })
 
 /**
- * Creates a menu item for picking a map
+ * Pick up a map
  *
  * @param {Object} options - The options object
  * @param {Object} options.utils - Utility functions
@@ -532,20 +536,21 @@ export const addMarker = ({
 /**
  * editByRawText.
  *
- * @param {HTMLElement} ele
+ * @param {HTMLElement} map
  */
-export const editMapByRawText = (ele) => new Item({
+export const editMapByRawText = (map) => new Item({
   text: 'Edit by Raw Text',
   onclick: () => {
-    const maps = Array.from(ele.querySelectorAll('.mapclay'))
+    const container = map.closest('.map-container')
+    const maps = Array.from(container.querySelectorAll('.mapclay'))
     if (!maps) return false
 
-    const rect = ele.getBoundingClientRect()
+    const rect = map.getBoundingClientRect()
     const textArea = document.createElement('textarea')
     textArea.className = 'edit-map'
     textArea.style.cssText = `width: ${rect.width}px; height: ${rect.height}px;`
     textArea.value = maps.map(map => map.dataset.mapclay ?? '')
-      .join('---')
+      .join('\n---\n')
       .replaceAll(',', '\n')
       .replaceAll(/["{}]/g, '')
       .replaceAll(/:(\w)/g, ': $1')
@@ -554,10 +559,49 @@ export const editMapByRawText = (ele) => new Item({
       const code = document.createElement('code')
       code.className = 'map'
       code.textContent = textArea.value
+      container.dataset.render = 'no-delay'
       textArea.replaceWith(code)
     })
-    ele.replaceChildren(textArea)
+    container.replaceChildren(textArea)
 
     return true
   },
 })
+
+export const editMap = (map, dumbymap) => {
+  const options = Object.entries(dumbymap.aliases)
+    .map(([option, aliases]) =>
+      new Folder({
+        text: option,
+        items: Object.entries(aliases)
+          .map(([alias, value]) => {
+            const aliasValue = value.value ?? value
+            return new Item({
+              innerHTML: `<div>${alias}</div><div style="padding-left: 20px; color: gray; font-size: 1rem";">${aliasValue}</div>`,
+              style: 'display: flex; justify-content: space-between; max-width: 20rem;',
+              onclick: () => {
+                const container = map.closest('.map-container')
+                const configText = Array.from(container.querySelectorAll('.mapclay'))
+                  .map(map => map.dataset.mapclay ?? '')
+                  .join('\n---\n')
+                const configList = parseConfigsFromYaml(configText)
+                configList.find(config => config.id === map.id)[option] = aliasValue
+                const code = document.createElement('code')
+                code.className = 'map'
+                code.textContent = configList.map(JSON.stringify).join('\n---\n')
+                container.dataset.render = 'no-delay'
+                container.replaceChildren(code)
+              },
+            })
+          }),
+      }),
+    )
+  return new Folder({
+    text: 'Edit Map',
+    style: 'overflow: visible;',
+    items: [
+      editMapByRawText(map),
+      ...options,
+    ],
+  })
+}
