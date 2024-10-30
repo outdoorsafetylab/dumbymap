@@ -13,13 +13,7 @@ import { parseConfigsFromYaml } from 'mapclay'
  */
 
 /**
- * Basic Element for menu item
- *
- * @extends {window.HTMLDivElement}
- */
-export class Item extends window.HTMLDivElement {
-  /**
-   * Creates a new Item instance
+   * Creates a Item instance
    *
    * @param {Object} options - The options for the item
    * @param {string} [options.text] - The text content of the item
@@ -29,74 +23,70 @@ export class Item extends window.HTMLDivElement {
    * @param {string} [options.style] - The CSS style string
    * @param {string[]} [options.className] - Additional CSS classes
    */
-  constructor ({ id, text, innerHTML, title, onclick, style, className }) {
-    super()
-    if (id) this.id = id
-    if (title) this.title = title
-    this.innerHTML = innerHTML ?? text
-    this.onclick = onclick
-    this.style.cssText = style
-    this.classList.add('menu-item')
-    className?.forEach(c => this.classList.add(c))
+export const Item = ({
+  id,
+  text,
+  innerHTML,
+  title,
+  onclick,
+  style,
+  className,
+}) => {
+  const menuItem = document.createElement('div')
+  if (id) menuItem.id = id
+  if (title) menuItem.title = title
+  menuItem.innerHTML = innerHTML ?? text
+  menuItem.onclick = onclick
+  menuItem.style.cssText = style
+  menuItem.classList.add('menu-item')
+  className?.forEach(c => menuItem.classList.add(c))
 
-    this.onmouseover = () => {
-      this.parentElement
-        .querySelectorAll('.sub-menu')
-        .forEach(sub => sub.remove())
-    }
+  menuItem.onmouseover = () => {
+    menuItem.parentElement
+      .querySelectorAll('.sub-menu')
+      .forEach(sub => sub.remove())
   }
-}
-if (!window.customElements.get('dumby-menu-item')) {
-  window.customElements.define('dumby-menu-item', Item, { extends: 'div' })
+  return menuItem
 }
 
 /**
- * Basic Element for menu item that generates a submenu on hover
+ * Creates a new menu item that generates a submenu on hover
  *
- * @extends {window.HTMLDivElement}
+ * @param {Object} options - The options for the folder
+ * @param {string} [options.text] - The text content of the folder
+ * @param {string} [options.innerHTML] - The HTML content of the folder
+ * @param {Item[]} options.items - The submenu items
  */
-export class Folder extends window.HTMLDivElement {
-  /**
-   * Creates a new Folder instance
-   *
-   * @param {Object} options - The options for the folder
-   * @param {string} [options.text] - The text content of the folder
-   * @param {string} [options.innerHTML] - The HTML content of the folder
-   * @param {Item[]} options.items - The submenu items
-   */
-  constructor ({ id, text, innerHTML, items, style }) {
-    super()
-    if (id) this.id = id
-    this.innerHTML = innerHTML ?? text
-    this.classList.add('folder', 'menu-item')
-    this.items = items
-    this.onmouseover = () => {
-      if (this.querySelector('.sub-menu')) return
-      // Prepare submenu
-      const submenu = document.createElement('div')
-      submenu.className = 'sub-menu'
-      const offset = this.items.length > 1 ? '-20px' : '0px'
-      submenu.style.cssText = `${style ?? ''}position: absolute; left: 105%; top: ${offset};`
-      this.items.forEach(item => submenu.appendChild(item))
-      submenu.onmouseleave = () => {
-        if (submenu.querySelectorAll('.sub-menu').length > 0) return
-        submenu.remove()
-      }
-
-      // hover effect
-      this.parentElement
-        .querySelectorAll('.sub-menu')
-        .forEach(sub => sub.remove())
-      this.appendChild(submenu)
-      shiftByWindow(submenu)
+export const Folder = ({ id, text, innerHTML, items, style }) => {
+  const folder = document.createElement('div')
+  if (id) folder.id = id
+  folder.innerHTML = innerHTML ?? text
+  folder.classList.add('folder', 'menu-item')
+  folder.items = items
+  folder.onmouseover = () => {
+    if (folder.querySelector('.sub-menu')) return
+    // Prepare submenu
+    const submenu = document.createElement('div')
+    submenu.className = 'sub-menu'
+    const offset = folder.items.length > 1 ? '-20px' : '0px'
+    submenu.style.cssText = `${style ?? ''}position: absolute; left: 105%; top: ${offset};`
+    folder.items.forEach(item => submenu.appendChild(item))
+    submenu.onmouseleave = () => {
+      if (submenu.querySelectorAll('.sub-menu').length > 0) return
+      submenu.remove()
     }
+
+    // hover effect
+    folder.parentElement
+      .querySelectorAll('.sub-menu')
+      .forEach(sub => sub.remove())
+    folder.appendChild(submenu)
+    shiftByWindow(submenu)
   }
-}
-if (!window.customElements.get('menu-folder')) {
-  window.customElements.define('menu-folder', Folder, { extends: 'div' })
+  return folder
 }
 
-export const simplePlaceholder = (text) => new Item({
+export const simplePlaceholder = (text) => Item({
   text,
   style: 'width: fit-content; margin: 0 auto; color: gray; pointer-events: none; font-size: 0.8rem; line-height: 1; font-weight: bolder;',
 })
@@ -109,11 +99,11 @@ export const simplePlaceholder = (text) => new Item({
  * @returns {Folder} A Folder instance for picking a map
  */
 export const pickMapItem = ({ utils }) =>
-  new Folder({
+  Folder({
     innerHTML: '<span>Maps<span><span class="info">(Tab)</span>',
     items: utils.renderedMaps().map(
       map =>
-        new Item({
+        Item({
           text: map.id,
           onclick: () => {
             map.classList.add('focus')
@@ -130,7 +120,7 @@ export const pickMapItem = ({ utils }) =>
  * @param {Function[]} options.utils
  */
 export const pickBlockItem = ({ blocks, utils }) =>
-  new Folder({
+  Folder({
     innerHTML: '<span>Blocks<span><span class="info">(n/p)</span>',
     items: blocks.map(
       (block, index) => {
@@ -139,7 +129,7 @@ export const pickBlockItem = ({ blocks, utils }) =>
           ?.textContent.substring(0, 15)
           ?.concat(' ', '...  ') ?? ''
 
-        return new Item({
+        return Item({
           className: ['keep-menu', focus ? 'checked' : 'unchecked'],
           innerHTML:
             `<strong>(${index})</strong><span style='display: inline-block; margin-inline: 1.2em;'>${preview}</span>`,
@@ -168,17 +158,17 @@ export const pickBlockItem = ({ blocks, utils }) =>
  * @param {String[]} options.layouts
  */
 export const pickLayoutItem = ({ container, layouts }) =>
-  new Folder({
+  Folder({
     innerHTML: '<span>Layouts<span><span class="info">(x)</span>',
     items: [
       ...layouts.map(
         layout =>
-          new Item({
+          Item({
             text: layout.name,
             onclick: () => container.setAttribute('data-layout', layout.name),
           }),
       ),
-      new Item({
+      Item({
         innerHTML: '<a href="https://github.com/outdoorsafetylab/dumbymap#layouts" class="external" style="display: block; padding: 0.5rem;">More...</a>',
         style: 'padding: 0;',
       }),
@@ -192,7 +182,7 @@ export const pickLayoutItem = ({ container, layouts }) =>
  * @param {Range} range
  */
 export const addGeoLink = ({ utils }, range) =>
-  new Item({
+  Item({
     text: 'Add GeoLink',
     onclick: () => {
       const content = range.toString()
@@ -215,44 +205,35 @@ export const addGeoLink = ({ utils }, range) =>
   })
 
 /**
- * Suggestion. Menu Item for editor suggestion
- *
- * @extends {Item}
- */
-export class Suggestion extends Item {
-  /**
-   * constructor.
+   * Suggestion. Menu Item for editor suggestion.
    *
    * @param {String} options.text
    * @param {String} options.replace - new text content
    * @param {CodeMirror} options.cm
    */
-  constructor ({ text, replace, cm }) {
-    super({ text })
-    this.replace = replace
-    this.classList.add('suggestion')
+export const Suggestion = ({ text, replace, cm }) => {
+  const suggestion = Item({ text })
+  suggestion.replace = replace
+  suggestion.classList.add('suggestion')
 
-    this.onmouseover = () => {
-      Array.from(this.parentElement?.children)?.forEach(s =>
-        s.classList.remove('focus'),
-      )
-      this.classList.add('focus')
-    }
-    this.onmouseout = () => {
-      this.classList.remove('focus')
-    }
-    this.onclick = () => {
-      const anchor = cm.getCursor()
-      cm.setSelection(anchor, { ...anchor, ch: 0 })
-      cm.replaceSelection(this.replace)
-      cm.focus()
-      const newAnchor = { ...anchor, ch: this.replace.length }
-      cm.setCursor(newAnchor)
-    }
+  suggestion.onmouseover = () => {
+    Array.from(suggestion.parentElement?.children)?.forEach(s =>
+      s.classList.remove('focus'),
+    )
+    suggestion.classList.add('focus')
   }
-}
-if (!window.customElements.get('menu-item-suggestion')) {
-  window.customElements.define('menu-item-suggestion', Suggestion, { extends: 'div' })
+  suggestion.onmouseout = () => {
+    suggestion.classList.remove('focus')
+  }
+  suggestion.onclick = () => {
+    const anchor = cm.getCursor()
+    cm.setSelection(anchor, { ...anchor, ch: 0 })
+    cm.replaceSelection(suggestion.replace)
+    cm.focus()
+    const newAnchor = { ...anchor, ch: suggestion.replace.length }
+    cm.setCursor(newAnchor)
+  }
+  return suggestion
 }
 
 /**
@@ -263,7 +244,7 @@ if (!window.customElements.get('menu-item-suggestion')) {
  * @param {HTMLElement} map - Rendered map element
  */
 export const renderResults = ({ modal, modalContent }, map) =>
-  new Item({
+  Item({
     text: 'Render Results',
     onclick: () => {
       modal.open()
@@ -365,7 +346,7 @@ function printObject (obj, parentElement, name = null) {
  * @param {HTMLElement} block
  */
 export const toggleBlockFocus = block =>
-  new Item({
+  Item({
     text: 'Toggle Focus',
     onclick: () => block.classList.toggle('focus'),
   })
@@ -376,7 +357,7 @@ export const toggleBlockFocus = block =>
  * @param {HTMLElement} map
  */
 export const toggleMapFocus = map =>
-  new Item({
+  Item({
     text: 'Toggle Focus',
     onclick: () => {
       if (map.classList.toggle('focus')) {
@@ -392,7 +373,7 @@ export const toggleMapFocus = map =>
  * @param {Number[]} xy - pixel of window
  */
 export const getCoordinatesByPixels = (map, xy) =>
-  new Item({
+  Item({
     text: 'Get Coordinates',
     onclick: () => {
       const [x, y] = map.renderer.unproject(xy)
@@ -408,7 +389,7 @@ export const getCoordinatesByPixels = (map, xy) =>
  * @param {HTMLElement} map
  */
 export const restoreCamera = map =>
-  new Item({
+  Item({
     text: 'Restore Camera',
     onclick: () => map.renderer.restoreCamera(),
   })
@@ -420,14 +401,14 @@ export const restoreCamera = map =>
  * @param {RefLink[]} refLinks
  */
 export const addRefLink = (cm, refLinks) =>
-  new Folder({
+  Folder({
     text: 'Add Link',
     items: refLinks.map(refLink => {
       let text = refLink.ref
       if (refLink.link.startsWith('geo:')) text = `@ ${text}`
       if (refLink.title?.match(/^=>/)) text = `=> ${text}`
 
-      return new Item({
+      return Item({
         text,
         title: refLink.link,
         onclick: () => {
@@ -451,7 +432,7 @@ export const addRefLink = (cm, refLinks) =>
  */
 export const setGeoLinkTypeItem = ({ link, type, ...others }) => {
   const params = new URLSearchParams(link.search)
-  return new Item({
+  return Item({
     ...others,
     className: ['keep-menu'],
     onclick: () => {
@@ -470,7 +451,7 @@ export const setGeoLinkTypeItem = ({ link, type, ...others }) => {
  *
  * @param {HTMLAnchorElement} link
  */
-export const setGeoLinkType = (link) => new Folder({
+export const setGeoLinkType = (link) => Folder({
   text: 'Marker Type',
   style: 'min-width: unset; display: grid; grid-template-columns: repeat(5, 1fr);',
   items: Object.entries(markers)
@@ -491,10 +472,10 @@ export const setGeoLinkType = (link) => new Folder({
  *
  * @param {GeoLink | DocLink} link
  */
-export const setLeaderLineType = (link) => new Folder({
+export const setLeaderLineType = (link) => Folder({
   text: 'Line Type',
   items: ['magnet', 'straight', 'grid', 'fluid']
-    .map(path => new Item({
+    .map(path => Item({
       text: path,
       className: ['keep-menu'],
       onclick: () => {
@@ -519,7 +500,7 @@ export const addMarker = ({
   point,
   isNameValid = () => true,
   callback = null,
-}) => new Item({
+}) => Item({
   text: 'Add Marker',
   onclick: () => {
     let markerName
@@ -538,7 +519,7 @@ export const addMarker = ({
  *
  * @param {HTMLElement} map
  */
-export const editMapByRawText = (map) => new Item({
+export const editMapByRawText = (map) => Item({
   text: 'Edit by Raw Text',
   onclick: () => {
     const container = map.closest('.map-container')
@@ -571,12 +552,12 @@ export const editMapByRawText = (map) => new Item({
 export const editMap = (map, dumbymap) => {
   const options = Object.entries(dumbymap.aliases)
     .map(([option, aliases]) =>
-      new Folder({
+      Folder({
         text: option,
         items: Object.entries(aliases)
           .map(([alias, value]) => {
             const aliasValue = value.value ?? value
-            return new Item({
+            return Item({
               innerHTML: `<div>${alias}</div><div style="padding-left: 20px; color: gray; font-size: 1rem";">${aliasValue}</div>`,
               style: 'display: flex; justify-content: space-between; max-width: 20rem;',
               onclick: () => {
@@ -596,7 +577,7 @@ export const editMap = (map, dumbymap) => {
           }),
       }),
     )
-  return new Folder({
+  return Folder({
     text: 'Edit Map',
     style: 'overflow: visible;',
     items: [
