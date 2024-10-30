@@ -434,7 +434,7 @@ function menuForEditor (event, menu) {
   }
 
   if (context.dataset.mode !== 'editing') {
-    const switchToEditingMode = new menuItem.Item({
+    const switchToEditingMode = menuItem.Item({
       innerHTML: '<strong>EDIT</strong>',
       onclick: () => (context.dataset.mode = 'editing'),
     })
@@ -443,7 +443,7 @@ function menuForEditor (event, menu) {
 
   // const map = event.target.closest('.mapclay')
   // if (map) {
-  //   const item = new menuItem.Item({
+  //   const item = menuItem.Item({
   //     text: 'Add Anchor',
   //     onclick: () => {
   //       let anchorName
@@ -629,7 +629,7 @@ const getSuggestionsForOptions = (optionTyped, validOptions) => {
 
   return suggestOptions.map(
     o =>
-      new menuItem.Suggestion({
+      menuItem.Suggestion({
         text: `<span>${o.valueOf()}</span><span class='info' title="${o.desc ?? ''}">ⓘ</span>`,
         replace: `${o.valueOf()}: `,
         cm,
@@ -649,7 +649,7 @@ const getSuggestionFromMapOption = option => {
     ? `<span>${option.example_desc}</span><span class="truncate"style="color: gray">${option.example}</span>`
     : `<span>${option.example}</span>`
 
-  return new menuItem.Suggestion({
+  return menuItem.Suggestion({
     text,
     replace: `${option.valueOf()}: ${option.example ?? ''}`,
     cm,
@@ -665,7 +665,7 @@ const getSuggestionsFromAliases = option =>
   Object.entries(aliasesForMapOptions[option.valueOf()] ?? {})?.map(record => {
     const [alias, value] = record
     const valueString = JSON.stringify(value).replaceAll('"', '')
-    return new menuItem.Suggestion({
+    return menuItem.Suggestion({
       text: `<span>${alias}</span><span class="truncate" style="color: gray">${valueString}</span>`,
       replace: `${option.valueOf()}: ${valueString}`,
       cm,
@@ -789,7 +789,7 @@ const getSuggestions = anchor => {
       })
       .map(
         ([renderer, info]) =>
-          new menuItem.Suggestion({
+          menuItem.Suggestion({
             text: `<span>use: ${renderer}</span><span class='info' title="${info.desc}">ⓘ</span>`,
             replace: `use: ${renderer}`,
             cm,
@@ -799,7 +799,7 @@ const getSuggestions = anchor => {
       ? []
       : [
           ...rendererSuggestions,
-          new menuItem.Item({
+          menuItem.Item({
             innerHTML: '<a href="https://github.com/outdoorsafetylab/mapclay#renderer" class="external" style="display: block;">More...</a>',
             className: ['suggestion'],
             onclick: () => window.open('https://github.com/outdoorsafetylab/mapclay#renderer', '_blank'),

@@ -561,7 +561,7 @@ export const generateMaps = (container, {
     /** Menu Item for editing map */
     const mapEditor = e.target.closest('.edit-map')
     if (mapEditor) {
-      menu.appendChild(new menuItem.Item({
+      menu.appendChild(menuItem.Item({
         text: 'Finish Editig',
         onclick: () => mapEditor.blur(),
       }))
@@ -572,7 +572,7 @@ export const generateMaps = (container, {
     const geoLink = e.target.closest('.geolink')
     if (geoLink) {
       if (geoLink.classList.contains('from-text')) {
-        menu.appendChild(new menuItem.Item({
+        menu.appendChild(menuItem.Item({
           innerHTML: '<strong style="color: red;">DELETE</strong>',
           onclick: () => {
             getMarkersFromMaps(geoLink)
@@ -601,7 +601,7 @@ export const generateMaps = (container, {
 
       if (map.dataset.render === 'fulfilled') {
         menu.appendChild(menuItem.toggleMapFocus(map))
-        menu.appendChild(new menuItem.Folder({
+        menu.appendChild(menuItem.Folder({
           text: 'Actions',
           items: [
             menuItem.getCoordinatesByPixels(map, [x, y]),
