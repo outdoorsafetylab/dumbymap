@@ -236,7 +236,7 @@ export const generateMaps = (container, {
       if (target.matches?.('.mapclay') || target.closest?.('.mapclay')) continue
 
       // In case observer triggered by data attribute
-      if (mutation.type === 'attribute') {
+      if (mutation.type === 'attributes') {
         delete target.dataset.initDumby
       }
 
