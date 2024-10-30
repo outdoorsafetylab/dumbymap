@@ -35,15 +35,20 @@ const simpleRender = mapclay.renderWith(config => ({
   },
 }))
 
+const container = document.querySelector(contentSelector ?? 'main') ?? document.body
+
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   /* eslint-disable-next-line no-console */
   console.log('receive message', message)
   sendResponse('received')
-  if (message === 'map-inline-add') {
-    generateMaps(document.querySelector(contentSelector ?? 'main') ?? document.body, {
+  if (message.id === 'map-inline-add') {
+    generateMaps(container, {
       crs: url.searchParams.get('crs') ?? 'EPSG:4326',
       render: simpleRender,
     })
+    return Promise.resolve('done')
+  } else if (message.id === 'map-inline-menu') {
+    container.dataset.menu = message.checked ? 'enabled' : 'disabled'
     return Promise.resolve('done')
   }
   return false
