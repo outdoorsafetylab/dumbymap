@@ -20,17 +20,12 @@
   "scripts": {
     "rollup": "npx rollup -c scripts/rollup.config.js",
     "watch": "npm run rollup -- -w",
-    "build": "mkdir -p dist; npm run build-css; npm run build-renderers; npm run build-resources; npm run rollup",
-    "build-css": "rm -rf dist/css; cp -r src/css dist; cp node_modules/easymde/dist/easymde.min.css dist/css/",
-    "build-renderers": "rm -rf dist/renderers; cp -r node_modules/mapclay/dist/renderers dist",
-    "build-resources": "cp node_modules/easymde/dist/easymde.min.js dist; cp node_modules/easymde/dist/easymde.min.css dist/css",
+    "build": "scripts/build.sh",
     "server": "live-server --port=8080 --ignore='**/src/**js' --wait=2000 --no-browser --cors",
-    "dev": "npm run server",
     "lint": "standard --fix",
     "style": "scripts/stylelint.sh",
     "docs": "jsdoc -c scripts/jsdoc.conf src/; xdg-open http://localhost:8080/docs/",
     "prepack": "npm run lint && npm run style && npm run build",
-    "postpack": "rm -rf dist/css dist/renderers; npm run build-resources; ln -sf `pwd`/src/css dist; cp node_modules/easymde/dist/easymde.min.css src/css; ln -sf `pwd`/node_modules/mapclay/dist/renderers dist",
     "addon": "mkdir -p addon/css; cp src/css/dumbymap.css addon/css; ADDON=true rollup -c scripts/rollup.config.js --watch",
     "dev-addon": "web-ext run -s addon"
   },
