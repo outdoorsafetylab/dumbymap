@@ -115,14 +115,34 @@ export const addMarkerByPoint = ({ point, map, title }) => {
 export const addGeoSchemeByText = async (node) => {
   const digit = '[\\d\\uFF10-\\uFF19]'
   const decimal = '[.\\uFF0E]'
-  const coordPatterns = `(-?${digit}+${decimal}?${digit}*)([,\x2F\uFF0C])(-?${digit}+${decimal}?${digit}*)`
-  const re = new RegExp(coordPatterns, 'g')
+  const coordPattern = `(-?${digit}+${decimal}?${digit}*)`
+  const DMSPattern = `([NEWS]${digit}+[dD°度]? ${digit}+[mM'分]? ${digit}+${decimal}?${digit}*[sS"秒]?)`
+  const re = new RegExp(`${coordPattern}[,\x2F\uFF0C]${coordPattern}|${DMSPattern}\\s${DMSPattern}`, 'g')
 
   return replaceTextNodes(node, re, match => {
-    const [x, y] = [full2Half(match.at(1)), full2Half(match.at(3))]
+    const patterns = match.filter(p => p)
+    const [match1, match2] = [full2Half(patterns.at(1)), full2Half(patterns.at(2))]
+    let [x, y] = [undefined, undefined]
+
+    // Get x,y by DMS or coordinates pattern
+    if (match1.match('^[NEWS]')) {
+      const dms2degreeString = (pchar, nchar) => (dms) => {
+        const matches = dms.match(new RegExp(`([${pchar}${nchar}])(\\d+) (\\d+) (.*)$`))
+        if (!matches) return null
+
+        return (matches[1] === pchar ? '' : '-') + (Number(matches[2]) + Number(matches[3]) / 60 + Number(matches[4]) / 3600)
+      }
+      x = [match1, match2].map(dms2degreeString('E', 'W')).find(x => x)
+      y = [match1, match2].map(dms2degreeString('N', 'S')).find(y => y)
+    } else {
+      [x, y] = [match1, match2]
+    }
+
     // Don't process string which can be used as date
     if (Date.parse(match.at(0) + ' 1990')) return null
+    if (!x || !y) return null
 
+    // Return anchor element with Geo Scheme
     const a = document.createElement('a')
     a.className = 'not-geolink from-text'
     a.href = `geo:0,0?xy=${x},${y}`
