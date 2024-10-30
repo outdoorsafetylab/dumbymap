@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: dumbyUtils.mjs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: dumbyUtils.mjs</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import LeaderLine from 'leader-line'
+import { replaceTextNodes, full2Half } from './utils'
+import proj4 from 'proj4'
+import { coordPattern, GeoLink } from './Link.mjs'
+
+/**
+ * focusNextMap.
+ * @param {Boolean} reverse - focus previous map
+ */
+export function focusNextMap (reverse = false) {
+  const renderedList = this.utils.renderedMaps()
+  const index = renderedList.findIndex(e => e.classList.contains('focus'))
+  const nextIndex = (index + (reverse ? -1 : 1)) % renderedList.length
+
+  const nextMap = renderedList.at(nextIndex)
+  nextMap.classList.add('focus', 'focus-manual')
+  nextMap.scrollIntoView({ behavior: 'smooth' })
+}
+
+/**
+ * focusNextBlock.
+ *
+ * @param {Boolean} reverse - focus previous block
+ */
+export function focusNextBlock (reverse = false) {
+  const blocks = this.blocks.filter(b =>
+    b.checkVisibility({
+      contentVisibilityAuto: true,
+      opacityProperty: true,
+      visibilityProperty: true,
+    }),
+  )
+  const index = blocks.findIndex(e => e.classList.contains('focus'))
+  const nextIndex = (index + (reverse ? -1 : 1)) % blocks.length
+
+  blocks.forEach(b => b.classList.remove('focus'))
+  const nextBlock = blocks.at(nextIndex)
+  nextBlock?.classList?.add('focus')
+  scrollToBlock(nextBlock)
+}
+
+/**
+ * scrollToBlock. Smoothly scroll to target block.
+ * If block is bigger than viewport, then pick strategy wisely.
+ *
+ * @param {HTMLElement} block - Scroll to this element
+ */
+export const scrollToBlock = block => {
+  const parentRect = block.parentElement.getBoundingClientRect()
+  const scrollBlock =
+    block.getBoundingClientRect().height > parentRect.height * 0.8
+      ? 'nearest'
+      : 'center'
+  block.scrollIntoView({ behavior: 'smooth', block: scrollBlock })
+}
+
+/**
+ * focusDelay. Delay of throttle, value changes by cases
+ */
+export function focusDelay () {
+  return window.window.getComputedStyle(this.showcase).display === 'none' ? 50 : 300
+}
+
+/**
+ * switchToNextLayout.
+ *
+ * @param {Boolean} reverse - Switch to previous one
+ */
+export function switchToNextLayout (reverse = false) {
+  const layouts = this.layouts
+  const currentLayoutName = this.container.dataset.layout
+  const currentIndex = layouts.map(l => l.name).indexOf(currentLayoutName)
+  const padding = reverse ? -1 : 1
+  const nextIndex =
+    currentIndex === -1
+      ? 0
+      : (currentIndex + padding + layouts.length) % layouts.length
+  const nextLayout = layouts[nextIndex]
+  this.container.dataset.layout = nextLayout.name
+}
+
+/**
+ * removeBlockFocus.
+ */
+export function removeBlockFocus () {
+  this.blocks.forEach(b => b.classList.remove('focus'))
+}
+
+/**
+ * addMarkerByPoint.
+ *
+ * @param {Number[]} options.point - page XY
+ * @param {HTMLElement} options.map
+ */
+export const addMarkerByPoint = ({ point, map, title }) => {
+  const rect = map.getBoundingClientRect()
+  const [lon, lat] = map.renderer
+    .unproject([point[0] - rect.left, point[1] - rect.top])
+    .map(value => parseFloat(value.toFixed(6)))
+
+  const marker = map.renderer.addMarker({
+    xy: [lon, lat],
+  })
+  marker.dataset.xy = `${lon},${lat}`
+  if (title) marker.title = title
+
+  return marker
+}
+
+/**
+ * addGeoSchemeByText.
+ *
+ * @param {Node} node
+ */
+export const addGeoSchemeByText = async (node) => {
+  const digit = '[\\d\\uFF10-\\uFF19]'
+  const decimal = '[.\\uFF0E]'
+  const coordPattern = `(-?${digit}+${decimal}?${digit}*)`
+  const DMSPattern = `([NEWS]${digit}+[dD°度]? ${digit}+[mM'分]? ${digit}+${decimal}?${digit}*[sS"秒]?)`
+  const re = new RegExp(`${coordPattern}[,\x2F\uFF0C]${coordPattern}|${DMSPattern}\\s${DMSPattern}`, 'g')
+
+  return replaceTextNodes(node, re, match => {
+    const patterns = match.filter(p => p)
+    const [match1, match2] = [full2Half(patterns.at(1)), full2Half(patterns.at(2))]
+    let [x, y] = [undefined, undefined]
+
+    // Get x,y by DMS or coordinates pattern
+    if (match1.match('^[NEWS]')) {
+      const dms2degreeString = (pchar, nchar) => (dms) => {
+        const matches = dms.match(new RegExp(`([${pchar}${nchar}])(\\d+) (\\d+) (.*)$`))
+        if (!matches) return null
+
+        return (matches[1] === pchar ? '' : '-') + (Number(matches[2]) + Number(matches[3]) / 60 + Number(matches[4]) / 3600)
+      }
+      x = [match1, match2].map(dms2degreeString('E', 'W')).find(x => x)
+      y = [match1, match2].map(dms2degreeString('N', 'S')).find(y => y)
+    } else {
+      [x, y] = [match1, match2]
+    }
+
+    // Don't process string which can be used as date
+    if (Date.parse(match.at(0) + ' 1990')) return null
+    if (!x || !y) return null
+
+    // Return anchor element with Geo Scheme
+    const a = document.createElement('a')
+    a.className = 'not-geolink from-text'
+    a.href = `geo:0,0?xy=${x},${y}`
+    a.textContent = match.at(0)
+    return a
+  })
+}
+
+/**
+ * @description Add more information into Anchor Element within Geo Scheme by CRS
+ * @param {String} crs - EPSG/ESRI Code for CRS
+ * @return {Function} - Function for link
+ */
+export const updateGeoSchemeByCRS = (crs) => (link) => {
+  const transform = proj4(crs, 'EPSG:4326')
+  const params = new URLSearchParams(link.search)
+  let xy = params.get('xy')?.split(',')?.map(Number)
+
+  // Set coords for Geo Scheme
+  if (link.href.startsWith('geo:0,0')) {
+    if (!xy) return null
+
+    const [lon, lat] = transform.forward(xy)
+      .map(value => parseFloat(value.toFixed(6)))
+    link.href = `geo:${lat},${lon}`
+  }
+
+  const [lat, lon] = link.href
+    .match(coordPattern)
+    .slice(1)
+    .map(Number)
+
+  if (!xy) {
+    xy = transform.inverse([lon, lat])
+    params.set('xy', xy)
+  }
+
+  // set query strings
+  params.set('crs', crs)
+  params.set('q', `${lat},${lon}`)
+  link.search = params
+
+  const unit = proj4(crs).oProj.units
+  const invalidDegree = unit === 'degrees' &amp;&amp;
+    (lon > 180 || lon &lt; -180 || lat > 90 || lat &lt; -90)
+  const invalidMeter = unit === 'm' &amp;&amp; xy.find(v => v &lt; 100)
+  if (invalidDegree || invalidMeter) {
+    link.replaceWith(document.createTextNode(link.textContent))
+    return null
+  }
+
+  return link
+}
+
+/**
+ * addGeoLinkByDrag.
+ *
+ * @param {HTMLElement} container
+ * @param {Range} range
+ */
+export const addGeoLinkByDrag = (container, range, endOfLeaderLine) => {
+  // link placeholder when dragging
+  container.classList.add('dragging-geolink')
+  const link = document.createElement('a')
+  link.textContent = range.toString()
+  link.classList.add('with-leader-line', 'geolink', 'drag', 'from-text')
+
+  // Replace current content with link
+  const originContent = range.cloneContents()
+  const resumeContent = () => {
+    range.deleteContents()
+    range.insertNode(originContent)
+  }
+  range.deleteContents()
+  range.insertNode(link)
+
+  // Add leader-line
+  const line = new LeaderLine({
+    start: link,
+    end: endOfLeaderLine,
+    path: 'magnet',
+  })
+
+  const positionObserver = new window.MutationObserver(() => {
+    line.position()
+  })
+  positionObserver.observe(endOfLeaderLine, {
+    attributes: true,
+    attributeFilter: ['style'],
+  })
+
+  // Handler for dragend
+  container.onmouseup = (e) => {
+    container.classList.remove('dragging-geolink')
+    container.onmousemove = null
+    container.onmouseup = null
+    link.classList.remove('drag')
+    positionObserver.disconnect()
+    line.remove()
+    endOfLeaderLine.remove()
+
+    const map = document.elementFromPoint(e.clientX, e.clientY)
+      .closest('.mapclay[data-render="fulfilled"]')
+    if (!map) {
+      resumeContent()
+      return
+    }
+
+    const marker = addMarkerByPoint({ point: [e.clientX, e.clientY], map })
+    if (!marker) {
+      resumeContent()
+      return
+    }
+
+    link.href = `geo:${marker.dataset.xy.split(',').reverse()}`
+    GeoLink(link)
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Layout.html">Layout</a></li><li><a href="Overlay.html">Overlay</a></li><li><a href="SideBySide.html">SideBySide</a></li><li><a href="Sticky.html">Sticky</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addClassToCodeLines">addClassToCodeLines</a></li><li><a href="global.html#addDraggable">addDraggable</a></li><li><a href="global.html#addGeoLink">addGeoLink</a></li><li><a href="global.html#addGeoLinkByDrag">addGeoLinkByDrag</a></li><li><a href="global.html#addGeoSchemeByText">addGeoSchemeByText</a></li><li><a href="global.html#addMapRandomlyByPreset">addMapRandomlyByPreset</a></li><li><a href="global.html#addMarker">addMarker</a></li><li><a href="global.html#addMarkerByPoint">addMarkerByPoint</a></li><li><a href="global.html#addRefLink">addRefLink</a></li><li><a href="global.html#addSuggestions">addSuggestions</a></li><li><a href="global.html#animateRectTransition">animateRectTransition</a></li><li><a href="global.html#cm">cm</a></li><li><a href="global.html#completeForCodeBlock">completeForCodeBlock</a></li><li><a href="global.html#contentFromHash">contentFromHash</a></li><li><a href="global.html#context">context</a></li><li><a href="global.html#coordPattern">coordPattern</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#defaultLayouts">defaultLayouts</a></li><li><a href="global.html#defaultRender">defaultRender</a></li><li><a href="global.html#editMapByRawText">editMapByRawText</a></li><li><a href="global.html#editor">editor</a></li><li><a href="global.html#focusDelay">focusDelay</a></li><li><a href="global.html#focusNextBlock">focusNextBlock</a></li><li><a href="global.html#focusNextMap">focusNextMap</a></li><li><a href="global.html#Folder">Folder</a></li><li><a href="global.html#full2Half">full2Half</a></li><li><a href="global.html#generateMaps">generateMaps</a></li><li><a href="global.html#getCommonAncestor">getCommonAncestor</a></li><li><a href="global.html#getContentFromHash">getContentFromHash</a></li><li><a href="global.html#getCoordinatesByPixels">getCoordinatesByPixels</a></li><li><a href="global.html#getLineWithRenderer">getLineWithRenderer</a></li><li><a href="global.html#getMarkersFromMaps">getMarkersFromMaps</a></li><li><a href="global.html#getRefLinks">getRefLinks</a></li><li><a href="global.html#getStateFromHash">getStateFromHash</a></li><li><a href="global.html#getSuggestionFromMapOption">getSuggestionFromMapOption</a></li><li><a href="global.html#getSuggestions">getSuggestions</a></li><li><a href="global.html#getSuggestionsForOptions">getSuggestionsForOptions</a></li><li><a href="global.html#getSuggestionsFromAliases">getSuggestionsFromAliases</a></li><li><a href="global.html#handleTypingInCodeBlock">handleTypingInCodeBlock</a></li><li><a href="global.html#insideCodeblockForMap">insideCodeblockForMap</a></li><li><a href="global.html#insideParent">insideParent</a></li><li><a href="global.html#insideWindow">insideWindow</a></li><li><a href="global.html#isAnchorVisible">isAnchorVisible</a></li><li><a href="global.html#Item">Item</a></li><li><a href="global.html#mapBlockSelector">mapBlockSelector</a></li><li><a href="global.html#mapCache">mapCache</a></li><li><a href="global.html#markdown2HTML">markdown2HTML</a></li><li><a href="global.html#menuForEditor">menuForEditor</a></li><li><a href="global.html#onRemove">onRemove</a></li><li><a href="global.html#pickBlockItem">pickBlockItem</a></li><li><a href="global.html#pickLayoutItem">pickLayoutItem</a></li><li><a href="global.html#pickMapItem">pickMapItem</a></li><li><a href="global.html#printObject">printObject</a></li><li><a href="global.html#refLinkPattern">refLinkPattern</a></li><li><a href="global.html#removeBlockFocus">removeBlockFocus</a></li><li><a href="global.html#removeLeaderLines">removeLeaderLines</a></li><li><a href="global.html#renderResults">renderResults</a></li><li><a href="global.html#replaceTextNodes">replaceTextNodes</a></li><li><a href="global.html#restoreCamera">restoreCamera</a></li><li><a href="global.html#scrollToBlock">scrollToBlock</a></li><li><a href="global.html#setGeoLinkType">setGeoLinkType</a></li><li><a href="global.html#setGeoLinkTypeItem">setGeoLinkTypeItem</a></li><li><a href="global.html#setLeaderLineType">setLeaderLineType</a></li><li><a href="global.html#shiftByWindow">shiftByWindow</a></li><li><a href="global.html#Suggestion">Suggestion</a></li><li><a href="global.html#switchToNextLayout">switchToNextLayout</a></li><li><a href="global.html#throttle">throttle</a></li><li><a href="global.html#toggleBlockFocus">toggleBlockFocus</a></li><li><a href="global.html#toggleEditing">toggleEditing</a></li><li><a href="global.html#toggleMapFocus">toggleMapFocus</a></li><li><a href="global.html#updateAttributeByStep">updateAttributeByStep</a></li><li><a href="global.html#updateCMScrollLine">updateCMScrollLine</a></li><li><a href="global.html#updateDumbyMap">updateDumbyMap</a></li><li><a href="global.html#updateGeoSchemeByCRS">updateGeoSchemeByCRS</a></li><li><a href="global.html#updateMapCameraByMarker">updateMapCameraByMarker</a></li><li><a href="global.html#updateScrollLine">updateScrollLine</a></li><li><a href="global.html#url">url</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 30 2024 18:23:33 GMT+0800 (Taipei Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

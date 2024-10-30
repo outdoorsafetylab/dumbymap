@@ -1,0 +1,293 @@
+:root {
+  --content-border: solid lightgray 2px;
+  --content-border-radius: 5px;
+  --content-focus-border: solid gray 2px;
+}
+
+.editor {
+  display: none;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+}
+
+main {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 700px;
+  height: 100%;
+}
+
+main[data-mode='editing'] {
+  /* gap: 0.5em; */
+
+  padding: 0.5em;
+
+  .Dumby {
+    flex: 0 0 50%;
+    min-width: 45%;
+    max-width: calc(50% - 0.5em);
+    height: 100%;
+
+    border: var(--content-border);
+    border-radius: var(--content-border-radius);
+    order: 1;
+
+    &.focus {
+      border: var(--content-focus-border);
+      outline: var(--content-focus-border);
+    }
+  }
+
+  .editor {
+    display: block;
+    flex: 0 0 50%;
+    min-width: 45%;
+    max-width: calc(50% - 0.5em);
+    height: 100%;
+
+    order: 2;
+  }
+}
+
+.EasyMDEContainer {
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+  gap: 0.5em;
+
+  .CodeMirror {
+    flex: 1 0 0;
+    padding: 0;
+
+    border: var(--content-border);
+    border-radius: var(--content-border-radius);
+
+    font-family: monospace;
+    font-size: 1rem;
+    order: 1;
+
+    .CodeMirror-scroll {
+      margin-right: 0;
+    }
+
+    &.focus {
+      border: var(--content-focus-border);
+      outline: var(--content-focus-border);
+    }
+
+    /* padding of end of line */
+    span[role="presentation"]::after {
+      content: '';
+      display: inline-block;
+      margin-right: 30px;
+    }
+
+    span {
+      white-space: pre;
+    }
+
+    .invalid-input {
+      text-decoration: red wavy underline 1px;
+    }
+
+    .cm-heading-1 {
+      font-size: 2em;
+    }
+
+    .cm-heading-2 {
+      font-size: 1.5em;
+    }
+
+    .cm-heading-3 {
+      font-size: 1.25em;
+    }
+  }
+
+  .editor-toolbar {
+    order: 2;
+
+    flex: 0 0 0;
+
+    border: var(--content-border);
+    border-radius: var(--content-border-radius);
+
+    .mde-roll {
+      font-size: 1.5em;
+      vertical-align: bottom;
+    }
+  }
+
+  .editor-statusbar {
+    order: 3;
+  }
+}
+
+/* FIXME For those empty line (no child with cm-comment) */
+.inside-code-block,
+.CodeMirror-line:has(.cm-formatting-code-block) {
+  background: rgb(0 0 0 / 5%) !important;
+
+  .cm-comment {
+    background: none !important;
+  }
+}
+
+.suggestion {
+  display: flex;
+  overflow: hidden;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 700px;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:not(:first-child) {
+    border-top: 1px solid rgb(203 213 225);
+  }
+
+  &.focus {
+    background: rgb(226 232 240);
+  }
+
+  * {
+    flex-shrink: 0;
+
+    display: inline-block;
+    overflow: hidden;
+    padding-inline: 1em;
+  }
+
+  .info {
+    color: steelblue;
+    font-weight: bold;
+  }
+
+  .truncate {
+    flex-shrink: 1;
+    text-overflow: ellipsis;
+
+    ::before {
+      width: 2rem;
+    }
+  }
+}
+
+.Dumby[data-layout] .dumby-block {
+  padding: 1rem 1rem 1rem 2rem;
+
+  position: relative;
+
+  counter-increment: block;
+
+  &::before {
+    content: '';
+    height: calc(100% - 2rem);
+
+    position: absolute;
+    left: 0.8rem;
+
+    border-left: 0.5em solid #e0e0e0;
+
+    transition: border-color 0.5s linear;
+  }
+
+  &.focus {
+    /* Dress up when block is focus */
+
+    /* background: var(--block-focus-color); */
+    &::before {
+      border-color: chocolate;
+    }
+
+    &::after {
+      content: counter(block) '/' attr(data-total);
+      padding: 0.3rem 0.5rem;
+
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 9999;
+
+      border: solid transparent;
+      border-radius: 5px;
+
+      background: gray;
+
+      color: white;
+      font-size: 1.5em;
+      font-weight: bold;
+
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
+    }
+  }
+
+}
+
+.Dumby[data-layout='normal'] {
+  max-width: 60em;
+
+  &::after {
+    animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
+  }
+}
+
+.SemanticHtml {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  gap: 1rem;
+  overflow-y: auto;
+
+  /* Trivial: gray out text not focused */
+  &:has(.dumby-block.focus) {
+    color: gray;
+
+    .dumby-block.focus {
+      color: initial;
+    }
+  }
+
+  :has(> .mapclay, > [data-placeholder]) {
+    display: flex;
+    gap: 0.5em;
+
+    background-color: white;
+  }
+
+  /* if Map not in showcase, add border when focused */
+  .mapclay {
+    border: 3px solid white;
+
+    &.focus {
+      border: 3px solid gray;
+    }
+
+    &[data-render='unfulfilled'] {
+      border: 3px solid crimson;
+
+      opacity: 0.6;
+    }
+  }
+
+  [data-placeholder] {
+    border: 3px solid gray;
+    flex-grow: 0;
+
+    & > * {
+      opacity: 0.3;
+    }
+
+    /* animation: map-fade-out 1s; */
+  }
+}
+

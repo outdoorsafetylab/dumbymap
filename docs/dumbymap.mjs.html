@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: dumbymap.mjs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: dumbymap.mjs</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import MarkdownIt from 'markdown-it'
+import MarkdownItAnchor from 'markdown-it-anchor'
+import MarkdownItFootnote from 'markdown-it-footnote'
+import MarkdownItFrontMatter from 'markdown-it-front-matter'
+import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
+import * as mapclay from 'mapclay'
+import { onRemove, animateRectTransition, throttle, debounce, shiftByWindow } from './utils'
+import { Layout, SideBySide, Overlay, Sticky } from './Layout'
+import { GeoLink, DocLink, getMarkersFromMaps } from './Link.mjs'
+import * as utils from './dumbyUtils'
+import * as menuItem from './MenuItem'
+import PlainModal from 'plain-modal'
+import proj4 from 'proj4'
+import { register, fromEPSGCode } from 'ol/proj/proj4'
+
+/** VAR: CSS Selector for main components */
+const mapBlockSelector = 'pre:has(code[class*=map]), .mapclay-container'
+const docLinkSelector = 'a[href^="#"][title^="=>"]:not(.doclink)'
+const geoLinkSelector = 'a[href^="geo:"]:not(.geolink)'
+
+/** VAR: Default Layouts */
+const defaultLayouts = [
+  new Layout({ name: 'normal' }),
+  new SideBySide({ name: 'side-by-side' }),
+  new Overlay({ name: 'overlay' }),
+  new Sticky({ name: 'sticky' }),
+]
+
+/** VAR: Cache across every dumbymap generation */
+const mapCache = {}
+
+/**
+ * Converts Markdown content to HTML and prepares it for DumbyMap rendering
+ *
+ * @param {HTMLElement} container - Target Element to include generated HTML contents
+ * @param {string} mdContent - Texts in Markdown format
+ * @returns {Object} An object representing the DumbyMap instance
+ */
+export const markdown2HTML = (container, mdContent) => {
+  /** Prepare Elements for Container */
+  container.querySelector('.SemanticHtml')?.remove()
+
+  /** Prepare MarkdownIt Instance */
+  const md = MarkdownIt({
+    html: true,
+    breaks: true,
+    linkify: true,
+  })
+    .use(MarkdownItAnchor, {
+      permalink: MarkdownItAnchor.permalink.linkInsideHeader({
+        placement: 'before',
+      }),
+    })
+    .use(MarkdownItFootnote)
+    .use(MarkdownItFrontMatter)
+    .use(MarkdownItInjectLinenumbers)
+
+  /** Custom rule for Blocks in DumbyMap */
+  // FIXME A better way to generate blocks
+  md.renderer.rules.dumby_block_open = () => '&lt;article class="dumby-block">'
+  md.renderer.rules.dumby_block_close = () => '&lt;/article>'
+  md.core.ruler.before('block', 'dumby_block', state => {
+    state.tokens.push(new state.Token('dumby_block_open', '', 1))
+  })
+  // Add close tag for block with more than 2 empty lines
+  md.block.ruler.before('table', 'dumby_block', (state, startLine) => {
+    if (
+      state.src[state.bMarks[startLine - 1]] === '\n' &amp;&amp;
+      state.src[state.bMarks[startLine - 2]] === '\n' &amp;&amp;
+      state.tokens.at(-1).type !== 'list_item_open' // Quick hack for not adding tag after "::marker" for &lt;li>
+    ) {
+      state.push('dumby_block_close', '', -1)
+      state.push('dumby_block_open', '', 1)
+    }
+  })
+
+  md.core.ruler.after('block', 'dumby_block', state => {
+    state.tokens.push(new state.Token('dumby_block_close', '', -1))
+  })
+
+  /** Render HTML */
+  const htmlHolder = document.createElement('div')
+  htmlHolder.className = 'SemanticHtml'
+  htmlHolder.innerHTML = md.render(mdContent)
+  container.appendChild(htmlHolder)
+
+  return container
+}
+
+/**
+ * updateAttributeByStep.
+ * @description Update data attribute by steps of map render
+ * @param {Object} - renderer which is running steps
+ */
+const updateAttributeByStep = ({ results, target, steps }) => {
+  let passNum = results.filter(
+    r => r.type === 'render' &amp;&amp; r.state.match(/success|skip/),
+  ).length
+  const total = steps.length
+  passNum += `/${total}`
+
+  const final = results.filter(r => r.type === 'render').length === total
+
+  // FIXME HACK use MutationObserver for animation
+  if (!target.animations) target.animations = Promise.resolve()
+  target.animations = target.animations.then(async () => {
+    await new Promise(resolve => setTimeout(resolve, 100))
+    if (final) passNum += '\x20'
+    target.dataset.report = passNum
+
+    if (final) setTimeout(() => delete target.dataset.report, 100)
+  })
+}
+
+/** Get default render method by converter */
+const defaultRender = mapclay.renderWith(config => ({
+  use: config.use ?? 'Leaflet',
+  width: '100%',
+  ...config,
+  aliases: {
+    ...mapclay.defaultAliases,
+    ...(config.aliases ?? {}),
+  },
+  stepCallback: updateAttributeByStep,
+}))
+
+/**
+ * Generates maps based on the provided configuration
+ *
+ * @param {HTMLElement} container - The container element for the maps
+ * @param {Object} options
+ * @param {String} options.contentSelector - CSS selector for Semantic HTML
+ * @param {string} options.crs - CRS in EPSG/ESRI code, see epsg.io
+ * @param {string} options.initialLayout
+ * @param {number} [options.delay=1000] mapDelay - Delay before rendering maps (in milliseconds)
+ * @param {Function} options.render - Render function for maps
+ * @param {Function} options.renderCallback - Callback function to be called after map rendering
+ * @param {String | null} options.defaultApply
+ */
+export const generateMaps = (container, {
+  contentSelector,
+  crs = 'EPSG:4326',
+  initialLayout,
+  layouts = [],
+  mapDelay = 1000,
+  render = defaultRender,
+  renderCallback = () => null,
+  defaultApply = 'https://outdoorsafetylab.github.io/dumbymap/assets/default.yml',
+} = {}) => {
+  /** Prepare: Contaner */
+  if (container.classList.contains('Dumby')) return
+  container.classList.add('Dumby')
+  delete container.dataset.layout
+  container.dataset.crs = crs
+  container.dataset.layout = initialLayout ?? defaultLayouts.at(0).name
+  register(proj4)
+
+  /** Prepare: Semantic HTML part and blocks of contents inside */
+  const htmlHolder = container.querySelector(contentSelector) ??
+    container.querySelector('.SemanticHtml, main, :scope > article') ??
+    Array.from(container.children).find(e => e.id?.match(/main|content/) || e.className?.match?.(/main|content/)) ??
+    Array.from(container.children).sort((a, b) => a.textContent.length &lt; b.textContent.length).at(0)
+  htmlHolder.classList.add('SemanticHtml')
+
+  /** Prepare: Showcase */
+  const showcase = document.createElement('div')
+  container.appendChild(showcase)
+  showcase.classList.add('Showcase')
+
+  /** Prepare: Other Variables */
+  const modalContent = document.createElement('div')
+  container.appendChild(modalContent)
+  const modal = new PlainModal(modalContent)
+
+  /** VAR: dumbymap Object */
+  const dumbymap = {
+    layouts: [...defaultLayouts, ...layouts.map(l => typeof l === 'object' ? l : { name: l })],
+    container,
+    get htmlHolder () { return container.querySelector('.SemanticHtml') },
+    get showcase () { return container.querySelector('.Showcase') },
+    get blocks () { return Array.from(container.querySelectorAll('.dumby-block')) },
+    modal,
+    modalContent,
+    aliases: {},
+    utils: {
+      ...utils,
+      renderedMaps: () =>
+        Array.from(
+          container.querySelectorAll('.mapclay[data-render=fulfilled]'),
+        ).sort((a, b) => a.style.order > b.style.order),
+      setContextMenu: (menuCallback) => {
+        const originalCallback = container.oncontextmenu
+        container.oncontextmenu = (e) => {
+          const menu = originalCallback(e)
+          if (!menu) return
+
+          menuCallback(e, menu)
+          menu.style.transform = ''
+          shiftByWindow(menu)
+        }
+      },
+      focusNextMap: throttle(utils.focusNextMap, utils.focusDelay),
+      switchToNextLayout: throttle(utils.switchToNextLayout, 300),
+    },
+  }
+  Object.entries(dumbymap.utils).forEach(([util, value]) => {
+    if (typeof value === 'function') {
+      dumbymap.utils[util] = value.bind(dumbymap)
+    }
+  })
+
+  /** WATCH: text content of Semantic HTML */
+  new window.MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      const node = mutation.target
+      if (node.matches?.('.mapclay') || node.closest?.('.mapclay')) return
+
+      // Add GeoLinks from plain texts
+      utils.addGeoSchemeByText(node)
+
+      // Render Map
+      const mapTarget = node.parentElement?.closest(mapBlockSelector)
+      if (mapTarget) {
+        renderMap(mapTarget)
+      }
+    }
+  }).observe(container, {
+    characterData: true,
+    subtree: true,
+  })
+
+  /** WATCH: children of Semantic HTML */
+  new window.MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      const target = mutation.target
+      if (target.matches?.('.mapclay') || target.closest?.('.mapclay')) continue
+
+      // In case observer triggered by data attribute
+      if (mutation.type === 'attribute') {
+        delete target.dataset.initDumby
+      }
+
+      // Update dumby block
+      const dumbyBlockChanges = target.querySelectorAll('.dumby-block')
+      if (dumbyBlockChanges) {
+        const blocks = container.querySelectorAll('.dumby-block')
+        blocks.forEach(b => {
+          b.dataset.total = blocks.length
+        })
+      }
+
+      // Add GeoLinks/DocLinks by pattern
+      target.querySelectorAll(geoLinkSelector)
+        .forEach(GeoLink)
+      target.querySelectorAll(docLinkSelector)
+        .forEach(DocLink)
+
+      // Add GeoLinks from text nodes
+      // const addedNodes = Array.from(mutation.addedNodes)
+      if (mutation.type === 'attributes') {
+        addGeoLinksByText(target)
+      }
+
+      // Render code blocks for maps
+      const mapTargets = [
+        ...target.querySelectorAll(mapBlockSelector),
+        target.closest(mapBlockSelector),
+      ].filter(t => t)
+      mapTargets.forEach(renderMap)
+    }
+  }).observe(container, {
+    attributes: true,
+    attributeFilter: ['data-init-dumby'],
+    childList: true,
+    subtree: true,
+  })
+
+  container.dataset.initDumby = 'true'
+
+  /** WATCH: Layout changes */
+  new window.MutationObserver(mutations => {
+    const mutation = mutations.at(-1)
+    const oldLayout = mutation.oldValue
+    const newLayout = container.dataset.layout
+
+    // Apply handler for leaving/entering layouts
+    if (oldLayout) {
+      dumbymap.layouts
+        .find(l => l.name === oldLayout)
+        ?.leaveHandler?.call(this, dumbymap)
+    }
+
+    Object.values(dumbymap)
+      .filter(ele => ele instanceof window.HTMLElement)
+      .forEach(ele => { ele.style.cssText = '' })
+
+    if (newLayout) {
+      dumbymap.layouts
+        .find(l => l.name === newLayout)
+        ?.enterHandler?.call(this, dumbymap)
+    }
+
+    // Since layout change may show/hide showcase, the current focused map may need to go into/outside showcase
+    // Reset attribute triggers MutationObserver which is observing it
+    const focusMap =
+      container.querySelector('.mapclay.focus') ??
+      container.querySelector('.mapclay')
+    focusMap?.classList?.add('focus')
+  }).observe(container, {
+    attributes: true,
+    attributeFilter: ['data-layout'],
+    attributeOldValue: true,
+  })
+
+  /**
+   * LINKS: addGeoLinksByText.
+   *
+   * @param {Node} node
+   */
+  function addGeoLinksByText (node) {
+    const addGeoScheme = utils.addGeoSchemeByText(node)
+    const crsString = container.dataset.crs
+    Promise.all([fromEPSGCode(crsString), addGeoScheme]).then((values) => {
+      values.at(-1)
+        .map(utils.updateGeoSchemeByCRS(crsString))
+        .filter(link => link)
+        .forEach(GeoLink)
+    })
+  }
+
+  /**
+   * MAP: mapFocusObserver. observe for map focus
+   * @return {MutationObserver} observer
+   */
+  const mapClassObserver = () =>
+    new window.MutationObserver(mutations => {
+      const mutation = mutations.at(-1)
+      const target = mutation.target
+      const focus = target.classList.contains('focus')
+      const shouldBeInShowcase = focus &amp;&amp; showcase.checkVisibility()
+
+      if (focus) {
+        dumbymap.utils
+          .renderedMaps()
+          .filter(map => map.id !== target.id)
+          .forEach(map => map.classList.remove('focus'))
+
+        if (target.classList.contains('focus-manual')) {
+          setTimeout(
+            () => target.classList.remove('focus-manual'),
+            2000,
+          )
+        }
+      }
+
+      if (shouldBeInShowcase) {
+        if (showcase.contains(target)) return
+
+        // Placeholder for map in Showcase, it should has the same DOMRect
+        const placeholder = target.cloneNode(true)
+        delete placeholder.id
+        placeholder.className = ''
+
+        const parent = target.parentElement
+        parent.replaceChild(placeholder, target)
+        onRemove(placeholder, () => {
+          parent.appendChild(target)
+        })
+
+        // FIXME Maybe use @start-style for CSS
+        // Trigger CSS transition, if placeholde is the olny child element in block,
+        // reduce its height to zero.
+        // To make sure the original height of placeholder is applied, DOM changes seems needed
+        // then set data-attribute for CSS selector to change height to 0
+        placeholder.getBoundingClientRect()
+        placeholder.dataset.placeholder = target.id
+
+        // To fit showcase, remove all inline style
+        target.style.cssText = ''
+        target.style.order = placeholder.style.order
+        showcase.appendChild(target)
+
+        // Resume rect from Semantic HTML to Showcase, with animation
+        animateRectTransition(target, placeholder.getBoundingClientRect(), {
+          duration: 300,
+          resume: true,
+        })
+      } else if (showcase.contains(target)) {
+        // Check placeholder is inside Semantic HTML
+        const placeholder = dumbymap.htmlHolder.querySelector(
+          `[data-placeholder="${target.id}"]`,
+        )
+        if (!placeholder) { throw Error(`Cannot find placeholder for map "${target.id}"`) }
+
+        // Consider animation may fail, write callback
+        const afterAnimation = () => {
+          target.style = placeholder.style.cssText
+          placeholder.remove()
+        }
+
+        // animation from Showcase to placeholder
+        animateRectTransition(target, placeholder.getBoundingClientRect(), {
+          duration: 300,
+        }).finished.finally(afterAnimation)
+      }
+    })
+
+  /**
+   * MAP: afterMapRendered. callback of each map rendered
+   *
+   * @param {Object} renderer
+   */
+  const afterMapRendered = renderer => {
+    const mapElement = renderer.target
+    // FIXME
+    mapElement.renderer = renderer
+    // Make map not focusable by tab key
+    mapElement.tabindex = -1
+
+    // Cache if render is fulfilled
+    if (mapElement.dataset.render === 'fulfilled') {
+      mapCache[mapElement.id] = renderer
+    } else {
+      return
+    }
+
+    // Simple callback by caller
+    renderCallback?.(renderer)
+
+    // Watch change of class
+    const observer = mapClassObserver()
+    observer.observe(mapElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+      attributeOldValue: true,
+    })
+
+    // Focus current map is no map is focused
+    if (
+      !dumbymap.utils.renderedMaps().find(map => map.classList.contains('focus')) ||
+      container.querySelectorAll('.mapclay.focus').length === 0
+    ) {
+      mapElement.classList.add('focus')
+    }
+  }
+
+  // Set unique ID for map container
+  function assignMapId (config) {
+    const mapIdList = Array.from(document.querySelectorAll('.mapclay'))
+      .map(map => map.id)
+      .filter(id => id)
+    let mapId = config.id?.replaceAll('\x20', '_')
+    if (!mapId) {
+      mapId = config.use?.split('/')?.at(-1)
+      let counter = 1
+      while (!mapId || mapIdList.includes(mapId)) {
+        mapId = `${config.use ?? 'unnamed'}-${counter}`
+        counter++
+      }
+    }
+
+    config.id = mapId
+    mapIdList.push(mapId)
+    return config
+  }
+  //
+  //   if (autoMap &amp;&amp; elementsWithMapConfig.length === 0) {
+  //     const mapContainer = document.createElement('pre')
+  //     mapContainer.className = 'mapclay-container'
+  //     mapContainer.textContent = '#Created by DumbyMap'
+  //     mapContainer.style.cssText = 'display: none;'
+  //     htmlHolder.insertBefore(mapContainer, htmlHolder.firstElementChild)
+  //     elementsWithMapConfig.push(mapContainer)
+  //   }
+  //
+
+  /**
+   * MAP: Render each taget element for maps by text content in YAML
+   *
+   * @param {HTMLElement} target
+   */
+  function renderMap (target) {
+    if (!target.isConnected) return
+    target.classList.add('map-container')
+
+    // Get text in code block starts with markdown text '```map'
+    const configText = target
+      .textContent // BE CAREFUL!!! 0xa0 char is "non-breaking spaces" in HTML text content
+      // replace it by normal space
+      .replace(/\u00A0/g, '\u0020')
+
+    let configList = []
+    try {
+      configList = mapclay.parseConfigsFromYaml(configText).map(assignMapId)
+    } catch (_) {
+      console.warn('Fail to parse yaml config for element', target)
+      return
+    }
+
+    // If map in cache has the same ID, just put it into target
+    // So user won't feel anything changes when editing markdown
+    configList.forEach(config => {
+      const cachedRenderer = mapCache[config.id]
+      if (!cachedRenderer) return
+
+      target.appendChild(cachedRenderer.target)
+      config.target = cachedRenderer.target
+    })
+
+    // trivial: if map cache is applied, do not show yaml text
+    if (target.querySelector('.mapclay')) {
+      target
+        .querySelectorAll(':scope > :not([data-render=fulfilled])')
+        .forEach(e => e.remove())
+    }
+
+    if (!target.renderMap || target.dataset.render === 'no-delay') {
+      target.renderMap = debounce(
+        (configList) => {
+          // Render maps
+          render(target, configList).forEach(renderPromise => {
+            renderPromise.then(afterMapRendered)
+          })
+          Array.from(target.children).forEach(e => {
+            if (e.dataset.render === 'fulfilled') {
+              afterMapRendered(e.renderer)
+            }
+          })
+        }, target.dataset.render === 'no-delay' ? 0 : mapDelay,
+      )
+    }
+    target.renderMap(configList)
+  }
+
+  /** MENU: Menu Items for Context Menu */
+  container.oncontextmenu = e => {
+    container.querySelectorAll('.dumby-menu').forEach(m => m.remove())
+    const map = e.target.closest('.mapclay')
+    const block = e.target.closest('.dumby-block')
+    const linkWithLine = e.target.closest('.with-leader-line')
+    if (!block &amp;&amp; !map &amp;&amp; !linkWithLine) return
+    e.preventDefault()
+
+    /** Add HTMLElement for menu */
+    const menu = document.createElement('div')
+    menu.classList.add('menu', 'dumby-menu')
+    menu.onclick = (e) => {
+      if (e.target.closest('.keep-menu')) return
+      menu.remove()
+    }
+    container.appendChild(menu)
+    const containerRect = container.getBoundingClientRect()
+    new window.MutationObserver(() => {
+      menu.style.display = 'block'
+      menu.style.left = (e.pageX - containerRect.left + 10) + 'px'
+      menu.style.top = (e.pageY - containerRect.top + 5) + 'px'
+      clearTimeout(menu.timer)
+    }).observe(menu, { childList: true })
+    menu.timer = setTimeout(() => menu.remove(), 100)
+
+    /** Menu Item for editing map */
+    const mapEditor = e.target.closest('.edit-map')
+    if (mapEditor) {
+      menu.appendChild(menuItem.Item({
+        text: 'Finish Editig',
+        onclick: () => mapEditor.blur(),
+      }))
+      return
+    }
+
+    /** Menu Items for Links */
+    const geoLink = e.target.closest('.geolink')
+    if (geoLink) {
+      if (geoLink.classList.contains('from-text')) {
+        menu.appendChild(menuItem.Item({
+          innerHTML: '&lt;strong style="color: red;">DELETE&lt;/strong>',
+          onclick: () => {
+            getMarkersFromMaps(geoLink)
+              .forEach(m => m.remove())
+            geoLink.replaceWith(
+              document.createTextNode(geoLink.textContent),
+            )
+          },
+        }))
+      }
+      menu.appendChild(menuItem.setGeoLinkType(geoLink))
+    }
+
+    if (linkWithLine) {
+      menu.appendChild(menuItem.setLeaderLineType(linkWithLine))
+      return
+    }
+
+    /** Menu Items for map */
+    if (map) {
+      const rect = map.getBoundingClientRect()
+      const [x, y] = [e.x - rect.left, e.y - rect.top]
+      menu.appendChild(menuItem.simplePlaceholder(`MAP ID: ${map.id}`))
+      menu.appendChild(menuItem.editMap(map, dumbymap))
+      menu.appendChild(menuItem.renderResults(dumbymap, map))
+
+      if (map.dataset.render === 'fulfilled') {
+        menu.appendChild(menuItem.toggleMapFocus(map))
+        menu.appendChild(menuItem.Folder({
+          text: 'Actions',
+          items: [
+            menuItem.getCoordinatesByPixels(map, [x, y]),
+            menuItem.restoreCamera(map),
+            menuItem.addMarker({
+              point: [e.pageX, e.pageY],
+              map,
+            }),
+          ],
+        }))
+      }
+    } else {
+      /** Toggle block focus */
+      if (block) {
+        menu.appendChild(menuItem.toggleBlockFocus(block))
+      }
+    }
+
+    /** Menu Items for picking map/block/layout */
+    if (!map || map.closest('.Showcase')) {
+      if (dumbymap.utils.renderedMaps().length > 0) {
+        menu.appendChild(menuItem.pickMapItem(dumbymap))
+      }
+      menu.appendChild(menuItem.pickBlockItem(dumbymap))
+      menu.appendChild(menuItem.pickLayoutItem(dumbymap))
+    }
+
+    shiftByWindow(menu)
+
+    return menu
+  }
+
+  /** MENU: Event Handler when clicking outside of Context Manu */
+  const actionOutsideMenu = e => {
+    const menu = container.querySelector('.dumby-menu')
+    if (!menu) return
+    const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
+    if (keepMenu) return
+
+    const rect = menu.getBoundingClientRect()
+    if (
+      e.clientX &lt; rect.left ||
+      e.clientX > rect.left + rect.width ||
+      e.clientY &lt; rect.top ||
+      e.clientY > rect.top + rect.height
+    ) {
+      menu.remove()
+    }
+  }
+  document.addEventListener('click', actionOutsideMenu)
+  onRemove(container, () =>
+    document.removeEventListener('click', actionOutsideMenu),
+  )
+
+  /** MOUSE: Drag/Drop on map for new GeoLink */
+  container.ondragstart = () => false
+  container.onmousedown = (e) => {
+    // Check should start drag event for GeoLink
+    const selection = document.getSelection()
+    if (e.which !== 1 || selection.type !== 'Range') return
+
+    // Check if click is inside selection
+    const range = selection.getRangeAt(0)
+    const rect = range.getBoundingClientRect()
+    const mouseInRange = e.clientX &lt; rect.right &amp;&amp; e.clientX > rect.left &amp;&amp; e.clientY &lt; rect.bottom &amp;&amp; e.clientY > rect.top
+    if (!mouseInRange) return
+
+    const pointByArrow = document.createElement('div')
+    pointByArrow.className = 'point-by-arrow'
+    container.appendChild(pointByArrow)
+
+    const timer = setTimeout(() => {
+      utils.addGeoLinkByDrag(container, range, pointByArrow)
+    }, 300)
+
+    // Update leader-line with mouse move
+    container.onmousemove = (event) => {
+      const rect = container.getBoundingClientRect()
+      pointByArrow.style.left = `${event.clientX - rect.left}px`
+      pointByArrow.style.top = `${event.clientY - rect.top}px`
+      // TODO Scroll dumbymap.htmlHolder when cursor is at upper/lower side
+    }
+    container.onmousemove(e)
+    container.onmouseup = () => {
+      clearTimeout(timer)
+      pointByArrow.remove()
+      container.onmouseup = null
+      container.onmousemove = null
+    }
+  }
+
+  /** Get default applied config */
+  if (defaultApply) {
+    fetch(defaultApply)
+      .then(res => res.text())
+      .then(rawText => {
+        const config = mapclay.parseConfigsFromYaml(rawText)?.at(0)
+        Object.entries(config.aliases)
+          .forEach(([option, aliases]) => {
+            dumbymap.aliases[option] = aliases
+          })
+      })
+      .catch(err => console.warn(`Fail to get aliases from ${defaultApply}`, err))
+  }
+
+  /** Return Object for utils */
+  return Object.seal(dumbymap)
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Layout.html">Layout</a></li><li><a href="Overlay.html">Overlay</a></li><li><a href="SideBySide.html">SideBySide</a></li><li><a href="Sticky.html">Sticky</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addClassToCodeLines">addClassToCodeLines</a></li><li><a href="global.html#addDraggable">addDraggable</a></li><li><a href="global.html#addGeoLink">addGeoLink</a></li><li><a href="global.html#addGeoLinkByDrag">addGeoLinkByDrag</a></li><li><a href="global.html#addGeoSchemeByText">addGeoSchemeByText</a></li><li><a href="global.html#addMapRandomlyByPreset">addMapRandomlyByPreset</a></li><li><a href="global.html#addMarker">addMarker</a></li><li><a href="global.html#addMarkerByPoint">addMarkerByPoint</a></li><li><a href="global.html#addRefLink">addRefLink</a></li><li><a href="global.html#addSuggestions">addSuggestions</a></li><li><a href="global.html#animateRectTransition">animateRectTransition</a></li><li><a href="global.html#cm">cm</a></li><li><a href="global.html#completeForCodeBlock">completeForCodeBlock</a></li><li><a href="global.html#contentFromHash">contentFromHash</a></li><li><a href="global.html#context">context</a></li><li><a href="global.html#coordPattern">coordPattern</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#defaultLayouts">defaultLayouts</a></li><li><a href="global.html#defaultRender">defaultRender</a></li><li><a href="global.html#editMapByRawText">editMapByRawText</a></li><li><a href="global.html#editor">editor</a></li><li><a href="global.html#focusDelay">focusDelay</a></li><li><a href="global.html#focusNextBlock">focusNextBlock</a></li><li><a href="global.html#focusNextMap">focusNextMap</a></li><li><a href="global.html#Folder">Folder</a></li><li><a href="global.html#full2Half">full2Half</a></li><li><a href="global.html#generateMaps">generateMaps</a></li><li><a href="global.html#getCommonAncestor">getCommonAncestor</a></li><li><a href="global.html#getContentFromHash">getContentFromHash</a></li><li><a href="global.html#getCoordinatesByPixels">getCoordinatesByPixels</a></li><li><a href="global.html#getLineWithRenderer">getLineWithRenderer</a></li><li><a href="global.html#getMarkersFromMaps">getMarkersFromMaps</a></li><li><a href="global.html#getRefLinks">getRefLinks</a></li><li><a href="global.html#getStateFromHash">getStateFromHash</a></li><li><a href="global.html#getSuggestionFromMapOption">getSuggestionFromMapOption</a></li><li><a href="global.html#getSuggestions">getSuggestions</a></li><li><a href="global.html#getSuggestionsForOptions">getSuggestionsForOptions</a></li><li><a href="global.html#getSuggestionsFromAliases">getSuggestionsFromAliases</a></li><li><a href="global.html#handleTypingInCodeBlock">handleTypingInCodeBlock</a></li><li><a href="global.html#insideCodeblockForMap">insideCodeblockForMap</a></li><li><a href="global.html#insideParent">insideParent</a></li><li><a href="global.html#insideWindow">insideWindow</a></li><li><a href="global.html#isAnchorVisible">isAnchorVisible</a></li><li><a href="global.html#Item">Item</a></li><li><a href="global.html#mapBlockSelector">mapBlockSelector</a></li><li><a href="global.html#mapCache">mapCache</a></li><li><a href="global.html#markdown2HTML">markdown2HTML</a></li><li><a href="global.html#menuForEditor">menuForEditor</a></li><li><a href="global.html#onRemove">onRemove</a></li><li><a href="global.html#pickBlockItem">pickBlockItem</a></li><li><a href="global.html#pickLayoutItem">pickLayoutItem</a></li><li><a href="global.html#pickMapItem">pickMapItem</a></li><li><a href="global.html#printObject">printObject</a></li><li><a href="global.html#refLinkPattern">refLinkPattern</a></li><li><a href="global.html#removeBlockFocus">removeBlockFocus</a></li><li><a href="global.html#removeLeaderLines">removeLeaderLines</a></li><li><a href="global.html#renderResults">renderResults</a></li><li><a href="global.html#replaceTextNodes">replaceTextNodes</a></li><li><a href="global.html#restoreCamera">restoreCamera</a></li><li><a href="global.html#scrollToBlock">scrollToBlock</a></li><li><a href="global.html#setGeoLinkType">setGeoLinkType</a></li><li><a href="global.html#setGeoLinkTypeItem">setGeoLinkTypeItem</a></li><li><a href="global.html#setLeaderLineType">setLeaderLineType</a></li><li><a href="global.html#shiftByWindow">shiftByWindow</a></li><li><a href="global.html#Suggestion">Suggestion</a></li><li><a href="global.html#switchToNextLayout">switchToNextLayout</a></li><li><a href="global.html#throttle">throttle</a></li><li><a href="global.html#toggleBlockFocus">toggleBlockFocus</a></li><li><a href="global.html#toggleEditing">toggleEditing</a></li><li><a href="global.html#toggleMapFocus">toggleMapFocus</a></li><li><a href="global.html#updateAttributeByStep">updateAttributeByStep</a></li><li><a href="global.html#updateCMScrollLine">updateCMScrollLine</a></li><li><a href="global.html#updateDumbyMap">updateDumbyMap</a></li><li><a href="global.html#updateGeoSchemeByCRS">updateGeoSchemeByCRS</a></li><li><a href="global.html#updateMapCameraByMarker">updateMapCameraByMarker</a></li><li><a href="global.html#updateScrollLine">updateScrollLine</a></li><li><a href="global.html#url">url</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 30 2024 18:23:33 GMT+0800 (Taipei Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

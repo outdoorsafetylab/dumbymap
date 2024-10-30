@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: utils.mjs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: utils.mjs</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Do callback when HTMLElement in removed
+ *
+ * @param {HTMLElement} element observing
+ * @param {Function} callback
+ */
+export const onRemove = (element, callback) => {
+  const parent = element.parentElement
+  if (!parent) throw new Error('The node must already be attached')
+
+  const obs = new window.MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      for (const el of mutation.removedNodes) {
+        if (el === element) {
+          obs.disconnect()
+          callback()
+        }
+      }
+    }
+  })
+  obs.observe(parent, { childList: true })
+}
+
+/**
+ * Animate transition of DOMRect, with Web Animation API
+ *
+ * @param {HTMLElement} element                 Element which animation applies
+ * @param {DOMRect}     rect                    DOMRect for transition
+ * @param {Object}      options
+ * @param {Boolean}     options.resume          If true, transition starts from rect to DOMRect of element
+ * @param {Number}      options.duration        Duration of animation in milliseconds
+ * @returns {Animation} https://developer.mozilla.org/en-US/docs/Web/API/Animation
+ */
+export const animateRectTransition = (element, rect, options = {}) => {
+  if (!element.parentElement) { throw new Error('The node must already be attached') }
+
+  const { width: w1, height: h1, left: x1, top: y1 } = rect
+  const {
+    width: w2,
+    height: h2,
+    left: x2,
+    top: y2,
+  } = element.getBoundingClientRect()
+
+  const rw = (w1 ?? w2) / w2
+  const rh = (h1 ?? h2) / h2
+  const dx = x1 - x2
+  const dy = y1 - y2
+
+  if ((dx === 0 &amp;&amp; dy === 0) || !isFinite(rw) || !isFinite(rh)) {
+    return element.animate([], { duration: 0 })
+  }
+
+  const transform1 = 'translate(0, 0) scale(1, 1)'
+  const transform2 = `translate(${dx}px, ${dy}px) scale(${rw}, ${rh})`
+  const keyframes = [
+    { transform: transform1, opacity: 1 },
+    { transform: transform2, opacity: 0.3 },
+  ]
+  if (options.resume === true) keyframes.reverse()
+
+  return element.animate(keyframes, {
+    duration: options.duration ?? 500,
+    easing: 'ease-in-out',
+  })
+}
+
+/**
+ * Throttle for function call
+ *
+ * @param {Function} func
+ * @param {Number} delay milliseconds
+ * @returns {Any} return value of function call, or null if throttled
+ */
+export function throttle (func, delay) {
+  let timerFlag = null
+
+  return function (...args) {
+    const context = this
+    if (timerFlag !== null) return null
+
+    timerFlag = setTimeout(
+      () => (timerFlag = null),
+      typeof delay === 'function' ? delay.call(context) : delay,
+    )
+
+    return func.call(context, ...args)
+  }
+}
+
+/**
+ * debounce.
+ *
+ * @param {Function} func
+ * @param {Number} delay - milliseconds
+ */
+export function debounce (func, delay = 1000) {
+  let timer = null
+
+  return function (...args) {
+    const context = this
+
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      func.apply(context, args)
+    }, delay)
+  }
+}
+
+/**
+ * shiftByWindow. make sure HTMLElement inside viewport
+ *
+ * @param {HTMLElement} element
+ */
+export const shiftByWindow = element => {
+  const rect = element.getBoundingClientRect()
+  const offsetX = window.innerWidth - rect.left - rect.width
+  const offsetY = window.innerHeight - rect.top - rect.height
+  element.style.transform = `translate(${offsetX &lt; 0 ? offsetX : 0}px, ${offsetY &lt; 0 ? offsetY : 0}px)`
+}
+
+/**
+ * insideWindow. check DOMRect is inside window
+ *
+ * @param {HTMLElement} element
+ */
+export const insideWindow = element => {
+  const rect = element.getBoundingClientRect()
+  return (
+    rect.left > 0 &amp;&amp;
+    rect.right &lt; window.innerWidth + rect.width &amp;&amp;
+    rect.top > 0 &amp;&amp;
+    rect.bottom &lt; window.innerHeight + rect.height
+  )
+}
+
+/**
+ * insideParent. check children element is inside DOMRect of parent element
+ *
+ * @param {HTMLElement} childElement
+ * @param {HTMLElement} parentElement
+ */
+export const insideParent = (childElement, parentElement) => {
+  const childRect = childElement.getBoundingClientRect()
+  const parentRect = parentElement.getBoundingClientRect()
+  const offset = 10
+
+  return (
+    childRect.left &lt; parentRect.right - offset &amp;&amp;
+    childRect.right > parentRect.left + offset &amp;&amp;
+    childRect.top &lt; parentRect.bottom - offset &amp;&amp;
+    childRect.bottom > parentRect.top + offset
+  )
+}
+
+/**
+ * replaceTextNodes.
+ * @description Search current nodes by pattern, and replace them by new node
+ * @todo refactor to smaller methods
+ * @param {HTMLElement} rootNode
+ * @param {RegExp} pattern
+ * @param {Function} newNode - Create new node by each result of String.prototype.matchAll
+ */
+export const replaceTextNodes = (
+  rootNode,
+  pattern,
+  addNewNode = (match) => {
+    const link = document.createElement('a')
+    link.textContent(match.at(0))
+    return link
+  },
+) => {
+  const nodeIterator = document.createNodeIterator(
+    rootNode,
+    window.NodeFilter.SHOW_TEXT,
+    node => node.textContent.match(pattern) &amp;&amp; !node.parentElement.closest('pre,code,a')
+      ? window.NodeFilter.FILTER_ACCEPT
+      : window.NodeFilter.FILTER_REJECT,
+  )
+
+  let node = nodeIterator.nextNode()
+  const nodeArray = []
+  while (node) {
+    let index = 0
+    for (const match of node.textContent.matchAll(pattern)) {
+      const text = node.textContent.slice(index, match.index)
+      const newNode = addNewNode(match)
+      if (!newNode) continue
+
+      index = match.index + match.at(0).length
+      node.parentElement.insertBefore(document.createTextNode(text), node)
+      node.parentElement.insertBefore(newNode, node)
+      nodeArray.push(newNode)
+    }
+    if (index &lt; node.textContent.length) {
+      const text = node.textContent.slice(index)
+      node.parentElement.insertBefore(document.createTextNode(text), node)
+    }
+
+    node.parentElement.removeChild(node)
+    node = nodeIterator.nextNode()
+  }
+
+  return nodeArray
+}
+
+/**
+ * Get the common ancestor of two or more elements
+ * {@link https://gist.github.com/kieranbarker/cd86310d0782b7c52ce90cd7f45bb3eb}
+ * @param {String} selector A valid CSS selector
+ * @returns {Element} The common ancestor
+ */
+export function getCommonAncestor (selector) {
+  // Get the elements matching the selector
+  const elems = document.querySelectorAll(selector)
+
+  // If there are no elements, return null
+  if (elems.length &lt; 1) return null
+
+  // If there's only one element, return it
+  if (elems.length &lt; 2) return elems[0]
+
+  // Otherwise, create a new Range
+  const range = document.createRange()
+
+  // Start at the beginning of the first element
+  range.setStart(elems[0], 0)
+
+  // Stop at the end of the last element
+  range.setEnd(
+    elems[elems.length - 1],
+    elems[elems.length - 1].childNodes.length,
+  )
+
+  // Return the common ancestor
+  return range.commonAncestorContainer
+}
+
+/**
+ * full2Half: full-Width Digits To Half-Width.
+ *
+ * @param {String} str
+ */
+export const full2Half = (str) => {
+  // Create a regular expression to match full-width digits (U+FF10 to U+FF19)
+  const fullWidthDigitsRegex = /[\uFF0E\uFF10-\uFF19]/g
+
+  // Replace full-width digits with their half-width equivalents
+  return str.replace(fullWidthDigitsRegex, (match) => {
+    const fullWidthDigit = match.charCodeAt(0)
+    const halfWidthDigit = fullWidthDigit - 65248 // Offset to convert full-width to half-width
+    return String.fromCharCode(halfWidthDigit)
+  })
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Layout.html">Layout</a></li><li><a href="Overlay.html">Overlay</a></li><li><a href="SideBySide.html">SideBySide</a></li><li><a href="Sticky.html">Sticky</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addClassToCodeLines">addClassToCodeLines</a></li><li><a href="global.html#addDraggable">addDraggable</a></li><li><a href="global.html#addGeoLink">addGeoLink</a></li><li><a href="global.html#addGeoLinkByDrag">addGeoLinkByDrag</a></li><li><a href="global.html#addGeoSchemeByText">addGeoSchemeByText</a></li><li><a href="global.html#addMapRandomlyByPreset">addMapRandomlyByPreset</a></li><li><a href="global.html#addMarker">addMarker</a></li><li><a href="global.html#addMarkerByPoint">addMarkerByPoint</a></li><li><a href="global.html#addRefLink">addRefLink</a></li><li><a href="global.html#addSuggestions">addSuggestions</a></li><li><a href="global.html#animateRectTransition">animateRectTransition</a></li><li><a href="global.html#cm">cm</a></li><li><a href="global.html#completeForCodeBlock">completeForCodeBlock</a></li><li><a href="global.html#contentFromHash">contentFromHash</a></li><li><a href="global.html#context">context</a></li><li><a href="global.html#coordPattern">coordPattern</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#defaultLayouts">defaultLayouts</a></li><li><a href="global.html#defaultRender">defaultRender</a></li><li><a href="global.html#editMapByRawText">editMapByRawText</a></li><li><a href="global.html#editor">editor</a></li><li><a href="global.html#focusDelay">focusDelay</a></li><li><a href="global.html#focusNextBlock">focusNextBlock</a></li><li><a href="global.html#focusNextMap">focusNextMap</a></li><li><a href="global.html#Folder">Folder</a></li><li><a href="global.html#full2Half">full2Half</a></li><li><a href="global.html#generateMaps">generateMaps</a></li><li><a href="global.html#getCommonAncestor">getCommonAncestor</a></li><li><a href="global.html#getContentFromHash">getContentFromHash</a></li><li><a href="global.html#getCoordinatesByPixels">getCoordinatesByPixels</a></li><li><a href="global.html#getLineWithRenderer">getLineWithRenderer</a></li><li><a href="global.html#getMarkersFromMaps">getMarkersFromMaps</a></li><li><a href="global.html#getRefLinks">getRefLinks</a></li><li><a href="global.html#getStateFromHash">getStateFromHash</a></li><li><a href="global.html#getSuggestionFromMapOption">getSuggestionFromMapOption</a></li><li><a href="global.html#getSuggestions">getSuggestions</a></li><li><a href="global.html#getSuggestionsForOptions">getSuggestionsForOptions</a></li><li><a href="global.html#getSuggestionsFromAliases">getSuggestionsFromAliases</a></li><li><a href="global.html#handleTypingInCodeBlock">handleTypingInCodeBlock</a></li><li><a href="global.html#insideCodeblockForMap">insideCodeblockForMap</a></li><li><a href="global.html#insideParent">insideParent</a></li><li><a href="global.html#insideWindow">insideWindow</a></li><li><a href="global.html#isAnchorVisible">isAnchorVisible</a></li><li><a href="global.html#Item">Item</a></li><li><a href="global.html#mapBlockSelector">mapBlockSelector</a></li><li><a href="global.html#mapCache">mapCache</a></li><li><a href="global.html#markdown2HTML">markdown2HTML</a></li><li><a href="global.html#menuForEditor">menuForEditor</a></li><li><a href="global.html#onRemove">onRemove</a></li><li><a href="global.html#pickBlockItem">pickBlockItem</a></li><li><a href="global.html#pickLayoutItem">pickLayoutItem</a></li><li><a href="global.html#pickMapItem">pickMapItem</a></li><li><a href="global.html#printObject">printObject</a></li><li><a href="global.html#refLinkPattern">refLinkPattern</a></li><li><a href="global.html#removeBlockFocus">removeBlockFocus</a></li><li><a href="global.html#removeLeaderLines">removeLeaderLines</a></li><li><a href="global.html#renderResults">renderResults</a></li><li><a href="global.html#replaceTextNodes">replaceTextNodes</a></li><li><a href="global.html#restoreCamera">restoreCamera</a></li><li><a href="global.html#scrollToBlock">scrollToBlock</a></li><li><a href="global.html#setGeoLinkType">setGeoLinkType</a></li><li><a href="global.html#setGeoLinkTypeItem">setGeoLinkTypeItem</a></li><li><a href="global.html#setLeaderLineType">setLeaderLineType</a></li><li><a href="global.html#shiftByWindow">shiftByWindow</a></li><li><a href="global.html#Suggestion">Suggestion</a></li><li><a href="global.html#switchToNextLayout">switchToNextLayout</a></li><li><a href="global.html#throttle">throttle</a></li><li><a href="global.html#toggleBlockFocus">toggleBlockFocus</a></li><li><a href="global.html#toggleEditing">toggleEditing</a></li><li><a href="global.html#toggleMapFocus">toggleMapFocus</a></li><li><a href="global.html#updateAttributeByStep">updateAttributeByStep</a></li><li><a href="global.html#updateCMScrollLine">updateCMScrollLine</a></li><li><a href="global.html#updateDumbyMap">updateDumbyMap</a></li><li><a href="global.html#updateGeoSchemeByCRS">updateGeoSchemeByCRS</a></li><li><a href="global.html#updateMapCameraByMarker">updateMapCameraByMarker</a></li><li><a href="global.html#updateScrollLine">updateScrollLine</a></li><li><a href="global.html#url">url</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 30 2024 18:23:33 GMT+0800 (Taipei Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Layout.mjs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Layout.mjs</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import PlainDraggable from 'plain-draggable'
+import { onRemove, animateRectTransition } from './utils'
+
+/**
+ * Basic class for layout
+ */
+export class Layout {
+  /**
+   * Creates a new Layout instance
+   *
+   * @param {Object} options - The options for the layout
+   * @param {string} options.name - The name of the layout
+   * @param {Function} [options.enterHandler] - Handler called when entering the layout
+   * @param {Function} [options.leaveHandler] - Handler called when leaving the layout
+   * @throws {Error} If the layout name is not provided
+   */
+  constructor (options = {}) {
+    if (!options.name) throw Error('Layout name is not given')
+    this.name = options.name
+    this.enterHandler = options.enterHandler
+    this.leaveHandler = options.leaveHandler
+  }
+
+  /**
+   * Returns the name of the layout
+   *
+   * @returns {string} The name of the layout
+   */
+  valueOf = () => this.name
+}
+
+/**
+ * Side-By-Side Layout, HTML content and Showcase show on left/right side
+ *
+ * @extends {Layout}
+ */
+export class SideBySide extends Layout {
+  /**
+   * Handler called when entering the Side-By-Side layout
+   *
+   * @param {Object} options - The options object
+   * @param {HTMLElement} options.container - The main container element
+   * @param {HTMLElement} options.htmlHolder - The HTML content holder
+   * @param {HTMLElement} options.showcase - The showcase element
+   */
+  enterHandler = ({ container, htmlHolder, showcase }) => {
+    const bar = document.createElement('div')
+    bar.className = 'bar'
+    bar.innerHTML = '&lt;div class="bar-handle">&lt;/div>'
+    const handle = bar.querySelector('.bar-handle')
+    container.appendChild(bar)
+
+    // Resize views by value
+    const resizeByLeft = left => {
+      htmlHolder.style.width = left + 'px'
+      showcase.style.width =
+        parseFloat(window.getComputedStyle(container).width) - left + 'px'
+    }
+
+    const draggable = new PlainDraggable(bar, {
+      handle,
+      containment: { left: '25%', top: 0, right: '75%', height: 0 },
+    })
+    draggable.draggableCursor = 'grab'
+
+    draggable.onDrag = pos => {
+      handle.style.transform = 'unset'
+      resizeByLeft(pos.left)
+    }
+    draggable.onDragEnd = _ => {
+      handle.style.cssText = ''
+    }
+
+    onRemove(bar, () => draggable.remove())
+  }
+
+  /**
+   * Handler called when leaving the Side-By-Side layout
+   *
+   * @param {Object} options - The options object
+   * @param {HTMLElement} options.container - The main container element
+   */
+  leaveHandler = ({ container }) => {
+    container.querySelector('.bar')?.remove()
+  }
+}
+
+/**
+ * addDraggable.
+ *
+ * @param {HTMLElement} element
+ */
+const addDraggable = (element, { snap, left, top } = {}) => {
+  element.classList.add('draggable-block')
+
+  // Make sure current element always on top
+  const siblings = Array.from(
+    element.parentElement?.querySelectorAll(':scope > *') ?? [],
+  )
+  let popTimer = null
+  const onmouseover = () => {
+    popTimer = setTimeout(() => {
+      siblings.forEach(e => e.style.removeProperty('z-index'))
+      element.style.zIndex = '9001'
+    }, 200)
+  }
+  const onmouseout = () => {
+    clearTimeout(popTimer)
+  }
+  element.addEventListener('mouseover', onmouseover)
+  element.addEventListener('mouseout', onmouseout)
+
+  // Add draggable part
+  const draggablePart = document.createElement('div')
+  element.appendChild(draggablePart)
+  draggablePart.className = 'draggable-part'
+  draggablePart.innerHTML = '&lt;div class="handle">\u2630&lt;/div>'
+
+  // Add draggable instance
+  const draggable = new PlainDraggable(element, {
+    left,
+    top,
+    handle: draggablePart,
+    snap,
+  })
+
+  // FIXME use pure CSS to hide utils
+  draggable.onDragStart = () => {
+    element.classList.add('dragging')
+  }
+
+  draggable.onDragEnd = () => {
+    element.classList.remove('dragging')
+    element.style.zIndex = '9000'
+  }
+
+  // Reposition draggable instance when resized
+  const resizeObserver = new window.ResizeObserver(() => {
+    draggable?.position()
+  })
+  resizeObserver.observe(element)
+
+  // Callback for remove
+  onRemove(element, () => {
+    resizeObserver.disconnect()
+  })
+
+  new window.MutationObserver(() => {
+    if (!element.classList.contains('draggable-block') &amp;&amp; draggable) {
+      element.removeEventListener('mouseover', onmouseover)
+      element.removeEventListener('mouseout', onmouseout)
+      resizeObserver.disconnect()
+    }
+  }).observe(element, {
+    attributes: true,
+    attributeFilter: ['class'],
+  })
+
+  return draggable
+}
+
+/**
+ * Overlay Layout, Showcase occupies viewport, and HTML content becomes draggable blocks
+ *
+ * @extends {Layout}
+ */
+export class Overlay extends Layout {
+  /**
+   * saveLeftTopAsData.
+   *
+   * @param {HTMLElement} element
+   */
+  saveLeftTopAsData = element => {
+    const { left, top } = element.getBoundingClientRect()
+    element.dataset.left = left
+    element.dataset.top = top
+  }
+
+  /**
+   * enterHandler.
+   *
+   * @param {HTMLElement} options.hemlHolder - Parent element for block
+   * @param {HTMLElement[]} options.blocks
+   */
+  enterHandler = ({ htmlHolder, blocks }) => {
+    // FIXME It is weird rect from this method and this scope are different...
+    blocks.forEach(this.saveLeftTopAsData)
+
+    // If no block are focused, focus first three blocks (make them visible)
+    if (!blocks.find(b => b.classList.contains('focus'))) {
+      blocks.slice(0, 3).forEach(b => b.classList.add('focus'))
+    }
+
+    // Create draggable blocks and set each position by previous one
+    let [left, top] = [20, 20]
+    blocks.forEach(block => {
+      const originLeft = Number(block.dataset.left)
+      const originTop = Number(block.dataset.top)
+
+      // Create draggable block
+      const wrapper = document.createElement('div')
+      wrapper.classList.add('draggable-block')
+      wrapper.innerHTML = `
+        &lt;div class="utils">
+          &lt;div id="close">\u274C&lt;/div>
+          &lt;div id="plus-font-size" ">\u2795&lt;/div>
+          &lt;div id="minus-font-size">\u2796&lt;/div>
+        &lt;/div>
+      `
+      wrapper.title = 'Middle-click to hide block'
+      wrapper.onmouseup = e => {
+        // Hide block with middle click
+        if (e.button === 1) {
+          block.classList.remove('focus')
+        }
+      }
+
+      // Set DOMRect for wrapper
+      block.replaceWith(wrapper)
+      wrapper.appendChild(block)
+      wrapper.style.left = left + 'px'
+      wrapper.style.top = top + 'px'
+      const rect = wrapper.getBoundingClientRect()
+      left += rect.width + 30
+      if (left > window.innerWidth) {
+        top += 200
+        left = left % window.innerWidth
+      }
+
+      // Animation for DOMRect
+      animateRectTransition(
+        wrapper,
+        { left: originLeft, top: originTop },
+        { resume: true, duration: 300 },
+      ).finished.finally(() => addDraggable(wrapper, {
+        left: rect.left,
+        top: rect.top,
+        snap: {
+          x: { step: 20 },
+          y: { step: 20 },
+        },
+      }))
+
+      // Close button
+      wrapper.querySelector('#close').onclick = () => {
+        block.classList.remove('focus')
+      }
+      // Plus/Minus font-size of content
+      wrapper.querySelector('#plus-font-size').onclick = () => {
+        const fontSize = parseFloat(window.getComputedStyle(block).fontSize) / 16
+        block.style.fontSize = `${fontSize + 0.2}rem`
+      }
+      wrapper.querySelector('#minus-font-size').onclick = () => {
+        const fontSize = parseFloat(window.getComputedStyle(block).fontSize) / 16
+        block.style.fontSize = `${fontSize - 0.2}rem`
+      }
+    })
+  }
+
+  /**
+   * leaveHandler.
+   *
+   * @param {HTMLElement} htmlHolder
+   * @param {HTMLElement[]} blocks
+   */
+  leaveHandler = ({ blocks }) => {
+    const resumeFromDraggable = block => {
+      const draggableContainer = block.closest('.draggable-block')
+      if (!draggableContainer) return
+      draggableContainer.replaceWith(block)
+      draggableContainer.remove()
+    }
+    blocks.forEach(resumeFromDraggable)
+  }
+}
+
+/**
+ * Sticky Layout, Showcase is draggable and stick to viewport
+ *
+ * @extends {Layout}
+ */
+export class Sticky extends Layout {
+  draggable = document.createElement('div')
+
+  enterHandler = ({ showcase }) => {
+    showcase.replaceWith(this.draggable)
+    this.draggable.appendChild(showcase)
+    this.draggableInstance = addDraggable(this.draggable)
+    const rect = this.draggable.getBoundingClientRect()
+    this.draggable.style.cssText = `left: ${window.innerWidth - rect.width - 20}px; top: ${window.innerHeight - rect.height - 20}px;`
+  }
+
+  leaveHandler = ({ showcase }) => {
+    this.draggableInstance?.remove()
+    this.draggable.replaceWith(showcase)
+    this.draggable.querySelectorAll(':scope > :not(.mapclay)').forEach(e => e.remove())
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Layout.html">Layout</a></li><li><a href="Overlay.html">Overlay</a></li><li><a href="SideBySide.html">SideBySide</a></li><li><a href="Sticky.html">Sticky</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addClassToCodeLines">addClassToCodeLines</a></li><li><a href="global.html#addDraggable">addDraggable</a></li><li><a href="global.html#addGeoLink">addGeoLink</a></li><li><a href="global.html#addGeoLinkByDrag">addGeoLinkByDrag</a></li><li><a href="global.html#addGeoSchemeByText">addGeoSchemeByText</a></li><li><a href="global.html#addMapRandomlyByPreset">addMapRandomlyByPreset</a></li><li><a href="global.html#addMarker">addMarker</a></li><li><a href="global.html#addMarkerByPoint">addMarkerByPoint</a></li><li><a href="global.html#addRefLink">addRefLink</a></li><li><a href="global.html#addSuggestions">addSuggestions</a></li><li><a href="global.html#animateRectTransition">animateRectTransition</a></li><li><a href="global.html#cm">cm</a></li><li><a href="global.html#completeForCodeBlock">completeForCodeBlock</a></li><li><a href="global.html#contentFromHash">contentFromHash</a></li><li><a href="global.html#context">context</a></li><li><a href="global.html#coordPattern">coordPattern</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#defaultLayouts">defaultLayouts</a></li><li><a href="global.html#defaultRender">defaultRender</a></li><li><a href="global.html#editMapByRawText">editMapByRawText</a></li><li><a href="global.html#editor">editor</a></li><li><a href="global.html#focusDelay">focusDelay</a></li><li><a href="global.html#focusNextBlock">focusNextBlock</a></li><li><a href="global.html#focusNextMap">focusNextMap</a></li><li><a href="global.html#Folder">Folder</a></li><li><a href="global.html#full2Half">full2Half</a></li><li><a href="global.html#generateMaps">generateMaps</a></li><li><a href="global.html#getCommonAncestor">getCommonAncestor</a></li><li><a href="global.html#getContentFromHash">getContentFromHash</a></li><li><a href="global.html#getCoordinatesByPixels">getCoordinatesByPixels</a></li><li><a href="global.html#getLineWithRenderer">getLineWithRenderer</a></li><li><a href="global.html#getMarkersFromMaps">getMarkersFromMaps</a></li><li><a href="global.html#getRefLinks">getRefLinks</a></li><li><a href="global.html#getStateFromHash">getStateFromHash</a></li><li><a href="global.html#getSuggestionFromMapOption">getSuggestionFromMapOption</a></li><li><a href="global.html#getSuggestions">getSuggestions</a></li><li><a href="global.html#getSuggestionsForOptions">getSuggestionsForOptions</a></li><li><a href="global.html#getSuggestionsFromAliases">getSuggestionsFromAliases</a></li><li><a href="global.html#handleTypingInCodeBlock">handleTypingInCodeBlock</a></li><li><a href="global.html#insideCodeblockForMap">insideCodeblockForMap</a></li><li><a href="global.html#insideParent">insideParent</a></li><li><a href="global.html#insideWindow">insideWindow</a></li><li><a href="global.html#isAnchorVisible">isAnchorVisible</a></li><li><a href="global.html#Item">Item</a></li><li><a href="global.html#mapBlockSelector">mapBlockSelector</a></li><li><a href="global.html#mapCache">mapCache</a></li><li><a href="global.html#markdown2HTML">markdown2HTML</a></li><li><a href="global.html#menuForEditor">menuForEditor</a></li><li><a href="global.html#onRemove">onRemove</a></li><li><a href="global.html#pickBlockItem">pickBlockItem</a></li><li><a href="global.html#pickLayoutItem">pickLayoutItem</a></li><li><a href="global.html#pickMapItem">pickMapItem</a></li><li><a href="global.html#printObject">printObject</a></li><li><a href="global.html#refLinkPattern">refLinkPattern</a></li><li><a href="global.html#removeBlockFocus">removeBlockFocus</a></li><li><a href="global.html#removeLeaderLines">removeLeaderLines</a></li><li><a href="global.html#renderResults">renderResults</a></li><li><a href="global.html#replaceTextNodes">replaceTextNodes</a></li><li><a href="global.html#restoreCamera">restoreCamera</a></li><li><a href="global.html#scrollToBlock">scrollToBlock</a></li><li><a href="global.html#setGeoLinkType">setGeoLinkType</a></li><li><a href="global.html#setGeoLinkTypeItem">setGeoLinkTypeItem</a></li><li><a href="global.html#setLeaderLineType">setLeaderLineType</a></li><li><a href="global.html#shiftByWindow">shiftByWindow</a></li><li><a href="global.html#Suggestion">Suggestion</a></li><li><a href="global.html#switchToNextLayout">switchToNextLayout</a></li><li><a href="global.html#throttle">throttle</a></li><li><a href="global.html#toggleBlockFocus">toggleBlockFocus</a></li><li><a href="global.html#toggleEditing">toggleEditing</a></li><li><a href="global.html#toggleMapFocus">toggleMapFocus</a></li><li><a href="global.html#updateAttributeByStep">updateAttributeByStep</a></li><li><a href="global.html#updateCMScrollLine">updateCMScrollLine</a></li><li><a href="global.html#updateDumbyMap">updateDumbyMap</a></li><li><a href="global.html#updateGeoSchemeByCRS">updateGeoSchemeByCRS</a></li><li><a href="global.html#updateMapCameraByMarker">updateMapCameraByMarker</a></li><li><a href="global.html#updateScrollLine">updateScrollLine</a></li><li><a href="global.html#url">url</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 30 2024 18:23:33 GMT+0800 (Taipei Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

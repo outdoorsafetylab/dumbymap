@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Link.mjs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Link.mjs</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import LeaderLine from 'leader-line'
+import { insideWindow, insideParent } from './utils'
+import * as markers from './marker.mjs'
+
+/**
+ * @typedef {Object} GeoLink - anchor element with geo scheme and properties about maps
+ * @extends HTMLAnchorElement
+ * @property {string[]} targets - ids of target map elements
+ * @property {LeaderLine[]} lines
+ * @property {Object} dataset
+ * @property {string} dataset.lon - longitude string of geo scheme
+ * @property {string} dataset.lat - latitude string of geo scheme
+ * @property {string} dataset.crs - short name of CRS in EPSG/ESRI format
+ */
+
+/**
+ * DocLink: anchor element which points to DOM node by filter
+ * @typedef {Object} DocLink
+ * @extends HTMLAnchorElement
+ * @property {LeaderLine[]} lines
+ */
+
+/** VAR: pattern for coodinates */
+export const coordPattern = /^geo:([-]?[0-9.]+),([-]?[0-9.]+)/
+
+/**
+ * GeoLink: append GeoLink features onto anchor element
+ * @param {HTMLAnchorElement} link
+ * @return {GeoLink}
+ */
+export const GeoLink = (link) => {
+  const url = new URL(link.href)
+  const params = new URLSearchParams(link.search)
+  const xyInParams = params.get('xy')?.split(',')?.map(Number)
+  const [lon, lat] = url.href
+    ?.match(coordPattern)
+    ?.slice(1)
+    ?.reverse()
+    ?.map(Number)
+  const xy = xyInParams ?? [lon, lat]
+
+  if (!xy || isNaN(xy[0]) || isNaN(xy[1])) return false
+
+  // Geo information in link
+  link.dataset.lon = lon
+  link.dataset.lat = lat
+  link.dataset.crs = params.get('crs')
+  link.classList.add('with-leader-line', 'geolink')
+  link.classList.remove('not-geolink')
+  // TODO refactor as data attribute
+  link.title = 'Left-Click:\t\tmove camera\nMiddle-Click:\tremove markers\nRight-Click:\t\topen menu'
+  link.targets = params.get('id')?.split(',') ?? null
+  link.lines = []
+
+  // Hover link for LeaderLine
+  link.onmouseover = () => getMarkersFromMaps(link)
+    .filter(isAnchorVisible)
+    .forEach(anchor => {
+      const labelText = new URL(link).searchParams.get('text') ?? link.textContent
+      const line = new LeaderLine({
+        start: link,
+        end: anchor,
+        hide: true,
+        middleLabel: LeaderLine.pathLabel({
+          text: labelText,
+          fontWeight: 'bold',
+        }),
+        path: link.dataset.linePath ?? 'magnet',
+      })
+      line.show('draw', { duration: 300 })
+
+      link.lines.push(line)
+    })
+
+  link.onmouseout = () => removeLeaderLines(link)
+
+  // Click to move camera
+  link.onclick = (event) => {
+    event.preventDefault()
+    removeLeaderLines(link)
+    getMarkersFromMaps(link).forEach(marker => {
+      const map = marker.closest('.mapclay')
+      map.scrollIntoView({ behavior: 'smooth' })
+      updateMapCameraByMarker([
+        Number(link.dataset.lon),
+        Number(link.dataset.lat),
+      ])(marker)
+    })
+  }
+
+  // Use middle click to remove markers
+  link.onauxclick = (e) => {
+    if (e.which !== 2) return
+    e.preventDefault()
+    removeLeaderLines(link)
+    getMarkersFromMaps(link)
+      .forEach(marker => marker.remove())
+  }
+
+  return link
+}
+
+/**
+ * GeoLink: getMarkersFromMaps. Get marker elements by GeoLink
+ *
+ * @param {GeoLink} link
+ * @return {HTMLElement[]} markers
+ */
+export const getMarkersFromMaps = (link) => {
+  const params = new URLSearchParams(link.search)
+  const maps = Array.from(
+    link.closest('.Dumby')
+      .querySelectorAll('.mapclay[data-render="fulfilled"]'),
+  )
+  return maps
+    .filter(map => link.targets ? link.targets.includes(map.id) : true)
+    .map(map => {
+      const renderer = map.renderer
+      const lonLat = [Number(link.dataset.lon), Number(link.dataset.lat)]
+      const type = params.get('type') ?? 'pin'
+      const svg = markers[type]
+      const element = document.createElement('div')
+      element.style.cssText = `width: ${svg.size[0]}px; height: ${svg.size[1]}px;`
+      element.innerHTML = svg.html
+
+      const marker = map.querySelector(`.marker[data-xy="${lonLat}"]`) ??
+        renderer.addMarker({
+          xy: lonLat,
+          element,
+          type,
+          anchor: svg.anchor,
+          size: svg.size,
+        })
+      marker.dataset.xy = lonLat
+      marker.title = link.textContent
+
+      return marker
+    })
+}
+
+/**
+ * DocLink: append DocLink features onto anchor element
+ * @param {HTMLAnchorElement} link
+ * @return {DocLink}
+ */
+export const DocLink = (link) => {
+  const label = decodeURIComponent(link.href.split('#')[1])
+  const selector = link.title.split('=>')[1] ?? (label ? '#' + label : null)
+  if (!selector) return false
+
+  link.classList.add('with-leader-line', 'doclink')
+  link.lines = []
+
+  link.onmouseover = () => {
+    const targets = document.querySelectorAll(selector)
+
+    targets.forEach(target => {
+      if (!target?.checkVisibility()) return
+
+      // highlight selected target
+      target.dataset.style = target.style.cssText
+      const rect = target.getBoundingClientRect()
+      const isTiny = rect.width &lt; 100 || rect.height &lt; 100
+      if (isTiny) {
+        target.style.background = 'lightPink'
+      } else {
+        target.style.outline = 'lightPink 6px dashed'
+      }
+
+      // point to selected target
+      const line = new LeaderLine({
+        start: link,
+        end: target,
+        middleLabel: LeaderLine.pathLabel({
+          text: label,
+          fontWeight: 'bold',
+        }),
+        hide: true,
+        path: link.dataset.linePath ?? 'magnet',
+      })
+      link.lines.push(line)
+      line.show('draw', { duration: 300 })
+    })
+  }
+
+  link.onmouseout = () => {
+    removeLeaderLines(link)
+
+    // resume targets from highlight
+    const targets = document.querySelectorAll(selector)
+    targets.forEach(target => {
+      target.style.cssText = target.dataset.style
+      delete target.dataset.style
+    })
+  }
+
+  return link
+}
+
+/**
+ * isAnchorVisible. check anchor(marker) is visible for current map camera
+ *
+ * @param {Element} anchor
+ */
+const isAnchorVisible = anchor => {
+  const mapContainer = anchor.closest('.mapclay')
+  return insideWindow(anchor) &amp;&amp; insideParent(anchor, mapContainer)
+}
+
+/**
+ * updateMapByMarker. get function for updating map camera by marker
+ *
+ * @param {Number[]} xy
+ * @return {Function} function
+ */
+const updateMapCameraByMarker = lonLat => marker => {
+  const renderer = marker.closest('.mapclay')?.renderer
+  renderer.updateCamera({ center: lonLat }, true)
+}
+
+/**
+ * removeLeaderLines. clean lines start from link
+ *
+ * @param {GeoLink} link
+ */
+export const removeLeaderLines = link => {
+  if (!link.lines) return
+  link.lines.forEach(line => {
+    line.hide('draw', { duration: 300 })
+    setTimeout(() => {
+      line.remove()
+    }, 300)
+  })
+  link.lines = []
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Layout.html">Layout</a></li><li><a href="Overlay.html">Overlay</a></li><li><a href="SideBySide.html">SideBySide</a></li><li><a href="Sticky.html">Sticky</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addClassToCodeLines">addClassToCodeLines</a></li><li><a href="global.html#addDraggable">addDraggable</a></li><li><a href="global.html#addGeoLink">addGeoLink</a></li><li><a href="global.html#addGeoLinkByDrag">addGeoLinkByDrag</a></li><li><a href="global.html#addGeoSchemeByText">addGeoSchemeByText</a></li><li><a href="global.html#addMapRandomlyByPreset">addMapRandomlyByPreset</a></li><li><a href="global.html#addMarker">addMarker</a></li><li><a href="global.html#addMarkerByPoint">addMarkerByPoint</a></li><li><a href="global.html#addRefLink">addRefLink</a></li><li><a href="global.html#addSuggestions">addSuggestions</a></li><li><a href="global.html#animateRectTransition">animateRectTransition</a></li><li><a href="global.html#cm">cm</a></li><li><a href="global.html#completeForCodeBlock">completeForCodeBlock</a></li><li><a href="global.html#contentFromHash">contentFromHash</a></li><li><a href="global.html#context">context</a></li><li><a href="global.html#coordPattern">coordPattern</a></li><li><a href="global.html#debounce">debounce</a></li><li><a href="global.html#defaultLayouts">defaultLayouts</a></li><li><a href="global.html#defaultRender">defaultRender</a></li><li><a href="global.html#editMapByRawText">editMapByRawText</a></li><li><a href="global.html#editor">editor</a></li><li><a href="global.html#focusDelay">focusDelay</a></li><li><a href="global.html#focusNextBlock">focusNextBlock</a></li><li><a href="global.html#focusNextMap">focusNextMap</a></li><li><a href="global.html#Folder">Folder</a></li><li><a href="global.html#full2Half">full2Half</a></li><li><a href="global.html#generateMaps">generateMaps</a></li><li><a href="global.html#getCommonAncestor">getCommonAncestor</a></li><li><a href="global.html#getContentFromHash">getContentFromHash</a></li><li><a href="global.html#getCoordinatesByPixels">getCoordinatesByPixels</a></li><li><a href="global.html#getLineWithRenderer">getLineWithRenderer</a></li><li><a href="global.html#getMarkersFromMaps">getMarkersFromMaps</a></li><li><a href="global.html#getRefLinks">getRefLinks</a></li><li><a href="global.html#getStateFromHash">getStateFromHash</a></li><li><a href="global.html#getSuggestionFromMapOption">getSuggestionFromMapOption</a></li><li><a href="global.html#getSuggestions">getSuggestions</a></li><li><a href="global.html#getSuggestionsForOptions">getSuggestionsForOptions</a></li><li><a href="global.html#getSuggestionsFromAliases">getSuggestionsFromAliases</a></li><li><a href="global.html#handleTypingInCodeBlock">handleTypingInCodeBlock</a></li><li><a href="global.html#insideCodeblockForMap">insideCodeblockForMap</a></li><li><a href="global.html#insideParent">insideParent</a></li><li><a href="global.html#insideWindow">insideWindow</a></li><li><a href="global.html#isAnchorVisible">isAnchorVisible</a></li><li><a href="global.html#Item">Item</a></li><li><a href="global.html#mapBlockSelector">mapBlockSelector</a></li><li><a href="global.html#mapCache">mapCache</a></li><li><a href="global.html#markdown2HTML">markdown2HTML</a></li><li><a href="global.html#menuForEditor">menuForEditor</a></li><li><a href="global.html#onRemove">onRemove</a></li><li><a href="global.html#pickBlockItem">pickBlockItem</a></li><li><a href="global.html#pickLayoutItem">pickLayoutItem</a></li><li><a href="global.html#pickMapItem">pickMapItem</a></li><li><a href="global.html#printObject">printObject</a></li><li><a href="global.html#refLinkPattern">refLinkPattern</a></li><li><a href="global.html#removeBlockFocus">removeBlockFocus</a></li><li><a href="global.html#removeLeaderLines">removeLeaderLines</a></li><li><a href="global.html#renderResults">renderResults</a></li><li><a href="global.html#replaceTextNodes">replaceTextNodes</a></li><li><a href="global.html#restoreCamera">restoreCamera</a></li><li><a href="global.html#scrollToBlock">scrollToBlock</a></li><li><a href="global.html#setGeoLinkType">setGeoLinkType</a></li><li><a href="global.html#setGeoLinkTypeItem">setGeoLinkTypeItem</a></li><li><a href="global.html#setLeaderLineType">setLeaderLineType</a></li><li><a href="global.html#shiftByWindow">shiftByWindow</a></li><li><a href="global.html#Suggestion">Suggestion</a></li><li><a href="global.html#switchToNextLayout">switchToNextLayout</a></li><li><a href="global.html#throttle">throttle</a></li><li><a href="global.html#toggleBlockFocus">toggleBlockFocus</a></li><li><a href="global.html#toggleEditing">toggleEditing</a></li><li><a href="global.html#toggleMapFocus">toggleMapFocus</a></li><li><a href="global.html#updateAttributeByStep">updateAttributeByStep</a></li><li><a href="global.html#updateCMScrollLine">updateCMScrollLine</a></li><li><a href="global.html#updateDumbyMap">updateDumbyMap</a></li><li><a href="global.html#updateGeoSchemeByCRS">updateGeoSchemeByCRS</a></li><li><a href="global.html#updateMapCameraByMarker">updateMapCameraByMarker</a></li><li><a href="global.html#updateScrollLine">updateScrollLine</a></li><li><a href="global.html#url">url</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 30 2024 18:23:33 GMT+0800 (Taipei Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
