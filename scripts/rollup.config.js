@@ -96,8 +96,8 @@ export default [
           return {
             code: [
               transformedCode,
-              'window.generateMaps = generateMaps',
-              'window.mapclay = mapclay',
+              'globalThis.generateMaps = generateMaps',
+              'globalThis.mapclay = mapclay',
             ].join('\n'),
           }
         }

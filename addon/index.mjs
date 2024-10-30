@@ -23,14 +23,14 @@ const contentSelectors = {
 }
 const contentSelector = contentSelectors[url.host]
 
-const simpleRender = window.mapclay.renderWith(config => ({
+const simpleRender = mapclay.renderWith(config => ({
   use: use ?? 'Leaflet',
   width: '100%',
   height: '200px',
   XYZ: 'https://tile.openstreetmap.jp/styles/osm-bright/512/{z}/{x}/{y}.png',
   ...config,
   aliases: {
-    use: window.mapclay.renderers,
+    use: mapclay.renderers,
     ...(config.aliases ?? {}),
   },
 }))
@@ -40,7 +40,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('receive message', message)
   sendResponse('received')
   if (message === 'map-inline-add') {
-    window.generateMaps(document.querySelector(contentSelector ?? 'main') ?? document.body, {
+    generateMaps(document.querySelector(contentSelector ?? 'main') ?? document.body, {
       crs: url.searchParams.get('crs') ?? 'EPSG:4326',
       render: simpleRender,
     })
