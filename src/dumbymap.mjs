@@ -534,6 +534,8 @@ export const generateMaps = (container, {
 
   /** MENU: Menu Items for Context Menu */
   container.oncontextmenu = e => {
+    if (container.dataset.menu === 'disabled') return
+
     container.querySelectorAll('.dumby-menu').forEach(m => m.remove())
     const map = e.target.closest('.mapclay')
     const block = e.target.closest('.dumby-block')
