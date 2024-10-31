@@ -439,9 +439,9 @@ export const setGeoLinkTypeItem = ({ link, type, ...others }) => {
       params.set('type', type)
       link.search = params
       removeLeaderLines(link)
-      getMarkersFromMaps(link)
+      getMarkersByGeoLink(link)
         .forEach(marker => marker.remove())
-      getMarkersFromMaps(link)
+      getMarkersByGeoLink(link)
     },
   })
 }

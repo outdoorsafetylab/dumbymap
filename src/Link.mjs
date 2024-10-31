@@ -53,7 +53,7 @@ export const GeoLink = (link) => {
   link.lines = []
 
   // Hover link for LeaderLine
-  link.onmouseover = () => getMarkersFromMaps(link)
+  link.onmouseover = () => getMarkersByGeoLink(link)
     .filter(isAnchorVisible)
     .forEach(anchor => {
       const labelText = new URL(link).searchParams.get('text') ?? link.textContent
@@ -78,7 +78,7 @@ export const GeoLink = (link) => {
   link.onclick = (event) => {
     event.preventDefault()
     removeLeaderLines(link)
-    getMarkersFromMaps(link).forEach(marker => {
+    getMarkersByGeoLink(link).forEach(marker => {
       const map = marker.closest('.mapclay')
       map.scrollIntoView({ behavior: 'smooth' })
       updateMapCameraByMarker([
@@ -93,7 +93,7 @@ export const GeoLink = (link) => {
     if (e.which !== 2) return
     e.preventDefault()
     removeLeaderLines(link)
-    getMarkersFromMaps(link)
+    getMarkersByGeoLink(link)
       .forEach(marker => marker.remove())
   }
 
@@ -101,41 +101,53 @@ export const GeoLink = (link) => {
 }
 
 /**
- * GeoLink: getMarkersFromMaps. Get marker elements by GeoLink
+ * GeoLink: getMarkersFromMaps. Get marker elements from maps
  *
- * @param {GeoLink} link
+ * @param {Number[]} xy - xy values of marker
+ * @param {string} options.type - type of marker
+ * @param {string} options.title - title of marker
+ * @param {Function} options.filter - filter of map elements
  * @return {HTMLElement[]} markers
  */
-export const getMarkersFromMaps = (link) => {
-  const params = new URLSearchParams(link.search)
+export const getMarkersFromMaps = (xy, { type = 'pin', title, filter = () => true }) => {
   const maps = Array.from(
-    link.closest('.Dumby')
+    document.querySelector('.Dumby')
       .querySelectorAll('.mapclay[data-render="fulfilled"]'),
   )
   return maps
-    .filter(map => link.targets ? link.targets.includes(map.id) : true)
+    .filter(filter)
     .map(map => {
       const renderer = map.renderer
-      const lonLat = [Number(link.dataset.lon), Number(link.dataset.lat)]
-      const type = params.get('type') ?? 'pin'
       const svg = markers[type]
       const element = document.createElement('div')
       element.style.cssText = `width: ${svg.size[0]}px; height: ${svg.size[1]}px;`
       element.innerHTML = svg.html
 
-      const marker = map.querySelector(`.marker[data-xy="${lonLat}"]`) ??
-        renderer.addMarker({
-          xy: lonLat,
-          element,
-          type,
-          anchor: svg.anchor,
-          size: svg.size,
-        })
-      marker.dataset.xy = lonLat
-      marker.title = link.textContent
+      const marker = map.querySelector(`.marker[data-xy="${xy}"]`) ??
+        renderer.addMarker({ xy, element, type, anchor: svg.anchor, size: svg.size })
+      marker.dataset.xy = xy
+      marker.title = title
 
       return marker
     })
+}
+
+/**
+ * GeoLink: getMarkersByGeoLink. Get marker elements by GeoLink
+ *
+ * @param {GeoLink} link
+ * @return {HTMLElement[]} markers
+ */
+export const getMarkersByGeoLink = (link) => {
+  const params = new URLSearchParams(link.search)
+  const type = params.get('type') ?? 'pin'
+  const lonLat = [Number(link.dataset.lon), Number(link.dataset.lat)]
+
+  return getMarkersFromMaps(lonLat, {
+    type,
+    title: link.textContent,
+    filter: map => !link.targets || link.targets.includes(map.id),
+  })
 }
 
 /**
@@ -213,7 +225,7 @@ const isAnchorVisible = anchor => {
  * @param {Number[]} xy
  * @return {Function} function
  */
-const updateMapCameraByMarker = lonLat => marker => {
+export const updateMapCameraByMarker = lonLat => marker => {
   const renderer = marker.closest('.mapclay')?.renderer
   renderer.updateCamera({ center: lonLat }, true)
 }

@@ -6,7 +6,7 @@ import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 import * as mapclay from 'mapclay'
 import { onRemove, animateRectTransition, throttle, debounce, shiftByWindow } from './utils'
 import { Layout, SideBySide, Overlay, Sticky } from './Layout'
-import { GeoLink, DocLink, getMarkersFromMaps } from './Link.mjs'
+import { GeoLink, DocLink, getMarkersByGeoLink } from './Link.mjs'
 import * as utils from './dumbyUtils'
 import * as menuItem from './MenuItem'
 import PlainModal from 'plain-modal'
@@ -584,7 +584,7 @@ export const generateMaps = (container, {
         menu.appendChild(menuItem.Item({
           innerHTML: '<strong style="color: red;">DELETE</strong>',
           onclick: () => {
-            getMarkersFromMaps(geoLink)
+            getMarkersByGeoLink(geoLink)
               .forEach(m => m.remove())
             geoLink.replaceWith(
               document.createTextNode(geoLink.textContent),
@@ -595,7 +595,7 @@ export const generateMaps = (container, {
         menu.appendChild(menuItem.Item({
           innerHTML: '<strong style="color: red;">DELETE</strong>',
           onclick: () => {
-            getMarkersFromMaps(geoLink)
+            getMarkersByGeoLink(geoLink)
               .forEach(m => m.remove())
 
             const sibling = [
