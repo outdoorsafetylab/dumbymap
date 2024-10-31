@@ -540,7 +540,8 @@ export const generateMaps = (container, {
     const map = e.target.closest('.mapclay')
     const block = e.target.closest('.dumby-block')
     const linkWithLine = e.target.closest('.with-leader-line')
-    if (!block && !map && !linkWithLine) return
+    const rangeSelected = document.getSelection().type === 'Range'
+    if (!block && !map && !linkWithLine && !rangeSelected) return
     e.preventDefault()
 
     /** Add HTMLElement for menu */
@@ -560,6 +561,12 @@ export const generateMaps = (container, {
     }).observe(menu, { childList: true })
     menu.timer = setTimeout(() => menu.remove(), 100)
 
+    /** Menu Item for Geocoding */
+    if (rangeSelected) {
+      // TODO check click is inside selection
+      const range = document.getSelection().getRangeAt(0)
+      menu.appendChild(menuItem.addLinkbyNominatim(range))
+    }
     /** Menu Item for editing map */
     const mapEditor = e.target.closest('.edit-map')
     if (mapEditor) {
@@ -582,6 +589,30 @@ export const generateMaps = (container, {
             geoLink.replaceWith(
               document.createTextNode(geoLink.textContent),
             )
+          },
+        }))
+      } else if (geoLink.classList.contains('from-geocoding')) {
+        menu.appendChild(menuItem.Item({
+          innerHTML: '<strong style="color: red;">DELETE</strong>',
+          onclick: () => {
+            getMarkersFromMaps(geoLink)
+              .forEach(m => m.remove())
+
+            const sibling = [
+              geoLink.previousElementSibling,
+              geoLink.nextElementSibling,
+            ]
+              .find(a =>
+                a.classList.contains('from-geocoding') && a.textContent === geoLink.textContent,
+              )
+
+            if (sibling) {
+              geoLink.remove()
+            } else {
+              geoLink.replaceWith(
+                document.createTextNode(geoLink.textContent),
+              )
+            }
           },
         }))
       }

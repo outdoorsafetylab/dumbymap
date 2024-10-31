@@ -173,7 +173,7 @@ export const replaceTextNodes = (
   const nodeIterator = document.createNodeIterator(
     rootNode,
     window.NodeFilter.SHOW_TEXT,
-    node => node.textContent.match(pattern) && !node.parentElement.closest('pre,code,a')
+    node => node.textContent.match(pattern) && node.parentElement && !node.parentElement.closest('pre,code,a')
       ? window.NodeFilter.FILTER_ACCEPT
       : window.NodeFilter.FILTER_REJECT,
   )

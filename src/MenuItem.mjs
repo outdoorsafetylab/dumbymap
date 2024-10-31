@@ -586,3 +586,26 @@ export const editMap = (map, dumbymap) => {
     ],
   })
 }
+
+export const addLinkbyNominatim = (range) => {
+  return Item({
+    text: 'Add Link by Geocoding',
+    onclick: () => {
+      const place = range.toString()
+      fetch(`https://nominatim.openstreetmap.org/search?q=${place.toString()}&format=json`)
+        .then(res => res.json())
+        .then(places => {
+          if (places.length === 0) return
+          console.log('nomiatim', places)
+          range.deleteContents()
+          places.forEach(p => {
+            const a = document.createElement('a')
+            a.className = 'not-geolink from-geocoding'
+            a.href = `geo:${p.lat},${p.lon}?name=${p.name}&osm=${p.osm_type}/${p.osm_id}`
+            a.textContent = place
+            range.insertNode(a)
+          })
+        })
+    },
+  })
+}

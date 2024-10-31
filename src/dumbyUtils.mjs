@@ -144,7 +144,7 @@ export const addGeoSchemeByText = async (node) => {
 
     // Return anchor element with Geo Scheme
     const a = document.createElement('a')
-    a.className = 'not-geolink from-text'
+    a.className = 'not-geolink from-geocoding'
     a.href = `geo:0,0?xy=${x},${y}`
     a.textContent = match.at(0)
     return a
