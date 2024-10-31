@@ -48,6 +48,16 @@ root {
   }
 }
 
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .external::after {
   content: '';
   display: inline-block;
@@ -746,4 +756,12 @@ textarea .edit-map {
 
   font-size: 1.1rem;
   line-height: 1.5;
+}
+
+.with-spinning-circle::after {
+  content: '\21BB';
+  display: inline-block;
+  margin-left: 1rem;
+
+  animation: spin 2s linear infinite;
 }

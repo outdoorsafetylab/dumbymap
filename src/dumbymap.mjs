@@ -534,6 +534,7 @@ export const generateMaps = (container, {
 
   /** MENU: Menu Items for Context Menu */
   container.oncontextmenu = e => {
+    /** Check if OK to show custom menu over context menu */
     if (container.dataset.menu === 'disabled') return
 
     container.querySelectorAll('.dumby-menu').forEach(m => m.remove())
@@ -554,6 +555,10 @@ export const generateMaps = (container, {
     container.appendChild(menu)
     const containerRect = container.getBoundingClientRect()
     new window.MutationObserver(() => {
+      if (menu.childElementCount === 0) {
+        menu.style.display = 'none'
+        return
+      }
       menu.style.display = 'block'
       menu.style.left = (e.pageX - containerRect.left + 10) + 'px'
       menu.style.top = (e.pageY - containerRect.top + 5) + 'px'
@@ -565,8 +570,10 @@ export const generateMaps = (container, {
     if (rangeSelected) {
       // TODO check click is inside selection
       const range = document.getSelection().getRangeAt(0)
-      menu.appendChild(menuItem.addLinkbyNominatim(range))
+      menu.appendChild(menuItem.addLinkbyGeocoding(range))
+      return menu
     }
+
     /** Menu Item for editing map */
     const mapEditor = e.target.closest('.edit-map')
     if (mapEditor) {
@@ -574,7 +581,7 @@ export const generateMaps = (container, {
         text: 'Finish Editig',
         onclick: () => mapEditor.blur(),
       }))
-      return
+      return menu
     }
 
     /** Menu Items for Links */
@@ -621,7 +628,7 @@ export const generateMaps = (container, {
 
     if (linkWithLine) {
       menu.appendChild(menuItem.setLeaderLineType(linkWithLine))
-      return
+      return menu
     }
 
     /** Menu Items for map */

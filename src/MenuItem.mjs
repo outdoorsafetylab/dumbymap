@@ -1,7 +1,7 @@
 import { shiftByWindow } from './utils.mjs'
 import { addMarkerByPoint } from './dumbyUtils.mjs'
 /* eslint-disable-next-line no-unused-vars */
-import { GeoLink, getMarkersFromMaps, removeLeaderLines } from './Link.mjs'
+import { GeoLink, getMarkersFromMaps, getMarkersByGeoLink, removeLeaderLines, updateMapCameraByMarker } from './Link.mjs'
 import * as markers from './marker.mjs'
 import { parseConfigsFromYaml } from 'mapclay'
 
@@ -587,25 +587,66 @@ export const editMap = (map, dumbymap) => {
   })
 }
 
-export const addLinkbyNominatim = (range) => {
+/**
+ * addLinkbyGeocoding.
+ *
+ * @param {Range} range
+ */
+export const addLinkbyGeocoding = (range) => {
   return Item({
     text: 'Add Link by Geocoding',
-    onclick: () => {
-      const place = range.toString()
-      fetch(`https://nominatim.openstreetmap.org/search?q=${place.toString()}&format=json`)
-        .then(res => res.json())
-        .then(places => {
-          if (places.length === 0) return
-          console.log('nomiatim', places)
-          range.deleteContents()
-          places.forEach(p => {
-            const a = document.createElement('a')
-            a.className = 'not-geolink from-geocoding'
-            a.href = `geo:${p.lat},${p.lon}?name=${p.name}&osm=${p.osm_type}/${p.osm_id}`
-            a.textContent = place
-            range.insertNode(a)
-          })
-        })
+    className: ['keep-menu'],
+    onclick: async (e) => {
+      /** Add spinning circle for Network */
+      e.target.classList.add('with-spinning-circle')
+      const menu = e.target.closest('.dumby-menu')
+
+      if (!menu) return
+      /** Geocoding by Nominatim */
+      // TODO Add more params like limit:
+      // https://nominatim.org/release-docs/latest/api/Search/
+      const query = range.toString()
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${query.toString()}&format=json`)
+      const places = await response.json()
+      menu.replaceChildren()
+
+      // Show Message if no result found
+      if (places.length === 0) {
+        menu.appendChild(Item({ text: 'No Result Found' }))
+        return
+      }
+
+      // Add items for each results
+      const items = places.map(geocodingResult((a) => {
+        a.className = 'not-geolink from-geocoding'
+        a.textContent = query
+        range.deleteContents()
+        range.insertNode(a)
+      }))
+      menu.replaceChildren(...items)
     },
   })
+}
+
+export const geocodingResult = (callback) => (result) => {
+  const item = Item({
+    text: result.display_name,
+    onclick: () => {
+      const a = document.createElement('a')
+      a.href = `geo:${result.lat},${result.lon}?name=${result.name}&osm=${result.osm_type}/${result.osm_id}`
+      a.title = result.display_name
+      callback(a)
+    },
+  })
+  item.onmouseover = () => {
+    const markers = getMarkersFromMaps(
+      [result.lon, result.lat],
+      { type: 'circle', title: result.display_name },
+    )
+    markers.forEach(updateMapCameraByMarker([result.lon, result.lat]))
+    item.onmouseout = () => {
+      markers.forEach(m => m.remove())
+    }
+  }
+  return item
 }
