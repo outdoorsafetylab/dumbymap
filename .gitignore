@@ -2,6 +2,7 @@ dist/
 docs/
 addon/**js
 addon/**css
+addon.zip
 !addon/index**
 !addon/background**
 doc-coverage/
