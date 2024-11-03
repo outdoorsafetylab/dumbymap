@@ -1,7 +1,7 @@
-import { shiftByWindow } from './utils.mjs'
+import { onRemove, shiftByWindow } from './utils.mjs'
 import { addMarkerByPoint } from './dumbyUtils.mjs'
 /* eslint-disable-next-line no-unused-vars */
-import { GeoLink, getMarkersFromMaps, getMarkersByGeoLink, removeLeaderLines, updateMapCameraByMarker } from './Link.mjs'
+import { GeoLink, getMarkersFromMaps, getMarkersByGeoLink, removeLeaderLines } from './Link.mjs'
 import * as markers from './marker.mjs'
 import { parseConfigsFromYaml } from 'mapclay'
 
@@ -606,8 +606,8 @@ export const addLinkbyGeocoding = (range) => {
       /** Add spinning circle for Network */
       e.target.classList.add('with-spinning-circle')
       const menu = e.target.closest('.dumby-menu')
-
       if (!menu) return
+
       /** Geocoding by Nominatim */
       // TODO Add more params like limit:
       // https://nominatim.org/release-docs/latest/api/Search/
@@ -623,36 +623,71 @@ export const addLinkbyGeocoding = (range) => {
       }
 
       // Add items for each results
-      const items = places.map(geocodingResult((a) => {
+      const bbox = places.map(p => p.boundingbox).reduce((acc, cur) => [
+        Math.min(acc[0], cur[0]),
+        Math.max(acc[1], cur[1]),
+        Math.min(acc[2], cur[2]),
+        Math.max(acc[3], cur[3]),
+      ])
+      const bounds = [[bbox[2], bbox[0]], [bbox[3], bbox[1]]]
+      const items = places.map(geocodingResult(bounds, (a) => {
         a.className = 'not-geolink from-geocoding'
         a.textContent = query
         range.deleteContents()
         range.insertNode(a)
       }))
       menu.replaceChildren(...items)
+      shiftByWindow(menu)
     },
   })
 }
 
-export const geocodingResult = (callback) => (result) => {
+/**
+ * geocodingResult.
+ *
+ * @param {Array<Number[]>} bounds - boundingbox in format: [minLon, minLat, maxLon, maxLat]
+ * @param {Function} callback
+ */
+export const geocodingResult = (bounds, callback) => (result) => {
   const item = Item({
     text: result.display_name,
-    onclick: () => {
+    onclick: (e) => {
+      e.target.classList.add('clicked')
+
       const a = document.createElement('a')
-      a.href = `geo:${result.lat},${result.lon}?name=${result.name}&osm=${result.osm_type}/${result.osm_id}`
+      a.href = `geo:${result.lat},${result.lon}` +
+        `?name=${result.name}` +
+        `&osm=${result.osm_type}/${result.osm_id}`
       a.title = result.display_name
       callback(a)
     },
   })
+
+  const xy = [result.lon, result.lat]
+
+  const markers = getMarkersFromMaps(xy, {
+    type: 'circle',
+    title: result.display_name,
+  })
+  const bbox = result.boundingbox
+  const resultBounds = [[bbox[2], bbox[0]], [bbox[3], bbox[1]]]
+
   item.onmouseover = () => {
-    const markers = getMarkersFromMaps(
-      [result.lon, result.lat],
-      { type: 'circle', title: result.display_name },
-    )
-    markers.forEach(updateMapCameraByMarker([result.lon, result.lat]))
-    item.onmouseout = () => {
-      markers.forEach(m => m.remove())
-    }
+    markers.forEach(async marker => {
+      const renderer = marker.closest('.mapclay')?.renderer
+      await renderer.updateCamera({ bounds, duration: 1000, animation: true, padding: 20 })
+      await renderer.updateCamera({ center: xy, duration: 600, animation: true })
+      await renderer.updateCamera({ bounds: resultBounds, duration: 1500, animation: true, padding: 20 })
+    })
   }
+
+  setTimeout(() => {
+    onRemove(item.closest('.menu'), () => {
+      if (item.classList.contains('clicked')) return
+      markers.forEach(marker => marker.remove())
+    }),
+    100
+  })
+
   return item
 }

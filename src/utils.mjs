@@ -113,6 +113,7 @@ export function debounce (func, delay = 1000) {
  * @param {HTMLElement} element
  */
 export const shiftByWindow = element => {
+  delete element.style.transform
   const rect = element.getBoundingClientRect()
   const offsetX = window.innerWidth - rect.left - rect.width
   const offsetY = window.innerHeight - rect.top - rect.height

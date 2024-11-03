@@ -227,7 +227,7 @@ const isAnchorVisible = anchor => {
  */
 export const updateMapCameraByMarker = lonLat => marker => {
   const renderer = marker.closest('.mapclay')?.renderer
-  renderer.updateCamera({ center: lonLat }, true)
+  renderer?.updateCamera?.({ center: lonLat, animation: true })
 }
 
 /**
