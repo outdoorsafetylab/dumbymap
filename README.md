@@ -2,6 +2,9 @@
 
 This library generate web maps from [Semantic HTML], just play around with [demo page](https://outdoorsafetylab.github.io/dumbymap/)
 
+> [!IMPORTANT]
+> For build steps about firefox addon, please visit `DEVELOPING.md`
+
 > [!CAUTION]
 > DumbyMap is not in production stage. API is not stable now, use it carefully
 
