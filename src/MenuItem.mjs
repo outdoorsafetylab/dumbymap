@@ -549,6 +549,12 @@ export const editMapByRawText = (map) => Item({
   },
 })
 
+/**
+ * editMap.
+ *
+ * @param {HTEMLElement} map
+ * @param {Object} dumbymap
+ */
 export const editMap = (map, dumbymap) => {
   const options = Object.entries(dumbymap.aliases)
     .map(([option, aliases]) =>
