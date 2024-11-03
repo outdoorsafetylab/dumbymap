@@ -1,13 +1,21 @@
-dist/
-docs/
-addon/**js
-addon/**css
-addon.zip
-!addon/index**
-!addon/background**
-doc-coverage/
+# node
 node_modules/
 package-lock.json
 pnpm-lock.yaml
-mapclay
 src/css/easymde.min.css
+
+# output
+dist/
+docs/
+
+# addon
+addon.zip
+addon/**js
+addon/renderers/**js
+addon/**css
+!addon/index**
+!addon/background**
+!addon/src
+
+# others
+doc-coverage/

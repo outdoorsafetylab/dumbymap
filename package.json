@@ -26,7 +26,7 @@
     "style": "scripts/stylelint.sh",
     "docs": "jsdoc -c scripts/jsdoc.conf src/; xdg-open http://localhost:8080/docs/",
     "prepack": "npm run lint && npm run style && npm run build",
-    "addon": "mkdir -p addon/css; cp src/css/dumbymap.css addon/css; ADDON=true rollup -c scripts/rollup.config.js --watch",
+    "addon": "scripts/addon.sh",
     "addon.zip": "cd addon; zip -r ../addon.zip *",
     "dev-addon": "web-ext run -s addon"
   },

@@ -1,12 +1,14 @@
 {
   "manifest_version": 2,
-  "name": "DumbyMap",
+  "name": "MapInline",
   "version": "1.0",
 
-  "description": "Add interatctive Map",
+  "description": "Add Interatctive Map",
 
   "icons": {
-    "48": "icons/default.ico"
+    "16": "icons/default-0.png",
+    "32": "icons/default-1.png",
+    "48": "icons/default-2.png"
   },
 
   "browser_action": {
@@ -22,8 +24,11 @@
         "https://prosemirror.net/examples/*"
       ],
       "js": [
-        "dumbymap.mjs",
-        "index.mjs"
+        "renderers/leaflet.js",
+        "renderers/maplibre.js",
+        "renderers/openlayers.js",
+        "dumbymap.js",
+        "index.js"
       ],
       "css": [
         "css/dumbymap.css"
