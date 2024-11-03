@@ -86,6 +86,11 @@ export const Folder = ({ id, text, innerHTML, items, style }) => {
   return folder
 }
 
+/**
+ * simplePlaceholder.
+ *
+ * @param {String} text
+ */
 export const simplePlaceholder = (text) => Item({
   text,
   style: 'width: fit-content; margin: 0 auto; color: gray; pointer-events: none; font-size: 0.8rem; line-height: 1; font-weight: bolder;',
