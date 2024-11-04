@@ -6,7 +6,7 @@ import { join } from 'path'
 import { bundleStats } from 'rollup-plugin-bundle-stats'
 
 const prod = process.env.PRODUCTION
-const addon = process.env.ADDON
+const watch = process.env.ROLLUP_WATCH
 
 function resolve (file, origin) {
   // Your way to resolve local include path
@@ -79,31 +79,6 @@ export default [
 ]
   .map(config => ({ ...general, ...config }))
   .filter(config => {
-    if (addon) return config.input.match(/dumbymap/)
-    if (!prod) return config.input.match(/editor/)
+    if (watch) return config.input.match(/editor/)
     return true
-  })
-  .map(config => {
-    if (!addon) return config
-
-    config.output.forEach(o => { o.dir = './addon' })
-    config.plugins.push({
-      name: 'remove-exports',
-      transform (code, id) {
-        if (id.includes(config.input)) {
-          // remove export keyword for addon
-          const transformedCode = code.replace(/\n(\s*)export\s*/g, '$1')
-          return {
-            code: [
-              transformedCode,
-              'globalThis.generateMaps = generateMaps',
-              'globalThis.mapclay = mapclay',
-            ].join('\n'),
-          }
-        }
-        return null
-      },
-    })
-
-    return config
   })
