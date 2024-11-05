@@ -20,6 +20,7 @@ const contentSelectors = {
   'hackmd.io': '#doc',
   'www.ptt.cc': '#main-content',
   'prosemirror.net': '.ProseMirror',
+  'www.openstreetmap.org': '.content-body',
 }
 const contentSelector = contentSelectors[url.host]
 

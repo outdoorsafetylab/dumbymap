@@ -21,7 +21,8 @@
         "*://developer.mozilla.org/*",
         "*://hackmd.io/*",
         "*://*.ptt.cc/*",
-        "https://prosemirror.net/examples/*"
+        "https://prosemirror.net/examples/*",
+        "https://www.openstreetmap.org/*"
       ],
       "js": [
         "renderers/leaflet.js",
