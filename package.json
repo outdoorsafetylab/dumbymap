@@ -21,7 +21,7 @@
     "rollup": "npx rollup -c scripts/rollup.config.js",
     "watch": "npm run rollup -- -w",
     "build": "scripts/build.sh",
-    "server": "live-server --port=8080 --ignore='**/src/**js' --wait=2000 --no-browser --cors",
+    "dev": "live-server --port=8080 --ignore='**/src/**js' --wait=2000 --no-browser --cors",
     "lint": "standard --fix",
     "style": "scripts/stylelint.sh",
     "docs": "jsdoc -c scripts/jsdoc.conf src/; xdg-open http://localhost:8080/docs/",
