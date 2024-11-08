@@ -562,6 +562,7 @@ export const generateMaps = (container, {
       menu.style.display = 'block'
       menu.style.left = (e.pageX - containerRect.left + 10) + 'px'
       menu.style.top = (e.pageY - containerRect.top + 5) + 'px'
+      shiftByWindow(menu)
       clearTimeout(menu.timer)
     }).observe(menu, { childList: true })
     menu.timer = setTimeout(() => menu.remove(), 100)
@@ -668,8 +669,6 @@ export const generateMaps = (container, {
       menu.appendChild(menuItem.pickBlockItem(dumbymap))
       menu.appendChild(menuItem.pickLayoutItem(dumbymap))
     }
-
-    shiftByWindow(menu)
 
     return menu
   }
