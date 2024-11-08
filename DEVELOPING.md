@@ -8,13 +8,13 @@ The minimum requirements are:
 - Git
 - Node.js (version 16 and above)
 
-To install the project dependencies run
+To install the project dependencies, run
 
 ```sh
 # install dependencies
 npm install
 
-# install rollup or use npx
+# install linting and building tools
 npm install -g rollup standard
 ```
 
@@ -32,7 +32,7 @@ npm run lint
 
 ```sh
 # without code minified
-npm build
+npm run build
 
 # with code minified
 PRODUCTION=true npm build
@@ -40,12 +40,12 @@ PRODUCTION=true npm build
 
 ## Firefox Addon
 
-1. To build addon(after `dist/` is generated from `npm build`), run
+1. To build addon(after `dist/` is generated from `npm run build`), run
 
 ```sh
 npm run addon
 ```
 
-2. Then go to `about:debugging` page in Firfox Browser, then press `This Firefox` for extension page
+1. Then Firefox Browser, go to `about:debugging` page. Press `This Firefox` for extension page
 
-3. Press `Load Temporary Add-on...`, then select `manifest.json` in `addon/`
+1. Press `Load Temporary Add-on...`, then select `manifest.json` in `addon/`
