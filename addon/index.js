@@ -21,6 +21,7 @@ const contentSelectors = {
   'www.ptt.cc': '#main-content',
   'prosemirror.net': '.ProseMirror',
   'www.openstreetmap.org': '.content-body',
+  'markdown-it.github.io': '.result-html',
 }
 const contentSelector = contentSelectors[url.host]
 
@@ -31,7 +32,7 @@ const simpleRender = globalThis.renderWith(config => ({
   XYZ: 'https://tile.openstreetmap.jp/styles/osm-bright/512/{z}/{x}/{y}.png',
   ...config,
   aliases: {
-    use: globalThis.mapclayRenderer,
+    use: globalThis.mapclayRenderers,
     ...(config.aliases ?? {}),
   },
 }))

@@ -10,12 +10,8 @@ docs/
 
 # addon
 addon.zip
-addon/**js
-addon/renderers/**js
+addon/scripts/**js
 addon/**css
-!addon/index**
-!addon/background**
-!addon/src
 
 # others
 doc-coverage/

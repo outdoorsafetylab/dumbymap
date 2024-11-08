@@ -18,17 +18,13 @@
   "content_scripts": [
     {
       "matches": [
-        "*://developer.mozilla.org/*",
-        "*://hackmd.io/*",
-        "*://*.ptt.cc/*",
-        "https://prosemirror.net/examples/*",
-        "https://www.openstreetmap.org/*"
+        "<all_urls>"
       ],
       "js": [
-        "renderers/leaflet.js",
-        "renderers/maplibre.js",
-        "renderers/openlayers.js",
-        "dumbymap.js",
+        "scripts/dumbymap.js",
+        "scripts/leaflet.js",
+        "scripts/maplibre.js",
+        "scripts/openlayers.js",
         "index.js"
       ],
       "css": [
