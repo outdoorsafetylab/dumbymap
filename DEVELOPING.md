@@ -14,6 +14,10 @@ To install the project dependencies, run
 # install dependencies
 npm install
 
+# install dependencies for modules
+npm install --dir node_modules/plain-modal
+npm install --dir node_modules/plain-draggable
+
 # install linting and building tools
 npm install -g rollup standard
 ```
