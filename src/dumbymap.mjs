@@ -637,10 +637,18 @@ export const generateMaps = (container, {
       const rect = map.getBoundingClientRect()
       const [x, y] = [e.x - rect.left, e.y - rect.top]
       menu.appendChild(menuItem.simplePlaceholder(`MAP ID: ${map.id}`))
+      if (map.dataset.draw) {
+        menu.appendChild(menuItem.Folder({ text: 'Draw', items: menuItem.drawUtils(map) }))
+        return menu
+      }
       menu.appendChild(menuItem.editMap(map, dumbymap))
       menu.appendChild(menuItem.renderResults(dumbymap, map))
 
       if (map.dataset.render === 'fulfilled') {
+        if (map.dataset.draw !== undefined) {
+          menu.appendChild(menuItem.Folder({ text: 'Draw', items: menuItem.drawUtils(map) }))
+        }
+
         menu.appendChild(menuItem.toggleMapFocus(map))
         menu.appendChild(menuItem.Folder({
           text: 'Actions',
@@ -683,9 +691,9 @@ export const generateMaps = (container, {
     const rect = menu.getBoundingClientRect()
     if (
       e.clientX < rect.left ||
-      e.clientX > rect.left + rect.width ||
-      e.clientY < rect.top ||
-      e.clientY > rect.top + rect.height
+        e.clientX > rect.left + rect.width ||
+        e.clientY < rect.top ||
+        e.clientY > rect.top + rect.height
     ) {
       menu.remove()
     }

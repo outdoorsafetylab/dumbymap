@@ -69,7 +69,7 @@ export const Folder = ({ id, text, innerHTML, items, style }) => {
     const submenu = document.createElement('div')
     submenu.className = 'sub-menu'
     const offset = folder.items.length > 1 ? '-20px' : '0px'
-    submenu.style.cssText = `${style ?? ''}position: absolute; left: 105%; top: ${offset};`
+    submenu.style.cssText = `${style ?? ''}position: absolute; left: calc(100% - 10px); top: ${offset};`
     folder.items.forEach(item => submenu.appendChild(item))
     submenu.onmouseleave = () => {
       if (submenu.querySelectorAll('.sub-menu').length > 0) return
@@ -696,3 +696,18 @@ export const geocodingResult = (bounds, callback) => (result) => {
 
   return item
 }
+
+export const drawUtils = (map) => [
+  'modify',
+  'delete',
+  'clear',
+  'point',
+  'linestring',
+  'polygon',
+  'circle',
+  'rectangle',
+  'features',
+].map(action => Item({
+  text: action,
+  onclick: () => map.dataset.draw = action,
+}))
