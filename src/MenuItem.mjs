@@ -689,9 +689,9 @@ export const geocodingResult = (bounds, callback) => (result) => {
   setTimeout(() => {
     onRemove(item.closest('.menu'), () => {
       if (item.classList.contains('clicked')) return
+
       markers.forEach(marker => marker.remove())
-    }),
-    100
+    }, 100)
   })
 
   return item
