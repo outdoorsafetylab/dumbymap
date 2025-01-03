@@ -771,7 +771,7 @@ const getSuggestions = anchor => {
         return [
           getSuggestionFromMapOption(matchedOption),
           ...getSuggestionsFromAliases(matchedOption),
-        ].filter(s => s instanceof menuItem.Suggestion)
+        ].filter(s => s.replace)
       }
       if (valueTyped && !isValidValue) {
         markInputIsInvalid()
