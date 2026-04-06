@@ -61,28 +61,11 @@ width: 200px</code></pre>
 ### DocLink
 
 Generated from anchor element which:
-1. With has link for [document fragment](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#linking_to_an_element_on_the_same_page).
-2. With title starts from `=>`
-3. The following text in title would be treated as CSS selector of target element
+1. With **hash link** for [document fragment](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#linking_to_an_element_on_the_same_page). 
+2. With **title** starts from `=>`
 
-It shows leader-line to target element on hover, for example:
-
-```markdown
-<!-- Markdown Text -->
-[link](#TEXT "=>.random-class")
-
-<!-- Anchor Element -->
-<a href="#TEXT" title="=>.random-class">link</a>
-```
-
-Generated from anchor element which:
-1. With has link for [document fragment](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#linking_to_an_element_on_the_same_page). 
-2. With title starts from `=>`
-3. The following text of title would be treated as CSS selector of target element
-
+The following text of title would be treated as CSS selector of target element.
 Class name `with-leader-line` and `doclink` would be added to element.
-
-It shows leader-line to target element on hover, for example:
 
 ```markdown
 <!-- Markdown Text -->
@@ -95,6 +78,9 @@ It shows leader-line to target element on hover, for example:
 <!-- Links above is transfered to this -->
 <a class="with-leader-line doclink" href="#TEXT" title="=>.random-class">link</a>
 ```
+
+It shows leader-line to target element on hover, for example:
+
 
 ### GeoLink
 
@@ -137,7 +123,7 @@ If `title` of element is specified, leader-line use it as label, for example:
 
 ## Structure
 
-After `generateMaps()`, the container has the following structure:
+Function `generateMaps(container)` will modify container element with the following structure:
 
 ![structure](./assets/structure_1.jpg)
 
