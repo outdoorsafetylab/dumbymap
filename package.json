@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "cssprefix": "^2.0.17",
-    "easymde": "^2.18.0",
+    "easymde": "^2.20.0",
     "mapclay": "^0.10.1",
     "markdown-it": "^14.1.1",
     "markdown-it-anchor": "^9.2.0",
@@ -54,7 +54,7 @@
     "ol": "^10.8.0",
     "plain-draggable": "^2.5.15",
     "plain-modal": "^1.0.34",
-    "proj4": "^2.12.1"
+    "proj4": "^2.20.8"
   },
   "author": "Hsiehg Chin Fan <pham@topo.tw>",
   "homepage": "https://outdoorsafetylab.github.io/dumbymap",
