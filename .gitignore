@@ -15,3 +15,4 @@ addon/**css
 
 # others
 doc-coverage/
+.claude/
