@@ -53,7 +53,7 @@ const general = {
     {
       name: 'leader-line',
       transform (code, id) {
-        if (id.includes('node_modules/leader-line/')) {
+        if (id.includes('leader-line')) {
           return `${code}\nexport default LeaderLine;`
         }
         return null

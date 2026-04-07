@@ -1,4 +1,4 @@
-import LeaderLine from 'leader-line'
+import LeaderLine from './leader-line.min.js'
 import { insideWindow, insideParent } from './utils'
 import * as markers from './marker.mjs'
 
