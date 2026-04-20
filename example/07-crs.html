@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – Coordinate Reference Systems</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app" class="DumbyMap"></div>
+
+  <script type="text/markdown" id="md-content">
+# Coordinate Reference Systems (CRS)
+
+By default DumbyMap expects coordinates in **WGS 84 (EPSG:4326)** – decimal longitude/latitude.
+Set `data-crs` on the container to accept coordinates in another projection.
+
+
+## WGS 84 (default)
+
+No special configuration needed.  Coordinates are longitude/latitude in decimal degrees.
+
+Taipei 101: 121.564500,25.033800
+
+
+## TWD97 / TM2 (EPSG:3826)
+
+Taiwan Datum 97, 2° TM projection – coordinates are in metres.
+
+Add `data-crs="EPSG:3826"` to the `.DumbyMap` container element.
+
+DumbyMap will automatically transform metre-based coordinates to WGS 84 before
+panning the map, and display the original CRS values in the UI.
+
+
+## How to use
+
+Set the attribute on the root container before calling `generateMaps()`:
+
+```html
+<div id="app" class="DumbyMap" data-crs="EPSG:3826"></div>
+```
+
+Or pass it via `generateMaps` options:
+
+```js
+generateMaps(container, { crs: 'EPSG:3826' })
+```
+
+
+## Getting coordinates from the map
+
+Right-click on any map → **Get coordinates** to copy the clicked point's
+coordinates to the clipboard (7 decimal places, in the active CRS).
+
+
+## Map
+
+```map
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 12
+```
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>

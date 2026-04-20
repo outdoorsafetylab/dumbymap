@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – Layouts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app" class="DumbyMap"></div>
+
+  <script type="text/markdown" id="md-content">
+# Layout System
+
+DumbyMap ships with four layouts that control how content and maps are arranged.
+Switch between them via the **right-click context menu** or press **X**.
+
+
+## normal (default)
+
+Content and the map showcase are placed side by side using standard flow.
+The showcase scrolls with the page.
+
+
+## side-by-side
+
+A **draggable splitter bar** separates the content pane from the map showcase.
+Drag it left or right to resize the two panes (constrained to 25 %–75 %).
+
+
+## overlay
+
+Maps are fixed in the viewport.
+Content blocks become **draggable windows** that float on top of the maps.
+
+Each floating block has:
+- A close button (or middle-click the block title)
+- Font size **+** / **−** buttons
+- Snap-to-grid positioning (20 px grid)
+- Auto z-index elevation on hover
+
+
+## sticky
+
+The map showcase becomes a **draggable floating panel** anchored near the bottom-right corner.
+Content scrolls normally underneath it.
+
+
+## Keyboard shortcuts
+
+| Key | Action |
+|-----|--------|
+| X | Cycle to the next layout |
+| Tab | Focus next map |
+| N | Focus next content block |
+| P | Focus previous content block |
+
+
+## Maps
+
+```map
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 11
+```
+
+```map
+use: Maplibre
+center: [121.3000, 24.7936]
+zoom: 10
+```
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>

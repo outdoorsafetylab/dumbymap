@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – Markers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app" class="DumbyMap"></div>
+
+  <script type="text/markdown" id="md-content">
+# Markers
+
+DumbyMap provides 25+ predefined marker icons.
+Each GeoLink can display a different icon type.
+
+
+## Changing a marker type
+
+1. Click a GeoLink to place a default marker on the map.
+2. **Right-click** the GeoLink to open the context menu.
+3. Choose **Set marker type** and pick an icon from the list.
+
+
+## Adding markers manually
+
+Right-click anywhere on the map and choose **Add marker** to drop a named pin.
+
+
+## Available icons
+
+| Category | Types |
+|----------|-------|
+| Basic | pin, circle |
+| Recreation | campsite, mountain, waterfall, hotSpring, animal |
+| Infrastructure | parking, rail, heliport, racetrack |
+| Warning | caution, danger, cross, construction, fence, communication |
+| Navigation | water |
+| Shapes | star, triangle, triangleWhite, roadblock |
+
+Use the `type` URL parameter to set the marker icon directly:
+
+<a href="geo:25.0478,121.5319?type=pin">pin – Taipei Main Station</a>
+
+<a href="geo:25.0330,121.5654?type=star">star – Taipei 101</a>
+
+<a href="geo:25.0797,121.5767?type=campsite">campsite – Songshan Airport area</a>
+
+<a href="geo:25.0523,121.5436?type=mountain">mountain – Zhongzheng District</a>
+
+<a href="geo:25.0408,121.5700?type=caution">caution – Da'an District</a>
+
+
+## Map
+
+```map
+use: Maplibre
+center: [121.5500, 25.0500]
+zoom: 12
+```
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – Geocoding</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app" class="DumbyMap"></div>
+
+  <script type="text/markdown" id="md-content">
+# Geocoding
+
+DumbyMap integrates with the **Nominatim** geocoder (OpenStreetMap data).
+Select any text in the document, then right-click to search for matching places.
+
+
+## How to use
+
+1. **Select** a place name in the text below (e.g. highlight "Elephant Mountain").
+2. **Right-click** the selection to open the context menu.
+3. Choose **Geocode selection** (or similar) to query Nominatim.
+4. A list of matching results appears.
+5. **Hover** a result to preview it on the map (animated pan → zoom → fit).
+6. **Click** a result to confirm and create a GeoLink with a marker.
+
+
+## Places to try
+
+Select any of the names below and geocode them:
+
+- Elephant Mountain
+- Jiufen
+- Taroko Gorge
+- Sun Moon Lake
+- Kenting National Park
+
+
+## Preview animation
+
+While hovering a geocoding result the map:
+
+1. Pans to the place bounding box (1 000 ms)
+2. Zooms to the place centre point (600 ms)
+3. Fits back to the bounding box (1 500 ms)
+
+If the menu is closed without selecting a result, any preview markers are removed automatically.
+
+
+## Map
+
+```map
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 8
+```
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – GeoLinks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app" class="DumbyMap"></div>
+
+  <script type="text/markdown" id="md-content">
+# GeoLinks
+
+GeoLinks connect text coordinates to map positions.
+Clicking a GeoLink pans the map; a leader line is drawn while hovering.
+
+
+## Auto-generated from plain text
+
+Plain text coordinates are automatically detected and converted into clickable links.
+
+**Decimal (lon,lat):** Taipei 101 is at 121.564500,25.033800
+
+**Forward-slash separator:** 121.5654/25.0330
+
+**Full-width Unicode digits:** １２１．５６４５，２５．０３３０
+
+**DMS format:** E121d 30m 58s N25d 2m 50s
+
+**Unicode degree/minute/second:** E121度 30分 58秒 N25度 2分 50秒
+
+
+## Manual geo: anchors
+
+You can also write GeoLinks directly in HTML using the `geo:` URI scheme:
+
+<a href="geo:25.0478,121.5319">Taipei Main Station</a>
+
+<a href="geo:25.0330,121.5654">Taipei 101</a>
+
+<a href="geo:25.0797,121.5767">Songshan Airport</a>
+
+
+## Targeting a specific map
+
+When multiple maps are present, use the `id` parameter to target one:
+
+<a href="geo:25.0478,121.5319?id=north">North map</a>
+
+<a href="geo:25.0330,121.5654?id=south">South map</a>
+
+
+## Map
+
+```map
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 11
+```
+
+
+## Tips
+
+- **Left-click** a GeoLink to pan the map and place a marker.
+- **Middle-click** a marker (or GeoLink) to remove it.
+- **Right-click** a GeoLink to change the marker type or delete the link.
+- **Hold & drag** selected text onto the map to create a GeoLink interactively.
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>

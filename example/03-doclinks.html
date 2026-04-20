@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – DocLinks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app" class="DumbyMap"></div>
+
+  <script type="text/markdown" id="md-content">
+# DocLinks
+
+DocLinks connect anchors to other elements in the document using CSS selectors.
+When you hover a DocLink a **leader line** is drawn to the target element.
+
+
+## Syntax
+
+Write a link whose `href` begins with `#` and whose `title` begins with `=>`:
+
+```markdown
+[link text](href="#selector" "=> .target-selector")
+```
+
+The first selector (in `href`) is the link destination for navigation;
+the second selector (in `title`) identifies the element to draw the leader line to.
+
+
+## Example
+
+The paragraph below links to the map block.
+Hover over it to see the leader line.
+
+[Go to the map below](#map-section "=> #map-section")
+
+See also [the intro heading](#doclinks "=> h1")
+
+
+## Leader line path styles
+
+Right-click a DocLink to choose a path style:
+
+| Style | Description |
+|-------|-------------|
+| `magnet` | Default; curved magnetic path |
+| `straight` | Direct straight line |
+| `grid` | Axis-aligned grid path |
+| `fluid` | Smooth fluid curve |
+
+<div id="map-section"></div>
+
+## Map
+
+```map
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 12
+```
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>

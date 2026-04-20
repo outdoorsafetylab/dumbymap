@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – Drag-to-create GeoLinks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app" class="DumbyMap"></div>
+
+  <script type="text/markdown" id="md-content">
+# Drag-to-create GeoLinks
+
+You can create a GeoLink interactively by **dragging selected text** onto a map.
+
+
+## Steps
+
+1. **Select** any text in the document (e.g. one of the place names below).
+2. **Hold the mouse button** for ~300 ms – a drag line appears.
+3. **Drag** the cursor onto the map.
+4. **Release** on the desired location.
+
+DumbyMap will:
+- Determine the coordinates under the cursor.
+- Replace the selected text with a `<a href="geo:…">` link.
+- Place a marker at the dropped location.
+
+If you release **outside** a valid map area the action is cancelled and the
+original text is restored.
+
+
+## Try it
+
+Select one of the place labels below and drag it onto the map:
+
+**Taipei 101**
+
+**National Palace Museum**
+
+**Yangmingshan National Park**
+
+**Danshui Old Street**
+
+**Jiufen Village**
+
+
+## Map
+
+```map
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 11
+```
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>

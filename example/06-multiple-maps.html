@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – Multiple Maps & Navigation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app" class="DumbyMap"></div>
+
+  <script type="text/markdown" id="md-content">
+# Multiple Maps & Navigation
+
+A single page can contain several map blocks.
+DumbyMap tracks which map is **focused** and provides keyboard navigation.
+
+
+## Focus
+
+Only one map is focused at a time (indicated by the `.focus` CSS class).
+The focused map receives GeoLink clicks and keyboard events.
+
+- **Tab** – focus next map
+- Right-click → **Toggle focus** – manually focus/unfocus a map
+
+
+## Block navigation
+
+Content is split into *blocks* (articles separated by blank lines).
+Navigate blocks with:
+
+- **N** – focus next block
+- **P** – focus previous block
+
+
+## Map sections
+
+### Northern Taiwan
+
+Centred on Taipei.
+
+```map
+use: Maplibre
+id: north
+center: [121.5645, 25.0338]
+zoom: 10
+```
+
+
+### Central Taiwan
+
+Centred on Taichung.
+
+```map
+use: Maplibre
+id: central
+center: [120.6736, 24.1477]
+zoom: 10
+```
+
+
+### Southern Taiwan
+
+Centred on Tainan / Kaohsiung.
+
+```map
+use: Maplibre
+id: south
+center: [120.3120, 22.6273]
+zoom: 10
+```
+
+
+## Targeting maps from GeoLinks
+
+Use the `id` parameter to send a click to a specific map:
+
+<a href="geo:25.0478,121.5319?id=north">Taipei (→ north map)</a>
+
+<a href="geo:24.1477,120.6736?id=central">Taichung (→ central map)</a>
+
+<a href="geo:22.6273,120.3120?id=south">Kaohsiung (→ south map)</a>
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>

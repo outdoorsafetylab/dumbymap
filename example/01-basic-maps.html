@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – Basic Map Rendering</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="text/markdown" id="md-content">
+# Basic Map Rendering
+
+Maps are defined as YAML inside fenced code blocks tagged with `map`.
+DumbyMap delegates rendering to the [mapclay](https://github.com/outdoorsafetylab/mapclay) library,
+which supports **MapLibre**, **OpenLayers**, and **Leaflet** as backends.
+
+
+## MapLibre
+
+Use `use: Maplibre` to render with MapLibre GL JS.
+
+```map
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 12
+```
+
+
+## OpenLayers
+
+Use `use: Openlayers` for an OpenLayers-based map.
+
+```map
+use: Openlayers
+center: [121.5645, 25.0338]
+zoom: 12
+```
+
+
+## Leaflet
+
+Use `use: Leaflet` for a Leaflet map.
+
+```map
+use: Leaflet
+center: [121.5645, 25.0338]
+zoom: 12
+```
+
+
+## Map Options
+
+Common YAML options for every map block:
+
+| Key | Description |
+|-----|-------------|
+| `use` | Renderer backend: `Maplibre`, `Openlayers`, `Leaflet` |
+| `center` | `[lon, lat]` for the initial camera centre |
+| `zoom` | Initial zoom level |
+| `bounds` | `[[minLon,minLat],[maxLon,maxLat]]` to fit the view |
+
+Right-click on any map to open the **context menu** with editing options.
+  </script>
+
+  <script type="module">
+    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+
+    const md = document.getElementById('md-content').textContent
+    const container = document.getElementById('app')
+    markdown2HTML(container, md)
+    generateMaps(container)
+  </script>
+</body>
+</html>
