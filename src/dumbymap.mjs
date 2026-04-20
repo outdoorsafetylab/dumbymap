@@ -3,6 +3,7 @@ import MarkdownItAnchor from 'markdown-it-anchor'
 import MarkdownItFootnote from 'markdown-it-footnote'
 import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
+import MarkdownItAttrs from 'markdown-it-attrs'
 import * as mapclay from 'mapclay'
 import { onRemove, animateRectTransition, throttle, debounce, shiftByWindow } from './utils'
 import { Layout, SideBySide, Overlay, Sticky } from './Layout'
@@ -54,6 +55,7 @@ export const markdown2HTML = (container, mdContent) => {
     .use(MarkdownItFootnote)
     .use(MarkdownItFrontMatter)
     .use(MarkdownItInjectLinenumbers)
+    .use(MarkdownItAttrs)
 
   /** Custom rule for Blocks in DumbyMap */
   // FIXME A better way to generate blocks
