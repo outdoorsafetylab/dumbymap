@@ -42,11 +42,14 @@
     "stylelint-order": "^6.0.4"
   },
   "dependencies": {
+    "anim-event": "^1.0.17",
     "cssprefix": "^2.0.17",
     "easymde": "^2.20.0",
+    "m-class-list": "^1.1.10",
     "mapclay": "^0.10.1",
     "markdown-it": "^14.1.1",
     "markdown-it-anchor": "^9.2.0",
+    "markdown-it-attrs": "^4.3.1",
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-front-matter": "^0.2.4",
     "markdown-it-inject-linenumbers": "^0.3.0",
@@ -54,7 +57,10 @@
     "ol": "^10.8.0",
     "plain-draggable": "^2.5.15",
     "plain-modal": "^1.0.34",
-    "proj4": "^2.20.8"
+    "plain-overlay": "^1.4.17",
+    "pointer-event": "^1.3.1",
+    "proj4": "^2.20.8",
+    "timed-transition": "^1.5.4"
   },
   "author": "Hsiehg Chin Fan <pham@topo.tw>",
   "homepage": "https://outdoorsafetylab.github.io/dumbymap",
