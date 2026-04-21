@@ -86,6 +86,9 @@ export const markdown2HTML = (container, mdContent) => {
   htmlHolder.innerHTML = md.render(mdContent)
   container.appendChild(htmlHolder)
 
+  /** Store source for block editing */
+  container._dumbyMd = mdContent
+
   return container
 }
 
@@ -732,6 +735,130 @@ export const generateMaps = (container, {
       container.onmouseup = null
       container.onmousemove = null
     }
+  }
+
+  /** BLOCK EDITING: integrate inline edit modal when markdown source is available */
+  if (container._dumbyMd !== undefined) {
+    const SEP = '\n\n\n'
+
+    /**
+     * Split markdown into blocks at 2+ consecutive blank lines,
+     * keeping content inside code fences together.
+     * Matches DumbyMap's internal block splitting logic.
+     */
+    function splitMd (md) {
+      const lines = md.split('\n')
+      const blocks = []
+      let buf = []
+      let inFence = false
+      let blanks = 0
+      for (const line of lines) {
+        if (/^```/.test(line)) inFence = !inFence
+        if (!inFence && line.trim() === '') {
+          blanks++
+          buf.push(line)
+        } else {
+          if (!inFence && blanks >= 2) {
+            const content = buf.slice(0, buf.length - blanks).join('\n').trim()
+            if (content) blocks.push(content)
+            buf = []
+          }
+          blanks = 0
+          buf.push(line)
+        }
+      }
+      if (buf.length > 0) {
+        const content = buf.join('\n').trim()
+        if (content) blocks.push(content)
+      }
+      return blocks
+    }
+
+    let mdBlocks = splitMd(container._dumbyMd)
+
+    const assignBlockIndices = () => {
+      container.querySelectorAll('.dumby-block').forEach((block, i) => {
+        block.dataset.blockIndex = i
+      })
+    }
+    assignBlockIndices()
+
+    // Re-assign indices whenever the SemanticHtml child list changes
+    new window.MutationObserver(assignBlockIndices)
+      .observe(htmlHolder, { childList: true })
+
+    /** Build edit modal */
+    const overlay = document.createElement('div')
+    overlay.className = 'dumby-edit-overlay'
+    overlay.innerHTML = `
+      <div class="dumby-edit-modal">
+        <header class="dumby-edit-header">
+          <span>Edit Block</span>
+          <span class="dumby-edit-hint">Ctrl+Enter to save &nbsp;·&nbsp; Esc to cancel</span>
+        </header>
+        <textarea class="dumby-edit-textarea" spellcheck="false"></textarea>
+        <div class="dumby-edit-actions">
+          <button class="dumby-edit-cancel">Cancel</button>
+          <button class="dumby-edit-save">Save</button>
+        </div>
+      </div>
+    `
+    document.body.appendChild(overlay)
+
+    const textarea = overlay.querySelector('.dumby-edit-textarea')
+    let editingIndex = null
+
+    function openEditModal (index) {
+      editingIndex = index
+      textarea.value = mdBlocks[index]
+      overlay.classList.add('open')
+      textarea.focus()
+      textarea.selectionStart = textarea.selectionEnd = textarea.value.length
+    }
+
+    function closeEditModal () {
+      overlay.classList.remove('open')
+      editingIndex = null
+    }
+
+    function saveEditModal () {
+      if (editingIndex === null) return
+      mdBlocks.splice(editingIndex, 1, ...splitMd(textarea.value))
+      const newMd = mdBlocks.join(SEP)
+      markdown2HTML(container, newMd)
+      mdBlocks = splitMd(container._dumbyMd)
+      assignBlockIndices()
+      closeEditModal()
+    }
+
+    overlay.querySelector('.dumby-edit-save').onclick = saveEditModal
+    overlay.querySelector('.dumby-edit-cancel').onclick = closeEditModal
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeEditModal() })
+
+    const onEditKeydown = e => {
+      if (e.key === 'Escape') closeEditModal()
+    }
+    document.addEventListener('keydown', onEditKeydown)
+    textarea.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveEditModal()
+    })
+
+    /** Add "Edit Block" item to context menu */
+    dumbymap.utils.setContextMenu((e, menu) => {
+      const block = e.target.closest('.dumby-block[data-block-index]')
+      if (!block) return
+      const item = document.createElement('div')
+      item.className = 'menu-item'
+      item.textContent = '✏ Edit Block'
+      item.onclick = () => openEditModal(+block.dataset.blockIndex)
+      menu.insertBefore(item, menu.firstChild)
+    })
+
+    /** Clean up overlay and global listener when container is removed */
+    onRemove(container, () => {
+      overlay.remove()
+      document.removeEventListener('keydown', onEditKeydown)
+    })
   }
 
   /** Get default applied config */

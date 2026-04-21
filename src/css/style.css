@@ -40,142 +40,207 @@ h6 {
 /* End of Reset */
 
 body {
-  font-family: sans-serif;
-  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #24292f;
+  background-color: #ffffff;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin-bottom: 0.5em;
-
-  font-weight: bold;
+/* Center normal-layout DumbyMap pages like a markdown document */
+.Dumby[data-layout='normal'] {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
 }
 
-h1 {
-  font-size: 2em;
-}
+/* ── Typography scoped to rendered markdown content ── */
 
-h2 {
-  font-size: 1.5em;
-}
+.SemanticHtml {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
 
-h3 {
-  font-size: 1.25em;
-}
+    font-weight: 600;
+    line-height: 1.3;
+    color: #1f2328;
+  }
 
-p {
-  margin-top: 1em;
-  margin-bottom: 1em;
-
-  &:first-child {
+  h1:first-child,
+  h2:first-child,
+  h3:first-child {
     margin-top: 0;
   }
 
-  &:last-child {
-    margin-bottom: 0;
+  h1 {
+    padding-bottom: 0.35em;
+
+    border-bottom: 2px solid #d0d7de;
+
+    font-size: 2em;
   }
-}
 
-a {
-  color: #007bff;
-  text-decoration: none;
-}
+  h2 {
+    padding-bottom: 0.25em;
 
-a:hover {
-  text-decoration: underline;
-}
+    border-bottom: 1px solid #d0d7de;
 
-code {
-  display: inline-block;
-  padding-inline: 0.5em;
+    font-size: 1.5em;
+  }
 
-  border-radius: 5px;
+  h3 {
+    font-size: 1.25em;
+  }
 
-  background-color: whitesmoke;
+  h4 {
+    font-size: 1em;
+  }
 
-  color: #cd1d8d;
-  font-size: 1.2em;
-}
+  h5 {
+    font-size: 0.875em;
+  }
 
-pre {
-  width: 100%;
-}
+  h6 {
+    font-size: 0.85em;
 
-pre:has(code) {
-  display: block;
-  min-width: 400px;
-  margin: 0 0 10px;
-  padding: 9.5px;
+    color: #656d76;
+  }
 
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  p {
+    margin-top: 0;
+    margin-bottom: 1em;
+  }
 
-  background-color: whitesmoke;
+  a {
+    color: #0969da;
+    text-decoration: none;
 
-  color: #333;
-  font-size: 13px;
-  line-height: 1.4286;
-  word-break: break-all;
-  word-wrap: break-word;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 
   code {
-    padding: 0;
+    display: inline;
+    padding: 0.2em 0.4em;
 
-    border-radius: 0;
+    border-radius: 6px;
 
-    background-color: transparent;
+    background-color: #f6f8fa;
 
-    color: inherit;
+    color: #953800;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 0.875em;
+  }
+
+  pre {
+    width: 100%;
+    margin-bottom: 1em;
+    padding: 1rem;
+
+    border-radius: 8px;
+
+    background-color: #f6f8fa;
+
+    font-size: 0.875em;
+    line-height: 1.6;
+    overflow-x: auto;
+
+    code {
+      padding: 0;
+
+      border-radius: 0;
+
+      background-color: transparent;
+
+      color: inherit;
+      font-size: inherit;
+      white-space: pre;
+    }
+  }
+
+  ul,
+  ol {
+    margin-top: 0;
+    margin-bottom: 1em;
+    padding-left: 2em;
+  }
+
+  li {
+    margin-bottom: 0.3em;
+
+    & + li {
+      margin-top: 0.25em;
+    }
+  }
+
+  table {
+    border-collapse: collapse;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin-bottom: 1em;
+    overflow: auto;
+  }
+
+  th,
+  td {
+    padding: 6px 13px;
+
+    border: 1px solid #d0d7de;
+
+    text-align: left;
+  }
+
+  th {
+    background-color: #f6f8fa;
+
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) td {
+    background-color: #f6f8fa;
+  }
+
+  blockquote {
+    margin-bottom: 1em;
+    padding: 0 1em;
+
+    border-left: 4px solid #d0d7de;
+
+    color: #656d76;
     font-size: inherit;
-    white-space: pre-wrap;
+    font-style: normal;
+
+    text-align: left;
+
+    > :first-child {
+      margin-top: 0;
+    }
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  hr {
+    height: 2px;
+    margin: 1.5em 0;
+
+    border: none;
+
+    background-color: #d0d7de;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+
+    border-radius: 6px;
   }
 }
-
-ul,
-ol {
-  margin-top: 1em;
-  margin-bottom: 1em;
-  padding-left: 20px;
-}
-
-li {
-  margin-bottom: 0.5em;
-}
-
-table {
-  border-collapse: collapse;
-
-  width: 100%;
-}
-
-th,
-td {
-  padding: 8px;
-
-  border: 1px solid #ddd;
-
-  text-align: left;
-}
-
-th {
-  background-color: #f0f0f0;
-}
-
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* TODO */
-blockquote {
-  color: gray;
-  font-size: 1.2rem;
-  font-style: italic;
-
-  text-align: center;
-}
-
