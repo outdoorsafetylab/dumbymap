@@ -212,6 +212,16 @@ pre:has(.mapclay) {
   }
 }
 
+.dumby-menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+
+  &:popover-open {
+    display: block;
+  }
+}
+
 .menu-item {
   justify-content: space-between;
   padding: 0.5rem;
