@@ -765,3 +765,114 @@ textarea .edit-map {
 
   animation: spin 2s linear infinite;
 }
+
+/* ── Block Edit Modal ── */
+
+.dumby-edit-overlay {
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  background: rgb(0 0 0 / 40%);
+
+  &.open {
+    display: flex;
+  }
+}
+
+.dumby-edit-modal {
+  display: flex;
+  flex-direction: column;
+  width: 640px;
+  max-width: 92vw;
+  padding: 24px;
+
+  border-radius: 10px;
+
+  background: #fff;
+
+  gap: 12px;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 22%);
+}
+
+.dumby-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-family: system-ui, sans-serif;
+
+  > span:first-child {
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+
+.dumby-edit-hint {
+  font-size: 12px;
+
+  color: #888;
+}
+
+.dumby-edit-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 10px 12px;
+
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  color: #1a1a1a;
+  font-family: ui-monospace, SFMono-Regular, 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: #4f80f5;
+    box-shadow: 0 0 0 3px rgb(79 128 245 / 15%);
+  }
+}
+
+.dumby-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  font-family: system-ui, sans-serif;
+
+  gap: 8px;
+
+  button {
+    padding: 8px 18px;
+
+    border: none;
+    border-radius: 6px;
+
+    font-size: 13px;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.88;
+    }
+  }
+}
+
+.dumby-edit-save {
+  background: #2563eb;
+
+  color: #fff;
+  font-weight: 600;
+}
+
+.dumby-edit-cancel {
+  background: #e5e7eb;
+
+  color: #333;
+}
