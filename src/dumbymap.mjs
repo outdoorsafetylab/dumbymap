@@ -552,32 +552,34 @@ export const generateMaps = (container, {
 
     /** Add HTMLElement for menu */
     const menu = document.createElement('div')
+    menu.setAttribute('popover', 'auto')
     menu.classList.add('menu', 'dumby-menu')
     menu.onclick = (e) => {
       if (e.target.closest('.keep-menu')) return
-      menu.remove()
+      menu.hidePopover()
     }
     container.appendChild(menu)
-    const containerRect = container.getBoundingClientRect()
-    new window.MutationObserver(() => {
-      if (menu.childElementCount === 0) {
-        menu.style.display = 'none'
-        return
-      }
-      menu.style.display = 'block'
-      menu.style.left = (e.pageX - containerRect.left + 10) + 'px'
-      menu.style.top = (e.pageY - containerRect.top + 5) + 'px'
-      shiftByWindow(menu)
-      clearTimeout(menu.timer)
-    }).observe(menu, { childList: true })
-    menu.timer = setTimeout(() => menu.remove(), 100)
+
+    const showMenu = () => {
+      if (menu.childElementCount === 0) return
+      menu.style.left = (e.clientX + 10) + 'px'
+      menu.style.top = (e.clientY + 5) + 'px'
+      // Defer showPopover so it runs after pointerup, which on Linux fires
+      // after contextmenu and would otherwise trigger popover light-dismiss
+      setTimeout(() => {
+        if (!menu.isConnected) return
+        menu.showPopover()
+        shiftByWindow(menu)
+      }, 0)
+      return menu
+    }
 
     /** Menu Item for Geocoding */
     if (rangeSelected) {
       // TODO check click is inside selection
       const range = document.getSelection().getRangeAt(0)
       menu.appendChild(menuItem.addLinkbyGeocoding(range))
-      return menu
+      return showMenu()
     }
 
     /** Menu Item for editing map */
@@ -587,7 +589,7 @@ export const generateMaps = (container, {
         text: 'Finish Editig',
         onclick: () => mapEditor.blur(),
       }))
-      return menu
+      return showMenu()
     }
 
     /** Menu Items for Links */
@@ -634,7 +636,7 @@ export const generateMaps = (container, {
 
     if (linkWithLine) {
       menu.appendChild(menuItem.setLeaderLineType(linkWithLine))
-      return menu
+      return showMenu()
     }
 
     /** Menu Items for map */
@@ -675,30 +677,9 @@ export const generateMaps = (container, {
       menu.appendChild(menuItem.pickLayoutItem(dumbymap))
     }
 
-    return menu
+    return showMenu()
   }
 
-  /** MENU: Event Handler when clicking outside of Context Manu */
-  const actionOutsideMenu = e => {
-    const menu = container.querySelector('.dumby-menu')
-    if (!menu) return
-    const keepMenu = e.target.closest('.keep-menu') || e.target.classList.contains('.keep-menu')
-    if (keepMenu) return
-
-    const rect = menu.getBoundingClientRect()
-    if (
-      e.clientX < rect.left ||
-      e.clientX > rect.left + rect.width ||
-      e.clientY < rect.top ||
-      e.clientY > rect.top + rect.height
-    ) {
-      menu.remove()
-    }
-  }
-  document.addEventListener('click', actionOutsideMenu)
-  onRemove(container, () =>
-    document.removeEventListener('click', actionOutsideMenu),
-  )
 
   /** MOUSE: Drag/Drop on map for new GeoLink */
   container.ondragstart = () => false
