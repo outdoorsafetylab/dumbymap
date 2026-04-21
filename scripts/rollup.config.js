@@ -71,14 +71,7 @@ const general = {
 
 export default [
   {
-    input: 'src/editor.mjs',
-  },
-  {
     input: 'src/dumbymap.mjs',
   },
 ]
   .map(config => ({ ...general, ...config }))
-  .filter(config => {
-    if (watch) return config.input.match(/editor/)
-    return true
-  })
