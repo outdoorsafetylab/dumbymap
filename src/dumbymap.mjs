@@ -842,6 +842,29 @@ export const generateMaps = (container, {
     })
   }
 
+  /** Keybindings for map/block navigation */
+  const onKeydown = e => {
+    if (document.activeElement.matches('textarea, input')) return
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      dumbymap.utils.focusNextMap(e.shiftKey)
+    } else if (e.key === 'x' || e.key === 'X') {
+      e.preventDefault()
+      dumbymap.utils.switchToNextLayout(e.shiftKey)
+    } else if (e.key === 'n') {
+      e.preventDefault()
+      dumbymap.utils.focusNextBlock()
+    } else if (e.key === 'p') {
+      e.preventDefault()
+      dumbymap.utils.focusNextBlock(true)
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      dumbymap.utils.removeBlockFocus()
+    }
+  }
+  document.addEventListener('keydown', onKeydown)
+  onRemove(container, () => document.removeEventListener('keydown', onKeydown))
+
   /** Get default applied config */
   if (defaultApply) {
     fetch(defaultApply)
