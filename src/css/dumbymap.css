@@ -341,13 +341,17 @@ pre:has(.mapclay) {
 }
 
 .Dumby {
-  overflow: visible;
   width: 100%;
   height: 100%;
   margin: 0 auto;
   padding: 0;
 
   position: relative;
+
+  .SemanticHtml {
+    height: 100%;
+    overflow-y: scroll;
+  }
 
   &.dragging-geolink {
     user-select: none;
@@ -370,7 +374,6 @@ pre:has(.mapclay) {
       display: block;
     }
   }
-
 
   &::after {
     content: 'Layout: ' attr(data-layout);
