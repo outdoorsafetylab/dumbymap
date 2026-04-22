@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DumbyMap – Auto Blocks from Plain HTML</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../dist/css/style.css">
+  <link rel="stylesheet" href="../dist/css/dumbymap.css">
+</head>
+<body>
+  <div id="app">
+    <main>
+      <h1>Auto Blocks from Plain HTML</h1>
+      <p>
+        This page calls only <code>generateMaps()</code> with no
+        <code>markdown2HTML()</code> and no manual <code>.dumby-block</code>
+        wrappers. DumbyMap detects <code>&lt;h1&gt;</code>–<code>&lt;h3&gt;</code>
+        headings and automatically groups content into blocks.
+      </p>
+
+      <h2>Taipei</h2>
+      <p>
+        A map centred on Taipei rendered with MapLibre.
+        The coordinate <a href="geo:25.0338,121.5645">25.0338, 121.5645</a>
+        links directly to the map position.
+      </p>
+      <pre><code class="language-map">
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 12
+      </code></pre>
+
+      <h2>Tokyo</h2>
+      <p>
+        A map centred on Tokyo rendered with OpenLayers.
+        Click <a href="geo:35.6895,139.6917">35.6895, 139.6917</a> to focus.
+      </p>
+      <pre><code class="language-map">
+use: Openlayers
+center: [139.6917, 35.6895]
+zoom: 12
+      </code></pre>
+
+      <h2>Seoul</h2>
+      <p>
+        A map centred on Seoul rendered with Leaflet.
+        Click <a href="geo:37.5665,126.9780">37.5665, 126.9780</a> to focus.
+      </p>
+      <pre><code class="language-map">
+use: Leaflet
+center: [126.9780, 37.5665]
+zoom: 12
+      </code></pre>
+    </main>
+  </div>
+
+  <script type="module">
+    import { generateMaps } from '../dist/dumbymap.mjs'
+
+    generateMaps(document.getElementById('app'))
+  </script>
+</body>
+</html>
