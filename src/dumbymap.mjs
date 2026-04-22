@@ -152,7 +152,7 @@ export const generateMaps = (container, {
   renderCallback = () => null,
   defaultApply = 'https://outdoorsafetylab.github.io/dumbymap/assets/default.yml',
 } = {}) => {
-  /** Prepare: Contaner */
+  /** Prepare: Container */
   if (container.classList.contains('Dumby')) return
   container.classList.add('Dumby')
   delete container.dataset.layout
@@ -166,6 +166,54 @@ export const generateMaps = (container, {
     Array.from(container.children).find(e => e.id?.match(/main|content/) || e.className?.match?.(/main|content/)) ??
     Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
   htmlHolder.classList.add('SemanticHtml')
+
+  /** Prepare: Wrap loose text nodes in <p> so they are treated as block content */
+  const wrapTextNodes = (parent) => {
+    Array.from(parent.childNodes)
+      .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+      .forEach(node => {
+        const p = document.createElement('p')
+        node.replaceWith(p)
+        p.appendChild(node)
+      })
+  }
+
+  /** Prepare: Wrap content into .dumby-block if not already done by markdown2HTML */
+  if (!htmlHolder.querySelector('.dumby-block')) {
+    wrapTextNodes(htmlHolder)
+    const headings = htmlHolder.querySelectorAll('h1, h2, h3')
+    if (headings.length) {
+      const childNodes = Array.from(htmlHolder.childNodes)
+      let block = document.createElement('article')
+      block.className = 'dumby-block'
+      htmlHolder.appendChild(block)
+      childNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE && node.matches('h1, h2, h3') && block.children.length) {
+          block = document.createElement('article')
+          block.className = 'dumby-block'
+          htmlHolder.appendChild(block)
+        }
+        block.appendChild(node)
+      })
+    } else {
+      const sections = htmlHolder.querySelectorAll(':scope > section, :scope > article')
+      if (sections.length) {
+        sections.forEach(el => el.classList.add('dumby-block'))
+      } else {
+        const block = document.createElement('article')
+        block.className = 'dumby-block'
+        Array.from(htmlHolder.childNodes).forEach(node => block.appendChild(node))
+        htmlHolder.appendChild(block)
+      }
+    }
+  } else {
+    htmlHolder.querySelectorAll('.dumby-block').forEach(wrapTextNodes)
+  }
+
+  /** Prepare: Remove all siblings and text nodes except .SemanticHtml */
+  Array.from(container.childNodes)
+    .filter(node => node !== htmlHolder)
+    .forEach(node => node.remove())
 
   /** Prepare: Showcase */
   const showcase = document.createElement('div')
@@ -679,7 +727,6 @@ export const generateMaps = (container, {
 
     return showMenu()
   }
-
 
   /** MOUSE: Drag/Drop on map for new GeoLink */
   container.ondragstart = () => false
