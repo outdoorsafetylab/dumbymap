@@ -1,248 +1,310 @@
-/* CSS Reset */
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
 }
 
-* {
-  margin: 0;
+:root {
+  color-scheme: light dark;
+  --light: #fff;
+  --lesslight: #efefef;
+  --dark: #404040;
+  --moredark: #000;
+  --link: royalblue;
+  --border: #d0d7de;
 
-  line-height: calc(1em + 0.5rem);
+  border-top: 5px solid var(--dark);
+  line-height: 1.5em;
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  color: var(--dark);
 }
-
-img,
-picture,
-video,
-canvas,
-svg {
-  display: block;
-}
-
-input,
-button,
-textarea,
-select {
-  font: inherit;
-}
-
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  overflow-wrap: break-word;
-  hyphens: auto;
-}
-
-/* End of Reset */
 
 body {
-  height: 100vh;
-  margin-block: 1em;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.7;
-  color: #24292f;
-  background-color: #ffffff;
+  background-color: var(--light);
+  margin: 0;
+  padding: 0 20px 20px 20px;
 }
 
-/* Center normal-layout DumbyMap pages like a markdown document */
-.Dumby[data-layout='normal'] {
-  max-width: 56rem;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-/* ── Typography scoped to rendered markdown content ── */
-
-.SemanticHtml {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
-
-    font-weight: 600;
-    line-height: 1.3;
-    color: #1f2328;
-  }
-
-  h1:first-child,
-  h2:first-child,
-  h3:first-child {
-    margin-top: 0;
-  }
-
+.Dumby {
   h1 {
-    padding-bottom: 0.35em;
-
-    border-bottom: 2px solid #d0d7de;
-
-    font-size: 2em;
+    line-height: 1em;
   }
 
-  h2 {
-    padding-bottom: 0.25em;
-
-    border-bottom: 1px solid #d0d7de;
-
-    font-size: 1.5em;
-  }
-
-  h3 {
-    font-size: 1.25em;
-  }
-
-  h4 {
-    font-size: 1em;
-  }
-
-  h5 {
-    font-size: 0.875em;
-  }
-
-  h6 {
-    font-size: 0.85em;
-
-    color: #656d76;
-  }
-
-  p {
-    margin-top: 0;
-    margin-bottom: 1em;
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
   }
 
   a {
-    color: #0969da;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
+    outline: none;
+    color: var(--dark);
   }
 
-  code {
-    display: inline;
-    padding: 0.2em 0.4em;
-
-    border-radius: 6px;
-
-    background-color: #f6f8fa;
-
-    color: #953800;
-    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-    font-size: 0.875em;
+  a:hover {
+    text-decoration-color: var(--link);
   }
 
   pre {
-    width: 100%;
-    margin-bottom: 1em;
-    padding: 1rem;
-
-    border-radius: 8px;
-
-    background-color: #f6f8fa;
-
-    font-size: 0.875em;
-    line-height: 1.6;
-    overflow-x: auto;
-
-    code {
-      padding: 0;
-
-      border-radius: 0;
-
-      background-color: transparent;
-
-      color: inherit;
-      font-size: inherit;
-      white-space: pre;
-    }
-  }
-
-  ul,
-  ol {
-    margin-top: 0;
-    margin-bottom: 1em;
-    padding-left: 2em;
-  }
-
-  li {
-    margin-bottom: 0.3em;
-
-    & + li {
-      margin-top: 0.25em;
-    }
-  }
-
-  table {
-    border-collapse: collapse;
-    display: block;
-    width: max-content;
-    max-width: 100%;
-    margin-bottom: 1em;
+    background-color: var(--lesslight);
+    margin: 0.5em 0;
+    padding: 0.5em;
     overflow: auto;
   }
 
-  th,
-  td {
-    padding: 6px 13px;
-
-    border: 1px solid #d0d7de;
-
-    text-align: left;
-  }
-
-  th {
-    background-color: #f6f8fa;
-
-    font-weight: 600;
-  }
-
-  tr:nth-child(even) td {
-    background-color: #f6f8fa;
+  code {
+    background-color: var(--lesslight);
   }
 
   blockquote {
-    margin-bottom: 1em;
-    padding: 0 1em;
+    border-left: 0.25rem solid var(--dark);
+    padding-left: 1rem;
+  }
 
-    border-left: 4px solid #d0d7de;
+  button,
+  input,
+  textarea,
+  select {
+    font-size: 1em;
+  }
 
-    color: #656d76;
-    font-size: inherit;
-    font-style: normal;
+  input {
+    border: 1px solid var(--dark);
+    background-color: var(--lesslight);
+    border-radius: 0.25em;
+    padding: 0.5em;
+  }
 
-    text-align: left;
+  button,
+  .button,
+  input[type="submit"] {
+    display: inline-block;
+    background-color: var(--dark);
+    color: var(--light);
+    text-align: center;
+    padding: 0.5em;
+    border-radius: 0.25em;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+  }
 
-    > :first-child {
+  button:hover,
+  .button:hover,
+  input[type="submit"]:hover {
+    color: var(--lesslight);
+    background-color: var(--moredark);
+  }
+
+  button + button,
+  .button + .button,
+  input[type="submit"] + input[type="submit"] {
+    margin-left: 1em;
+  }
+
+  /* Center normal-layout DumbyMap pages like a markdown document */
+  &[data-layout="normal"] {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  /* ── Typography scoped to rendered content ── */
+
+  .SemanticHtml {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--moredark);
+    }
+
+    h1:first-child,
+    h2:first-child,
+    h3:first-child {
       margin-top: 0;
     }
 
-    > :last-child {
-      margin-bottom: 0;
+    h1 {
+      padding-bottom: 0.35em;
+      border-bottom: 2px solid var(--border);
+      font-size: 2em;
+      line-height: 1em;
+    }
+
+    h2 {
+      padding-bottom: 0.25em;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.5em;
+    }
+
+    h3 {
+      font-size: 1.25em;
+    }
+
+    h4 {
+      font-size: 1em;
+    }
+
+    h5 {
+      font-size: 0.875em;
+    }
+
+    h6 {
+      font-size: 0.85em;
+      color: #656d76;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 1em;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    code {
+      display: inline;
+      padding: 0.2em 0.4em;
+      border-radius: 6px;
+      background-color: var(--lesslight);
+      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas,
+        Liberation Mono, monospace;
+      font-size: 0.875em;
+    }
+
+    pre {
+      width: 100%;
+      margin-bottom: 1em;
+      padding: 1rem;
+      border-radius: 8px;
+      background-color: var(--lesslight);
+      font-size: 0.875em;
+      line-height: 1.6;
+      overflow-x: auto;
+
+      code {
+        padding: 0;
+        border-radius: 0;
+        background-color: transparent;
+        color: inherit;
+        font-size: inherit;
+        white-space: pre;
+      }
+    }
+
+    ul,
+    ol {
+      margin-top: 0;
+      margin-bottom: 1em;
+      padding-left: 2em;
+    }
+
+    li {
+      margin-bottom: 0.3em;
+
+      & + li {
+        margin-top: 0.25em;
+      }
+    }
+
+    table {
+      border-collapse: collapse;
+      display: block;
+      width: max-content;
+      max-width: 100%;
+      margin-bottom: 1em;
+      overflow: auto;
+    }
+
+    th,
+    td {
+      padding: 6px 13px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--lesslight);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) td {
+      background-color: var(--lesslight);
+    }
+
+    blockquote {
+      margin-bottom: 1em;
+      padding: 0 1em;
+      border-left: 4px solid var(--border);
+      color: #656d76;
+
+      > :first-child {
+        margin-top: 0;
+      }
+
+      > :last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    hr {
+      height: 2px;
+      margin: 1.5em 0;
+      border: none;
+      background-color: var(--border);
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
     }
   }
 
-  hr {
-    height: 2px;
-    margin: 1.5em 0;
+}
 
-    border: none;
-
-    background-color: #d0d7de;
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --light: #222;
+    --lesslight: #333;
+    --dark: #eee;
+    --moredark: #fefefe;
+    --border: #444;
   }
 
-  img {
-    max-width: 100%;
-    height: auto;
+  *:focus {
+    outline: var(--light);
+    box-shadow: 0 0 0 0.25em var(--link);
+  }
 
-    border-radius: 6px;
+  .button a {
+    color: var(--light);
+  }
+}
+
+/* Printing */
+@media print {
+  :root {
+    border-top: none;
   }
 }
