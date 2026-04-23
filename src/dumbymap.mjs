@@ -14,6 +14,65 @@ import PlainModal from 'plain-modal'
 import proj4 from 'proj4'
 import { register, fromEPSGCode } from 'ol/proj/proj4'
 
+/**
+ * Convert a DOM node (element or text) to a Markdown string.
+ * Handles the most common HTML elements so that raw-HTML containers
+ * can be round-tripped into editable markdown text.
+ *
+ * @param {Node} node
+ * @returns {string}
+ */
+export const htmlToMd = (node) => {
+  if (node.nodeType === Node.TEXT_NODE) {
+    const t = node.textContent
+    return t.trim() ? t : ''
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) return ''
+
+  const tag = node.tagName.toLowerCase()
+  const inner = () => Array.from(node.childNodes).map(htmlToMd).join('')
+
+  switch (tag) {
+    case 'h1': return `# ${inner().trim()}\n\n`
+    case 'h2': return `## ${inner().trim()}\n\n`
+    case 'h3': return `### ${inner().trim()}\n\n`
+    case 'h4': return `#### ${inner().trim()}\n\n`
+    case 'h5': return `##### ${inner().trim()}\n\n`
+    case 'h6': return `###### ${inner().trim()}\n\n`
+    case 'p': return `${inner().trim()}\n\n`
+    case 'br': return '\n'
+    case 'hr': return '---\n\n'
+    case 'strong':
+    case 'b': return `**${inner()}**`
+    case 'em':
+    case 'i': return `*${inner()}*`
+    case 'a': return `[${inner()}](${node.getAttribute('href') ?? ''})`
+    case 'img': return `![${node.getAttribute('alt') ?? ''}](${node.getAttribute('src') ?? ''})`
+    case 'code':
+      return node.closest('pre')
+        ? node.textContent
+        : `\`${node.textContent}\``
+    case 'pre': {
+      const code = node.querySelector('code')
+      const lang = (code?.className ?? '').match(/language-(\w+)/)?.[1] ?? ''
+      return `\`\`\`${lang}\n${(code ?? node).textContent.trim()}\n\`\`\`\n\n`
+    }
+    case 'blockquote':
+      return inner().trim().split('\n').map(l => `> ${l}`).join('\n') + '\n\n'
+    case 'ul':
+      return Array.from(node.children)
+        .map(li => `- ${htmlToMd(li).trim()}`)
+        .join('\n') + '\n\n'
+    case 'ol':
+      return Array.from(node.children)
+        .map((li, i) => `${i + 1}. ${htmlToMd(li).trim()}`)
+        .join('\n') + '\n\n'
+    default:
+      return inner()
+  }
+}
+
 /** VAR: CSS Selector for main components */
 const mapBlockSelector = 'pre:has(code[class*=map]), .mapclay-container'
 const docLinkSelector = 'a[href^="#"][title^="=>"]:not(.doclink)'
@@ -58,26 +117,32 @@ export const markdown2HTML = (container, mdContent) => {
     .use(MarkdownItAttrs)
 
   /** Custom rule for Blocks in DumbyMap */
-  // FIXME A better way to generate blocks
+  // Split into .dumby-block at every gap of 2+ blank lines (i.e. triple newline \n\n\n)
   md.renderer.rules.dumby_block_open = () => '<article class="dumby-block">'
   md.renderer.rules.dumby_block_close = () => '</article>'
-  md.core.ruler.before('block', 'dumby_block', state => {
-    state.tokens.push(new state.Token('dumby_block_open', '', 1))
-  })
-  // Add close tag for block with more than 2 empty lines
-  md.block.ruler.before('table', 'dumby_block', (state, startLine) => {
-    if (
-      state.src[state.bMarks[startLine - 1]] === '\n' &&
-      state.src[state.bMarks[startLine - 2]] === '\n' &&
-      state.tokens.at(-1).type !== 'list_item_open' // Quick hack for not adding tag after "::marker" for <li>
-    ) {
-      state.push('dumby_block_close', '', -1)
-      state.push('dumby_block_open', '', 1)
-    }
-  })
-
   md.core.ruler.after('block', 'dumby_block', state => {
-    state.tokens.push(new state.Token('dumby_block_close', '', -1))
+    const tokens = state.tokens
+    const out = []
+    let blockOpen = false
+    let prevEndLine = -1
+
+    for (const token of tokens) {
+      if (token.map) {
+        const gap = token.map[0] - prevEndLine
+        if (!blockOpen) {
+          out.push(new state.Token('dumby_block_open', '', 1))
+          blockOpen = true
+        } else if (gap >= 2) {
+          out.push(new state.Token('dumby_block_close', '', -1))
+          out.push(new state.Token('dumby_block_open', '', 1))
+        }
+        prevEndLine = token.map[1]
+      }
+      out.push(token)
+    }
+
+    if (blockOpen) out.push(new state.Token('dumby_block_close', '', -1))
+    state.tokens = out
   })
 
   /** Render HTML */
@@ -208,6 +273,14 @@ export const generateMaps = (container, {
     }
   } else {
     htmlHolder.querySelectorAll('.dumby-block').forEach(wrapTextNodes)
+  }
+
+  /** Prepare: Derive markdown source from HTML when generateMaps() is used on raw HTML */
+  if (container._dumbyMd === undefined) {
+    container._dumbyMd = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
+      .map(block => Array.from(block.childNodes).map(htmlToMd).join('').trim())
+      .filter(Boolean)
+      .join('\n\n\n')
   }
 
   /** Prepare: Remove all siblings and text nodes except .SemanticHtml */
@@ -703,7 +776,7 @@ export const generateMaps = (container, {
             menuItem.getCoordinatesByPixels(map, [x, y]),
             menuItem.restoreCamera(map),
             menuItem.addMarker({
-              point: [e.pageX, e.pageY],
+              point: [e.clientX, e.clientY],
               map,
             }),
           ],
@@ -765,45 +838,8 @@ export const generateMaps = (container, {
     }
   }
 
-  /** BLOCK EDITING: integrate inline edit modal when markdown source is available */
-  if (container._dumbyMd !== undefined) {
-    const SEP = '\n\n\n'
-
-    /**
-     * Split markdown into blocks at 2+ consecutive blank lines,
-     * keeping content inside code fences together.
-     * Matches DumbyMap's internal block splitting logic.
-     */
-    function splitMd (md) {
-      const lines = md.split('\n')
-      const blocks = []
-      let buf = []
-      let inFence = false
-      let blanks = 0
-      for (const line of lines) {
-        if (/^```/.test(line)) inFence = !inFence
-        if (!inFence && line.trim() === '') {
-          blanks++
-          buf.push(line)
-        } else {
-          if (!inFence && blanks >= 2) {
-            const content = buf.slice(0, buf.length - blanks).join('\n').trim()
-            if (content) blocks.push(content)
-            buf = []
-          }
-          blanks = 0
-          buf.push(line)
-        }
-      }
-      if (buf.length > 0) {
-        const content = buf.join('\n').trim()
-        if (content) blocks.push(content)
-      }
-      return blocks
-    }
-
-    let mdBlocks = splitMd(container._dumbyMd)
-
+  /** BLOCK EDITING: inline edit modal for each .dumby-block */
+  {
     const assignBlockIndices = () => {
       container.querySelectorAll('.dumby-block').forEach((block, i) => {
         block.dataset.blockIndex = i
@@ -838,7 +874,6 @@ export const generateMaps = (container, {
 
     function openEditModal (index) {
       editingIndex = index
-      textarea.value = mdBlocks[index]
       overlay.classList.add('open')
       textarea.focus()
       textarea.selectionStart = textarea.selectionEnd = textarea.value.length
@@ -849,20 +884,6 @@ export const generateMaps = (container, {
       editingIndex = null
     }
 
-    function saveEditModal () {
-      if (editingIndex === null) return
-      mdBlocks.splice(editingIndex, 1, ...splitMd(textarea.value))
-      const newMd = mdBlocks.join(SEP)
-      markdown2HTML(container, newMd)
-      mdBlocks = splitMd(container._dumbyMd)
-      assignBlockIndices()
-      closeEditModal()
-    }
-
-    overlay.querySelector('.dumby-edit-save').onclick = saveEditModal
-    overlay.querySelector('.dumby-edit-cancel').onclick = closeEditModal
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeEditModal() })
-
     const onEditKeydown = e => {
       if (e.key === 'Escape') closeEditModal()
     }
@@ -870,6 +891,58 @@ export const generateMaps = (container, {
     textarea.addEventListener('keydown', e => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveEditModal()
     })
+    overlay.querySelector('.dumby-edit-cancel').onclick = closeEditModal
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeEditModal() })
+
+    /** Markdown-backed editing: re-render the whole document on save */
+    const SEP = '\n\n\n'
+
+    function splitMd (md) {
+      const lines = md.split('\n')
+      const blocks = []
+      let buf = []
+      let inFence = false
+      let blanks = 0
+      for (const line of lines) {
+        if (/^```/.test(line)) inFence = !inFence
+        if (!inFence && line.trim() === '') {
+          blanks++
+          buf.push(line)
+        } else {
+          if (!inFence && blanks >= 2) {
+            const content = buf.slice(0, buf.length - blanks).join('\n').trim()
+            if (content) blocks.push(content)
+            buf = []
+          }
+          blanks = 0
+          buf.push(line)
+        }
+      }
+      if (buf.length > 0) {
+        const content = buf.join('\n').trim()
+        if (content) blocks.push(content)
+      }
+      return blocks
+    }
+
+    let mdBlocks = splitMd(container._dumbyMd)
+
+    const _open = openEditModal
+    openEditModal = index => {
+      textarea.value = mdBlocks[index]
+      _open(index)
+    }
+
+    const saveEditModal = () => {
+      if (editingIndex === null) return
+      mdBlocks.splice(editingIndex, 1, ...splitMd(textarea.value))
+      markdown2HTML(container, mdBlocks.join(SEP))
+      mdBlocks = splitMd(container._dumbyMd)
+      assignBlockIndices()
+      closeEditModal()
+    }
+
+    overlay.querySelector('.dumby-edit-save').onclick = saveEditModal
 
     /** Add "Edit Block" item to context menu */
     dumbymap.utils.setContextMenu((e, menu) => {
