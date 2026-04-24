@@ -86,11 +86,11 @@ zoom: 11
   </script>
 
   <script type="module">
-    import { markdown2HTML, generateMaps } from '../src/dumbymap.mjs'
+    import { markdown2dumbyBlock, generateMaps } from '../src/dumbymap.mjs'
 
     const md = document.getElementById('md-content').textContent
     const container = document.getElementById('app')
-    markdown2HTML(container, md)
+    markdown2dumbyBlock(container, md)
     generateMaps(container)
   </script>
 </body>

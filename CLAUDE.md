@@ -31,7 +31,7 @@ No test framework is configured. Code quality is maintained via StandardJS (`lin
 
 DumbyMap converts Semantic HTML and Markdown into pages with interactive maps. The two main exported functions are in `src/dumbymap.mjs`:
 
-- `markdown2HTML(container, mdContent)` — parses markdown (via `markdown-it`) into HTML with semantic enhancements
+- `markdown2dumbyBlock(container, mdContent)` — parses markdown (via `markdown-it`) into HTML with semantic enhancements
 - `generateMaps(container, options)` — initializes the map system: observes DOM, renders maps from YAML code blocks, wires up links and layouts
 
 The rendered DOM structure:

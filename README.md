@@ -19,14 +19,14 @@ Node.js:
 npm install dumbymap
 ```
 ```js
-import { markdown2HTML, generateMaps } from 'dumbymap'
+import { markdown2dumbyBlock, generateMaps } from 'dumbymap'
 
 // Create container element
 const container = document.createElement('div')
 document.body.append(container)
 
 // Convert markdown text into Semantic HTML
-markdown2HTML(container, '# Heading\n\n```map\nid: foo\nuse: Maplibre\n```\n')
+markdown2dumbyBlock(container, '# Heading\n\n```map\nid: foo\nuse: Maplibre\n```\n')
 
 // Gernerate maps from code block
 const dumbymap = generateMaps(container, options ?? {})

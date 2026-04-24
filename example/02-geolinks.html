@@ -78,15 +78,21 @@ When multiple maps are present, use the `id` parameter to target one:
 
 <a href="geo:25.0478,121.5319?id=north">North map</a>
 
-<a href="geo:25.0330,121.5654?id=south">South map</a>
+<a href="geo:23.0330,121.5654?id=south">South map</a>
 
 
 ## Map
 
 ```map
+id: north
 use: Maplibre
 center: [121.5645, 25.0338]
-zoom: 11
+zoom: 7
+---
+id: south
+use: Maplibre
+center: [121.5645, 23.0338]
+zoom: 7
 ```
 
 
@@ -99,11 +105,11 @@ zoom: 11
   </script>
 
   <script type="module">
-    import { markdown2HTML, generateMaps } from '../src/dumbymap.mjs'
+    import { markdown2dumbyBlock, generateMaps } from '../src/dumbymap.mjs'
 
     const md = document.getElementById('md-content').textContent
     const container = document.getElementById('app')
-    markdown2HTML(container, md)
+    markdown2dumbyBlock(container, md)
     generateMaps(container)
   </script>
 </body>
