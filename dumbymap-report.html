@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dumbymap.mjs — Code Report</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    color: #222;
+    background: #fafafa;
+  }
+  h1 { font-size: 1.6rem; border-bottom: 2px solid #333; padding-bottom: .4rem; margin-bottom: 2rem; }
+  h2 { font-size: 1.15rem; margin: 2.5rem 0 .5rem; color: #1a1a1a; border-left: 4px solid #555; padding-left: .6rem; scroll-margin-top: 1rem; }
+  nav#toc {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem 1.4rem;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    z-index: 100;
+  }
+  nav#toc h2 {
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 1rem;
+    color: #555;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  nav#toc h2 .toc-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: .9rem;
+    color: #888;
+    padding: 0;
+    line-height: 1;
+  }
+  nav#toc ol {
+    margin: .6rem 0 0;
+    padding-left: 1.4rem;
+  }
+  nav#toc.minimized ol {
+    display: none;
+  }
+  nav#toc.minimized {
+    padding: .7rem 1rem;
+  }
+  nav#toc li { margin: .2rem 0; break-inside: avoid; }
+  nav#toc a { color: #333; text-decoration: none; font-size: .9rem; }
+  nav#toc a:hover { text-decoration: underline; }
+  nav#toc .toc-tag {
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .1em .35em;
+    border-radius: 3px;
+    margin-right: .25rem;
+    vertical-align: middle;
+  }
+  h3 { font-size: 1rem; margin: 1.5rem 0 .3rem; color: #444; }
+  p { margin: .5rem 0 .8rem; }
+  a.lineref {
+    font-size: .8rem;
+    color: #888;
+    text-decoration: none;
+    font-family: monospace;
+    background: #eee;
+    padding: .1em .4em;
+    border-radius: 3px;
+    margin-left: .3rem;
+  }
+  code {
+    font-family: 'Fira Code', 'Cascadia Code', monospace;
+    font-size: .88em;
+    background: #f0f0f0;
+    padding: .15em .4em;
+    border-radius: 3px;
+    color: #1a1a1a;
+  }
+  pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-size: .85em;
+    line-height: 1.55;
+    margin: .6rem 0 1rem;
+  }
+  pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+  }
+  .section {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.4rem;
+  }
+  .tag {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: .15em .5em;
+    border-radius: 3px;
+    margin-right: .4rem;
+    vertical-align: middle;
+  }
+  .tag-export  { background: #d4edda; color: #155724; }
+  .tag-internal{ background: #d1ecf1; color: #0c5460; }
+  .tag-watch   { background: #fff3cd; color: #856404; }
+  .tag-ui      { background: #f8d7da; color: #721c24; }
+  .tag-var     { background: #e2e3e5; color: #383d41; }
+  ul { margin: .4rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .25rem 0; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 2rem 0; }
+</style>
+</head>
+<body>
+
+<h1>dumbymap.mjs — Code Report</h1>
+<p>
+  A top-to-bottom walkthrough of <code>src/dumbymap.mjs</code>, the core library of DumbyMap.
+  Line references link to the sections described.
+</p>
+
+<nav id="toc">
+  <h2>Contents <button class="toc-toggle" title="Toggle contents">▼</button></h2>
+  <ol>
+    <li><a href="#imports"><span class="toc-tag tag-var">var</span>Dependencies</a></li>
+    <li><a href="#htmlToMd"><span class="toc-tag tag-export">export</span><code>htmlToMd()</code></a></li>
+    <li><a href="#splitMd"><span class="toc-tag tag-internal">internal</span><code>splitMd()</code></a></li>
+    <li><a href="#constants"><span class="toc-tag tag-var">var</span>Module constants</a></li>
+    <li><a href="#markdown2dumbyBlock"><span class="toc-tag tag-export">export</span><code>markdown2dumbyBlock()</code></a></li>
+    <li><a href="#updateAttributeByStep"><span class="toc-tag tag-internal">internal</span><code>updateAttributeByStep</code> &amp; <code>defaultRender</code></a></li>
+    <li><a href="#generateMaps"><span class="toc-tag tag-export">export</span><code>generateMaps()</code></a></li>
+    <li><a href="#htmlHolder"><span class="toc-tag tag-internal">prepare</span>htmlHolder discovery</a></li>
+    <li><a href="#wrapTextNodes"><span class="toc-tag tag-internal">prepare</span><code>wrapTextNodes()</code></a></li>
+    <li><a href="#blockWrapping"><span class="toc-tag tag-internal">prepare</span><code>.dumby-block</code> wrapping</a></li>
+    <li><a href="#perBlockMd"><span class="toc-tag tag-internal">prepare</span>Per-block <code>._md</code> storage</a></li>
+    <li><a href="#dumbymapObj"><span class="toc-tag tag-internal">prepare</span><code>dumbymap</code> object</a></li>
+    <li><a href="#observers"><span class="toc-tag tag-watch">watch</span>MutationObservers</a></li>
+    <li><a href="#addGeoLinksByText"><span class="toc-tag tag-internal">links</span><code>addGeoLinksByText()</code></a></li>
+    <li><a href="#mapClassObserver"><span class="toc-tag tag-watch">watch</span><code>mapClassObserver()</code></a></li>
+    <li><a href="#afterMapRendered"><span class="toc-tag tag-internal">map</span><code>afterMapRendered()</code></a></li>
+    <li><a href="#renderMap"><span class="toc-tag tag-internal">map</span><code>assignMapId</code> &amp; <code>renderMap()</code></a></li>
+    <li><a href="#contextMenu"><span class="toc-tag tag-ui">ui</span>Context menu</a></li>
+    <li><a href="#dragGeoLink"><span class="toc-tag tag-ui">ui</span>Drag-to-GeoLink</a></li>
+    <li><a href="#blockEditing"><span class="toc-tag tag-ui">ui</span>Block editing modal</a></li>
+    <li><a href="#keybindings"><span class="toc-tag tag-ui">ui</span>Keyboard shortcuts</a></li>
+    <li><a href="#defaultApply"><span class="toc-tag tag-internal">init</span>Default config fetch &amp; return</a></li>
+  </ol>
+</nav>
+
+<!-- ─── IMPORTS ─────────────────────────────────────────────── -->
+<h2 id="imports"><span class="tag tag-var">imports</span> Dependencies <a class="lineref">L1–15</a></h2>
+<div class="section">
+  <p>The file opens by pulling in all third-party and local modules it needs:</p>
+  <ul>
+    <li><strong>Markdown rendering</strong> — <code>markdown-it</code> plus six plugins:
+      <code>markdown-it-anchor</code> (heading permalinks),
+      <code>markdown-it-footnote</code>,
+      <code>markdown-it-front-matter</code>,
+      <code>markdown-it-inject-linenumbers</code>,
+      <code>markdown-it-attrs</code> (arbitrary HTML attributes on tokens).</li>
+    <li><strong>Map engine</strong> — <code>mapclay</code>, the rendering layer that delegates to MapLibre / OpenLayers / Leaflet.</li>
+    <li><strong>Local helpers</strong> — <code>utils.mjs</code> (DOM utilities), <code>Layout.mjs</code>, <code>Link.mjs</code>, <code>dumbyUtils.mjs</code>, <code>MenuItem.mjs</code>.</li>
+    <li><strong>CRS support</strong> — <code>proj4</code> + <code>ol/proj/proj4</code> for arbitrary coordinate reference systems.</li>
+    <li><strong>Modal</strong> — <code>plain-modal</code> for the overlay modal used by the full-content viewer.</li>
+  </ul>
+</div>
+
+<!-- ─── htmlToMd ─────────────────────────────────────────────── -->
+<h2 id="htmlToMd"><span class="tag tag-export">export</span> <code>htmlToMd(node)</code> <a class="lineref">L25–74</a></h2>
+<div class="section">
+  <p>
+    Converts a live DOM node into a Markdown string. It is used whenever DumbyMap needs to
+    derive an editable text representation from raw HTML (e.g. when <code>generateMaps()</code>
+    is called directly on hand-written HTML without going through <code>markdown2dumbyBlock()</code>).
+  </p>
+  <h3>Text nodes</h3>
+  <p>Returns the raw text content, or an empty string if it is whitespace-only.</p>
+  <pre><code>if (node.nodeType === Node.TEXT_NODE) {
+  const t = node.textContent
+  return t.trim() ? t : ''
+}</code></pre>
+
+  <h3>Known element tags</h3>
+  <p>
+    A <code>switch</code> on <code>node.tagName</code> maps headings, inline marks,
+    links, images, code, fenced code blocks, blockquotes, and lists to their Markdown
+    equivalents. The recursive helper <code>inner()</code> serialises child nodes first:
+  </p>
+  <pre><code>const inner = () => Array.from(node.childNodes).map(htmlToMd).join('')
+
+case 'h1': return `# ${inner().trim()}\n\n`
+case 'pre': {
+  const code = node.querySelector('code')
+  const lang = (code?.className ?? '').match(/language-(\w+)/)?.[1] ?? ''
+  return `\`\`\`${lang}\n${(code ?? node).textContent.trim()}\n\`\`\`\n\n`
+}</code></pre>
+
+  <h3>Unknown tags — <code>UNWRAP_TAGS</code> vs. <code>outerHTML</code></h3>
+  <p>
+    The <code>default</code> branch distinguishes two cases using the module-level set
+    <code>UNWRAP_TAGS</code> <a class="lineref">L76</a>:
+  </p>
+  <pre><code>const UNWRAP_TAGS = new Set([
+  'div','article','section','main','aside','header','footer','nav'
+])
+
+default:
+  return UNWRAP_TAGS.has(tag) ? inner() : node.outerHTML</code></pre>
+  <ul>
+    <li><strong>Block-container tags</strong> (<code>div</code>, <code>section</code>, etc.) are <em>unwrapped</em> — their children are serialised recursively so the block structure is preserved as plain Markdown.</li>
+    <li><strong>Everything else</strong> (e.g. <code>&lt;table&gt;</code>, <code>&lt;figure&gt;</code>, custom elements) is kept verbatim via <code>node.outerHTML</code>. Since markdown-it renders with <code>html: true</code>, raw HTML passthrough is safe.</li>
+  </ul>
+</div>
+
+<!-- ─── splitMd ─────────────────────────────────────────────── -->
+<h2 id="splitMd"><span class="tag tag-internal">internal</span> <code>splitMd(md)</code> <a class="lineref">L86–112</a></h2>
+<div class="section">
+  <p>
+    Splits a Markdown string into an array of block strings at every run of
+    <strong>2 or more consecutive blank lines</strong> (i.e. <code>\n\n\n</code> or more).
+    Fenced code blocks (<code>```...```</code>) are treated as atomic — blank lines inside
+    them never trigger a split.
+  </p>
+  <pre><code>if (/^```/.test(line)) inFence = !inFence
+if (!inFence && blanks >= 2) {
+  // flush current buffer as one block
+}</code></pre>
+  <p>
+    This function is used in two places:
+  </p>
+  <ul>
+    <li>In <code>markdown2dumbyBlock()</code> to pair each rendered <code>.dumby-block</code> with its source text.</li>
+    <li>In <code>saveEditModal()</code> to split user-typed text that contains <code>\n\n\n</code> separators into multiple new blocks.</li>
+  </ul>
+</div>
+
+<!-- ─── Module constants ─────────────────────────────────────── -->
+<h2 id="constants"><span class="tag tag-var">vars</span> Module-level constants <a class="lineref">L114–128</a></h2>
+<div class="section">
+  <h3>CSS selectors</h3>
+  <pre><code>const mapBlockSelector = 'pre:has(code[class*=map]), .mapclay-container'
+const docLinkSelector  = 'a[href^="#"][title^="=>"]:not(.doclink)'
+const geoLinkSelector  = 'a[href^="geo:"]:not(.geolink)'</code></pre>
+  <p>
+    These three selectors are used throughout <code>generateMaps()</code> and its observers
+    to identify map code blocks, document-fragment links, and geo-scheme links respectively.
+    The <code>:not()</code> guards prevent double-initialisation.
+  </p>
+
+  <h3>Default layouts</h3>
+  <pre><code>const defaultLayouts = [
+  new Layout({ name: 'normal' }),
+  new SideBySide({ name: 'side-by-side' }),
+  new Overlay({ name: 'overlay' }),
+  new Sticky({ name: 'sticky' }),
+]</code></pre>
+  <p>Four built-in layout strategies, always prepended to any caller-supplied layouts.</p>
+
+  <h3>Map cache</h3>
+  <pre><code>const mapCache = {}</code></pre>
+  <p>
+    A module-level object keyed by map ID. Already-rendered maps are stored here so that
+    when <code>markdown2dumbyBlock()</code> re-renders the document (e.g. after a block edit),
+    previously rendered map instances are reused and the user sees no visual disruption.
+  </p>
+</div>
+
+<!-- ─── markdown2dumbyBlock ─────────────────────────────────── -->
+<h2 id="markdown2dumbyBlock"><span class="tag tag-export">export</span> <code>markdown2dumbyBlock(container, mdContent)</code> <a class="lineref">L138–200</a></h2>
+<div class="section">
+  <p>
+    Accepts a Markdown (or raw HTML, since Markdown is a superset) string and renders it
+    into <code>.dumby-block</code> <code>&lt;article&gt;</code> elements inside a
+    <code>.SemanticHtml</code> wrapper appended to <code>container</code>.
+    Any pre-existing <code>.SemanticHtml</code> is removed first.
+  </p>
+
+  <h3>markdown-it configuration</h3>
+  <pre><code>const md = MarkdownIt({ html: true, breaks: true, linkify: true })
+  .use(MarkdownItAnchor, { permalink: ... })
+  .use(MarkdownItFootnote)
+  .use(MarkdownItFrontMatter)
+  .use(MarkdownItInjectLinenumbers)
+  .use(MarkdownItAttrs)</code></pre>
+  <p>
+    <code>html: true</code> is the key option — it lets raw HTML tags pass through
+    unchanged, making the function equally usable with hand-written HTML input.
+  </p>
+
+  <h3>Custom <code>dumby_block</code> rule</h3>
+  <p>
+    A core rule inserted <em>after</em> the built-in <code>block</code> pass injects
+    <code>dumby_block_open / dumby_block_close</code> tokens around content that is separated
+    by 2 or more blank lines:
+  </p>
+  <pre><code>md.core.ruler.after('block', 'dumby_block', state => {
+  for (const token of tokens) {
+    const gap = token.map[0] - prevEndLine
+    if (!blockOpen) {
+      out.push(new state.Token('dumby_block_open', '', 1))
+    } else if (gap >= 2) {          // 2+ blank lines → new block
+      out.push(new state.Token('dumby_block_close', '', -1))
+      out.push(new state.Token('dumby_block_open', '', 1))
+    }
+  }
+})</code></pre>
+  <p>These tokens render as <code>&lt;article class="dumby-block"&gt;</code> wrappers.</p>
+
+  <h3>Per-block markdown source storage</h3>
+  <pre><code>const mdPieces = splitMd(mdContent)
+htmlHolder.querySelectorAll('.dumby-block').forEach((block, i) => {
+  block._md = mdPieces[i] ?? ''
+})</code></pre>
+  <p>
+    Each <code>.dumby-block</code> element gets a <code>._md</code> property holding its
+    source Markdown string. This makes blocks self-contained for later editing — no
+    container-level string needs to be maintained.
+  </p>
+</div>
+
+<!-- ─── updateAttributeByStep / defaultRender ───────────────── -->
+<h2 id="updateAttributeByStep"><span class="tag tag-internal">internal</span> <code>updateAttributeByStep</code> &amp; <code>defaultRender</code> <a class="lineref">L207–237</a></h2>
+<div class="section">
+  <h3><code>updateAttributeByStep</code></h3>
+  <p>
+    A step callback passed to <code>mapclay</code>. It writes a progress string such as
+    <code>"2/3"</code> onto <code>target.dataset.report</code>, giving CSS a hook for
+    showing a render-progress indicator on the map container. The trailing space trick
+    (<code>'\x20'</code>) forces a DOM attribute change even when the value hasn't changed,
+    ensuring the animation fires.
+  </p>
+  <pre><code>target.dataset.report = passNum   // e.g. "2/3"
+if (final) setTimeout(() => delete target.dataset.report, 100)</code></pre>
+
+  <h3><code>defaultRender</code></h3>
+  <pre><code>const defaultRender = mapclay.renderWith(config => ({
+  use: config.use ?? 'Leaflet',
+  width: '100%',
+  ...config,
+  aliases: { ...mapclay.defaultAliases, ...(config.aliases ?? {}) },
+  stepCallback: updateAttributeByStep,
+}))</code></pre>
+  <p>
+    Wraps <code>mapclay.renderWith()</code> to set project-wide defaults: Leaflet as the
+    fallback renderer, full-width maps, merged aliases, and the progress callback above.
+    Callers of <code>generateMaps()</code> can replace this via the <code>render</code> option.
+  </p>
+</div>
+
+<!-- ─── generateMaps ────────────────────────────────────────── -->
+<h2 id="generateMaps"><span class="tag tag-export">export</span> <code>generateMaps(container, options)</code> <a class="lineref">L252–1015</a></h2>
+<div class="section">
+  <p>
+    The main entry point. Accepts an <code>HTMLElement</code> and an options object and
+    wires up the complete DumbyMap system: block detection, map rendering, link decoration,
+    layout management, context menu, keyboard shortcuts, and inline block editing.
+    Returns a sealed <code>dumbymap</code> object.
+  </p>
+  <p>
+    The function is idempotent — if the container already has class <code>Dumby</code>
+    it returns immediately:
+  </p>
+  <pre><code>if (container.classList.contains('Dumby')) return</code></pre>
+</div>
+
+<!-- ─── Prepare: htmlHolder ─────────────────────────────────── -->
+<h2 id="htmlHolder"><span class="tag tag-internal">prepare</span> htmlHolder discovery <a class="lineref">L270–275</a></h2>
+<div class="section">
+  <p>
+    Finds the element that will hold the semantic content using a waterfall of heuristics,
+    so <code>generateMaps()</code> works on many different page structures without
+    configuration:
+  </p>
+  <pre><code>const htmlHolder =
+  container.querySelector(contentSelector) ??
+  container.querySelector('.SemanticHtml, main, :scope > article') ??
+  Array.from(container.children).find(e =>
+    e.id?.match(/main|content/) || e.className?.match?.(/main|content/)
+  ) ??
+  Array.from(container.children)
+    .sort((a, b) => a.textContent.length &lt; b.textContent.length)
+    .at(0)</code></pre>
+  <p>
+    The last fallback picks the child element with the most text — a reasonable guess
+    when no other signal is present.
+  </p>
+</div>
+
+<!-- ─── Prepare: wrapTextNodes ──────────────────────────────── -->
+<h2 id="wrapTextNodes"><span class="tag tag-internal">prepare</span> <code>wrapTextNodes(parent)</code> <a class="lineref">L278–286</a></h2>
+<div class="section">
+  <p>
+    Bare text nodes directly inside <code>htmlHolder</code> are invisible to CSS block
+    selectors. This helper wraps them in <code>&lt;p&gt;</code> elements so they are treated
+    as first-class block content:
+  </p>
+  <pre><code>Array.from(parent.childNodes)
+  .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+  .forEach(node => {
+    const p = document.createElement('p')
+    node.replaceWith(p)
+    p.appendChild(node)
+  })</code></pre>
+</div>
+
+<!-- ─── Prepare: .dumby-block wrapping ──────────────────────── -->
+<h2 id="blockWrapping"><span class="tag tag-internal">prepare</span> <code>.dumby-block</code> wrapping <a class="lineref">L288–318</a></h2>
+<div class="section">
+  <p>
+    If <code>markdown2dumbyBlock()</code> was already called, <code>.dumby-block</code>
+    elements already exist; the branch just calls <code>wrapTextNodes</code> on each.
+    Otherwise it creates them from raw HTML using three strategies in order:
+  </p>
+  <ul>
+    <li><strong>Heading-based split</strong> — if any <code>h1</code>/<code>h2</code>/<code>h3</code> is present, a new block is started at each heading (after the first has content).</li>
+    <li><strong>Semantic sections</strong> — if the direct children are <code>&lt;section&gt;</code> or <code>&lt;article&gt;</code> elements, they are promoted to <code>.dumby-block</code>.</li>
+    <li><strong>Single block fallback</strong> — all content is wrapped in one <code>&lt;article class="dumby-block"&gt;</code>.</li>
+  </ul>
+  <pre><code>if (headings.length) {
+  childNodes.forEach(node => {
+    if (node.matches('h1,h2,h3') && block.children.length) {
+      block = document.createElement('article')
+      block.className = 'dumby-block'
+      htmlHolder.appendChild(block)
+    }
+    block.appendChild(node)
+  })
+}</code></pre>
+</div>
+
+<!-- ─── Prepare: per-block _md ──────────────────────────────── -->
+<h2 id="perBlockMd"><span class="tag tag-internal">prepare</span> Per-block <code>._md</code> storage <a class="lineref">L320–325</a></h2>
+<div class="section">
+  <p>
+    After blocks are established (by either path), any block that lacks a <code>._md</code>
+    property (i.e. was created from raw HTML, not from <code>markdown2dumbyBlock()</code>)
+    derives its Markdown source via <code>htmlToMd()</code>:
+  </p>
+  <pre><code>htmlHolder.querySelectorAll('.dumby-block').forEach(block => {
+  if (block._md === undefined) {
+    block._md = Array.from(block.childNodes).map(htmlToMd).join('').trim()
+  }
+})</code></pre>
+  <p>
+    This ensures all blocks carry editable source text regardless of how the page was
+    initialised — with Markdown, raw HTML, or pre-existing <code>.dumby-block</code> markup.
+  </p>
+</div>
+
+<!-- ─── dumbymap object ─────────────────────────────────────── -->
+<h2 id="dumbymapObj"><span class="tag tag-internal">prepare</span> <code>dumbymap</code> object <a class="lineref">L342–377</a></h2>
+<div class="section">
+  <p>
+    A plain object returned to the caller (and used internally) that provides live getters
+    to always reflect the current DOM state:
+  </p>
+  <pre><code>const dumbymap = {
+  get htmlHolder () { return container.querySelector('.SemanticHtml') },
+  get showcase ()   { return container.querySelector('.Showcase') },
+  get blocks ()     { return Array.from(container.querySelectorAll('.dumby-block')) },
+  utils: { ...utils, renderedMaps, setContextMenu, focusNextMap, switchToNextLayout },
+  aliases: {},
+  ...
+}</code></pre>
+  <p>
+    All utility functions are bound to <code>dumbymap</code> so that <code>this</code>
+    inside them refers to the dumbymap instance. The object is sealed with
+    <code>Object.seal()</code> before being returned.
+  </p>
+</div>
+
+<!-- ─── MutationObservers ────────────────────────────────────── -->
+<h2 id="observers"><span class="tag tag-watch">watch</span> MutationObservers <a class="lineref">L379–480</a></h2>
+<div class="section">
+  <h3>Text content observer <a class="lineref">L379–397</a></h3>
+  <p>
+    Watches for <code>characterData</code> changes (text edits). For each mutation,
+    it skips map elements and then:
+  </p>
+  <ul>
+    <li>Calls <code>utils.addGeoSchemeByText()</code> to auto-linkify coordinate-like text.</li>
+    <li>Re-renders any parent map block via <code>renderMap()</code>.</li>
+  </ul>
+
+  <h3>Children observer <a class="lineref">L399–443</a></h3>
+  <p>
+    Watches <code>childList</code> and a single attribute (<code>data-init-dumby</code>).
+    On each mutation it:
+  </p>
+  <ul>
+    <li>Updates <code>block.dataset.total</code> on all blocks so CSS can number them.</li>
+    <li>Initialises any new <code>geoLinkSelector</code> and <code>docLinkSelector</code> elements as <code>GeoLink</code> / <code>DocLink</code> instances.</li>
+    <li>Renders any new map code blocks found via <code>mapBlockSelector</code>.</li>
+  </ul>
+  <p>
+    The entire observation is bootstrapped by setting <code>container.dataset.initDumby = 'true'</code>
+    <a class="lineref">L445</a>, which triggers the attribute filter and processes the initial DOM.
+  </p>
+
+  <h3>Layout observer <a class="lineref">L447–480</a></h3>
+  <p>
+    Watches <code>data-layout</code> attribute changes. On change, it calls the
+    <code>leaveHandler</code> of the old layout and the <code>enterHandler</code> of the new
+    one, clears inline styles, and nudges the focused map to ensure it re-positions correctly:
+  </p>
+  <pre><code>dumbymap.layouts.find(l => l.name === newLayout)
+  ?.enterHandler?.call(this, dumbymap)</code></pre>
+</div>
+
+<!-- ─── addGeoLinksByText ────────────────────────────────────── -->
+<h2 id="addGeoLinksByText"><span class="tag tag-internal">links</span> <code>addGeoLinksByText(node)</code> <a class="lineref">L487–496</a></h2>
+<div class="section">
+  <p>
+    Finds coordinate-like text in <code>node</code> and converts it to
+    <code>&lt;a href="geo:..."&gt;</code> GeoLink anchors. It also applies the current CRS
+    transformation so coordinates are expressed in the correct projection:
+  </p>
+  <pre><code>Promise.all([fromEPSGCode(crsString), addGeoScheme]).then((values) => {
+  values.at(-1)
+    .map(utils.updateGeoSchemeByCRS(crsString))
+    .filter(link => link)
+    .forEach(GeoLink)
+})</code></pre>
+</div>
+
+<!-- ─── mapClassObserver ─────────────────────────────────────── -->
+<h2 id="mapClassObserver"><span class="tag tag-watch">watch</span> <code>mapClassObserver()</code> <a class="lineref">L502–573</a></h2>
+<div class="section">
+  <p>
+    Returns a <code>MutationObserver</code> that watches the <code>class</code> attribute of
+    a single map element. Its main job is moving the map element between the
+    <code>.SemanticHtml</code> content area and the <code>.Showcase</code> panel when the
+    map gains or loses the <code>focus</code> class.
+  </p>
+  <h3>Moving into Showcase</h3>
+  <pre><code>const placeholder = target.cloneNode(true)
+placeholder.dataset.placeholder = target.id
+parent.replaceChild(placeholder, target)
+showcase.appendChild(target)
+animateRectTransition(target, placeholder.getBoundingClientRect(), {
+  duration: 300, resume: true,
+})</code></pre>
+  <p>
+    A clone with no content serves as a size placeholder in the original position.
+    <code>animateRectTransition</code> animates the real map from its old rect to the Showcase.
+    An <code>onRemove</code> callback returns the map to its original parent if the placeholder
+    is removed (e.g. on layout change).
+  </p>
+  <h3>Moving back from Showcase</h3>
+  <p>
+    The reverse animation runs from the Showcase rect back to the placeholder rect, after
+    which the placeholder is removed and the map is inlined again.
+  </p>
+</div>
+
+<!-- ─── afterMapRendered ─────────────────────────────────────── -->
+<h2 id="afterMapRendered"><span class="tag tag-internal">map</span> <code>afterMapRendered(renderer)</code> <a class="lineref">L580–612</a></h2>
+<div class="section">
+  <p>
+    Called by <code>renderMap()</code> when a mapclay renderer resolves. It:
+  </p>
+  <ul>
+    <li>Caches fulfilled renderers in <code>mapCache</code> by map ID.</li>
+    <li>Calls the caller-supplied <code>renderCallback</code>.</li>
+    <li>Attaches a <code>mapClassObserver()</code> to the map element.</li>
+    <li>Auto-focuses the first rendered map if none is focused yet.</li>
+  </ul>
+  <pre><code>if (mapElement.dataset.render === 'fulfilled') {
+  mapCache[mapElement.id] = renderer
+}
+const observer = mapClassObserver()
+observer.observe(mapElement, { attributes: true, attributeFilter: ['class'] })</code></pre>
+</div>
+
+<!-- ─── assignMapId / renderMap ──────────────────────────────── -->
+<h2 id="renderMap"><span class="tag tag-internal">map</span> <code>assignMapId</code> &amp; <code>renderMap(target)</code> <a class="lineref">L614–700</a></h2>
+<div class="section">
+  <h3><code>assignMapId(config)</code></h3>
+  <p>
+    Ensures every map config gets a unique ID, derived from the <code>use</code> renderer
+    name with an auto-incrementing counter if the ID is already taken:
+  </p>
+  <pre><code>let mapId = config.use?.split('/')?.at(-1)
+while (!mapId || mapIdList.includes(mapId)) {
+  mapId = `${config.use ?? 'unnamed'}-${counter++}`
+}</code></pre>
+
+  <h3><code>renderMap(target)</code></h3>
+  <p>
+    Parses YAML from the code block's text content (normalising non-breaking spaces),
+    reuses any cached maps by ID, then calls the <code>render</code> function debounced
+    by <code>mapDelay</code> ms. The debounce prevents thrashing during rapid DOM updates
+    (e.g. live markdown editing):
+  </p>
+  <pre><code>target.renderMap = debounce(
+  (configList) => render(target, configList).forEach(p => p.then(afterMapRendered)),
+  mapDelay,
+)</code></pre>
+</div>
+
+<!-- ─── Context menu ─────────────────────────────────────────── -->
+<h2 id="contextMenu"><span class="tag tag-ui">ui</span> Context menu <a class="lineref">L704–850</a></h2>
+<div class="section">
+  <p>
+    Overrides <code>container.oncontextmenu</code> to show a custom popover menu.
+    The menu is built fresh on every right-click with items conditional on what was clicked:
+  </p>
+  <ul>
+    <li><strong>Block element (always first)</strong> — "✏ Edit Block" via <code>editBlockItem(block)</code>, appended immediately after menu creation so it is always the first item when a block is targeted.</li>
+    <li><strong>Text selection</strong> — "Add GeoLink by geocoding" for the selected text.</li>
+    <li><strong>Map editor active</strong> — "Finish Editing" item.</li>
+    <li><strong>GeoLink</strong> — Delete option (if auto-created from text or geocoding) and link-type picker.</li>
+    <li><strong>LeaderLine link</strong> — Line-type picker.</li>
+    <li><strong>Map element</strong> — Map ID label, edit map, render results, toggle focus, Actions folder (get coordinates, restore camera, add marker).</li>
+    <li><strong>Block element</strong> — Toggle block focus.</li>
+    <li><strong>Always</strong> (if not in map or in Showcase map) — Pick map, pick block, pick layout items.</li>
+  </ul>
+  <pre><code>/** Menu Item for editing block - always first */
+if (block?.dataset.blockIndex != null) {
+  menu.appendChild(editBlockItem(block))
+}
+
+menu.setAttribute('popover', 'auto')
+// Defer showPopover so it runs after pointerup
+setTimeout(() => { menu.showPopover(); shiftByWindow(menu) }, 0)</code></pre>
+  <p>
+    The <code>popover</code> API provides native light-dismiss behaviour. <code>shiftByWindow</code>
+    nudges the menu back into viewport if it would overflow.
+  </p>
+</div>
+
+<!-- ─── Mouse drag for GeoLink ──────────────────────────────── -->
+<h2 id="dragGeoLink"><span class="tag tag-ui">ui</span> Drag-to-GeoLink <a class="lineref">L845–880</a></h2>
+<div class="section">
+  <p>
+    Allows the user to drag from a text selection to create a GeoLink. A
+    <code>.point-by-arrow</code> div follows the cursor. If the mouse button is held for
+    more than 300 ms, <code>utils.addGeoLinkByDrag()</code> is called:
+  </p>
+  <pre><code>const timer = setTimeout(() => {
+  utils.addGeoLinkByDrag(container, range, pointByArrow)
+}, 300)
+
+container.onmousemove = (event) => {
+  pointByArrow.style.left = `${event.clientX - rect.left}px`
+  pointByArrow.style.top  = `${event.clientY - rect.top}px`
+}
+container.onmouseup = () => {
+  clearTimeout(timer)
+  pointByArrow.remove()
+}</code></pre>
+</div>
+
+<!-- ─── Block editing ────────────────────────────────────────── -->
+<h2 id="blockEditing"><span class="tag tag-ui">ui</span> Block editing modal <a class="lineref">L889–890</a></h2>
+<div class="section">
+  <p>
+    The entire block editing setup is delegated to <code>menuItem.setupBlockEdit()</code>
+    in <code>MenuItem.mjs</code>, which returns a menu item factory stored as
+    <code>editBlockItem</code>:
+  </p>
+  <pre><code>const editBlockItem = menuItem.setupBlockEdit(dumbymap, {
+  container, htmlHolder, markdown2dumbyBlock, splitMd
+})</code></pre>
+  <p>
+    <code>setupBlockEdit()</code> handles all one-time initialisation — block index
+    tracking, overlay/modal creation, keyboard wiring, save/close logic, and
+    <code>onRemove</code> cleanup — then returns <code>(block) =&gt; Item(...)</code>.
+    The factory is called directly inside <code>container.oncontextmenu</code> to
+    inject "✏ Edit Block" as the first menu item whenever a block is targeted.
+  </p>
+
+  <h3>Block index tracking</h3>
+  <p>
+    <code>setupBlockEdit()</code> assigns <code>data-block-index</code> to every
+    <code>.dumby-block</code> at setup time and re-assigns via a
+    <code>MutationObserver</code> on <code>htmlHolder</code> whenever its child list changes,
+    keeping indices in sync after edits that add or remove blocks.
+  </p>
+
+  <h3>Saving — with block splitting</h3>
+  <pre><code>const saveEditModal = () => {
+  const allMd = dumbymap.blocks.map(b => b._md)
+  allMd.splice(editingIndex, 1, ...splitMd(textarea.value))
+  markdown2dumbyBlock(container, allMd.join('\n\n\n'))
+  assignBlockIndices()
+  closeEditModal()
+}</code></pre>
+  <p>
+    <code>splitMd(textarea.value)</code> splits the edited text on <code>\n\n\n</code>.
+    If the user typed a separator, the spread <code>...</code> inserts multiple entries,
+    so one block can become several. The whole document is then re-rendered via
+    <code>markdown2dumbyBlock()</code>, which re-uses cached maps and stores fresh
+    <code>._md</code> on every new block.
+  </p>
+</div>
+
+<!-- ─── Keybindings ──────────────────────────────────────────── -->
+<h2 id="keybindings"><span class="tag tag-ui">ui</span> Keyboard shortcuts <a class="lineref">L892–913</a></h2>
+<div class="section">
+  <p>
+    A global <code>keydown</code> listener (ignored when focus is in a <code>textarea</code>
+    or <code>input</code>) provides navigation shortcuts:
+  </p>
+  <ul>
+    <li><code>Tab</code> / <code>Shift+Tab</code> — focus next / previous map.</li>
+    <li><code>x</code> / <code>X</code> — cycle layouts forward / backward.</li>
+    <li><code>n</code> / <code>p</code> — focus next / previous block.</li>
+    <li><code>Escape</code> — remove block focus.</li>
+  </ul>
+  <p>The listener is removed via <code>onRemove(container, ...)</code> when the container leaves the DOM.</p>
+</div>
+
+<!-- ─── defaultApply / return ────────────────────────────────── -->
+<h2 id="defaultApply"><span class="tag tag-internal">init</span> Default config fetch &amp; return <a class="lineref">L915–933</a></h2>
+<div class="section">
+  <h3><code>defaultApply</code></h3>
+  <p>
+    If a URL is provided (defaults to the project's hosted <code>default.yml</code>),
+    it is fetched and its <code>aliases</code> section is merged into
+    <code>dumbymap.aliases</code>. This lets a remote YAML file provide renderer aliases
+    (e.g. shorthand names for tile sources) without baking them into the bundle:
+  </p>
+  <pre><code>fetch(defaultApply)
+  .then(res => res.text())
+  .then(rawText => {
+    const config = mapclay.parseConfigsFromYaml(rawText)?.at(0)
+    Object.entries(config.aliases).forEach(([option, aliases]) => {
+      dumbymap.aliases[option] = aliases
+    })
+  })</code></pre>
+
+  <h3>Return value</h3>
+  <pre><code>return Object.seal(dumbymap)</code></pre>
+  <p>
+    The <code>dumbymap</code> object is sealed so callers cannot accidentally add or
+    delete properties, while still being able to mutate existing ones (e.g. <code>aliases</code>).
+  </p>
+</div>
+
+<hr>
+<p style="color:#888; font-size:.82rem; text-align:center;">
+  Generated from <code>src/dumbymap.mjs</code> — DumbyMap project
+</p>
+
+<script>
+  const toc = document.getElementById('toc')
+  const btn = toc.querySelector('.toc-toggle')
+  toc.querySelector('h2').addEventListener('click', () => {
+    const minimized = toc.classList.toggle('minimized')
+    btn.textContent = minimized ? '▲' : '▼'
+  })
+</script>
+</body>
+</html>
