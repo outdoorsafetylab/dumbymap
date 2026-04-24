@@ -36,7 +36,7 @@
   }
   </script>
 </head>
-<body>
+<body style="height: 100vh;">
   <div id="app" class="DumbyMap"></div>
 
   <script type="text/markdown" id="md-content">
@@ -63,7 +63,7 @@ the second selector (in `title`) identifies the element to draw the leader line 
 The paragraph below links to the map block.
 Hover over it to see the leader line.
 
-[Go to the map below](#map-section "=> #map-section")
+[Go to the map below](#map-section "=> .map-section")
 
 See also [the intro heading](#doclinks "=> h1")
 
@@ -79,9 +79,7 @@ Right-click a DocLink to choose a path style:
 | `grid` | Axis-aligned grid path |
 | `fluid` | Smooth fluid curve |
 
-<div id="map-section"></div>
-
-## Map
+## Map {.map-section}
 
 ```map
 use: Maplibre
