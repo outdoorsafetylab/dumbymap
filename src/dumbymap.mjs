@@ -60,6 +60,7 @@ export const htmlToMd = (node) => {
     }
     case 'blockquote':
       return inner().trim().split('\n').map(l => `> ${l}`).join('\n') + '\n\n'
+    case 'li': return inner()
     case 'ul':
       return Array.from(node.children)
         .map(li => `- ${htmlToMd(li).trim()}`)
@@ -69,8 +70,46 @@ export const htmlToMd = (node) => {
         .map((li, i) => `${i + 1}. ${htmlToMd(li).trim()}`)
         .join('\n') + '\n\n'
     default:
-      return inner()
+      return UNWRAP_TAGS.has(tag) ? inner() : node.outerHTML
   }
+}
+
+const UNWRAP_TAGS = new Set(['div', 'article', 'section', 'main', 'aside', 'header', 'footer', 'nav'])
+
+/**
+ * Split a markdown string into block strings on 2+ consecutive blank lines.
+ * Fence blocks (``` ... ```) are treated as atomic — blank lines inside them
+ * do not trigger a split.
+ *
+ * @param {string} md
+ * @returns {string[]}
+ */
+const splitMd = (md) => {
+  const lines = md.split('\n')
+  const blocks = []
+  let buf = []
+  let inFence = false
+  let blanks = 0
+  for (const line of lines) {
+    if (/^```/.test(line)) inFence = !inFence
+    if (!inFence && line.trim() === '') {
+      blanks++
+      buf.push(line)
+    } else {
+      if (!inFence && blanks >= 2) {
+        const content = buf.slice(0, buf.length - blanks).join('\n').trim()
+        if (content) blocks.push(content)
+        buf = []
+      }
+      blanks = 0
+      buf.push(line)
+    }
+  }
+  if (buf.length > 0) {
+    const content = buf.join('\n').trim()
+    if (content) blocks.push(content)
+  }
+  return blocks
 }
 
 /** VAR: CSS Selector for main components */
@@ -90,13 +129,14 @@ const defaultLayouts = [
 const mapCache = {}
 
 /**
- * Converts Markdown content to HTML and prepares it for DumbyMap rendering
+ * Converts Markdown/HTML content into .dumby-block elements inside container.
+ * Since markdown-it has html:true, raw HTML is also accepted as input.
  *
  * @param {HTMLElement} container - Target Element to include generated HTML contents
- * @param {string} mdContent - Texts in Markdown format
- * @returns {Object} An object representing the DumbyMap instance
+ * @param {string} mdContent - Text in Markdown (superset of HTML) format
+ * @returns {HTMLElement} container
  */
-export const markdown2HTML = (container, mdContent) => {
+export const markdown2dumbyBlock = (container, mdContent) => {
   /** Prepare Elements for Container */
   container.querySelector('.SemanticHtml')?.remove()
 
@@ -151,8 +191,11 @@ export const markdown2HTML = (container, mdContent) => {
   htmlHolder.innerHTML = md.render(mdContent)
   container.appendChild(htmlHolder)
 
-  /** Store source for block editing */
-  container._dumbyMd = mdContent
+  /** Store markdown source per block for editing */
+  const mdPieces = splitMd(mdContent)
+  htmlHolder.querySelectorAll('.dumby-block').forEach((block, i) => {
+    block._md = mdPieces[i] ?? ''
+  })
 
   return container
 }
@@ -243,7 +286,7 @@ export const generateMaps = (container, {
       })
   }
 
-  /** Prepare: Wrap content into .dumby-block if not already done by markdown2HTML */
+  /** Prepare: Wrap content into .dumby-block if not already done by markdown2dumbyBlock */
   if (!htmlHolder.querySelector('.dumby-block')) {
     wrapTextNodes(htmlHolder)
     const headings = htmlHolder.querySelectorAll('h1, h2, h3')
@@ -275,13 +318,12 @@ export const generateMaps = (container, {
     htmlHolder.querySelectorAll('.dumby-block').forEach(wrapTextNodes)
   }
 
-  /** Prepare: Derive markdown source from HTML when generateMaps() is used on raw HTML */
-  if (container._dumbyMd === undefined) {
-    container._dumbyMd = Array.from(htmlHolder.querySelectorAll('.dumby-block'))
-      .map(block => Array.from(block.childNodes).map(htmlToMd).join('').trim())
-      .filter(Boolean)
-      .join('\n\n\n')
-  }
+  /** Prepare: Store markdown source per block (derive from HTML when generateMaps() is used on raw HTML) */
+  htmlHolder.querySelectorAll('.dumby-block').forEach(block => {
+    if (block._md === undefined) {
+      block._md = Array.from(block.childNodes).map(htmlToMd).join('').trim()
+    }
+  })
 
   /** Prepare: Remove all siblings and text nodes except .SemanticHtml */
   Array.from(container.childNodes)
@@ -681,8 +723,14 @@ export const generateMaps = (container, {
     }
     container.appendChild(menu)
 
+    /** Menu Item for editing block - always first */
+    if (block?.dataset.blockIndex != null) {
+      menu.appendChild(editBlockItem(block))
+    }
+
     const showMenu = () => {
       if (menu.childElementCount === 0) return
+      console.log(e)
       menu.style.left = (e.clientX + 10) + 'px'
       menu.style.top = (e.clientY + 5) + 'px'
       // Defer showPopover so it runs after pointerup, which on Linux fires
@@ -839,128 +887,7 @@ export const generateMaps = (container, {
   }
 
   /** BLOCK EDITING: inline edit modal for each .dumby-block */
-  {
-    const assignBlockIndices = () => {
-      container.querySelectorAll('.dumby-block').forEach((block, i) => {
-        block.dataset.blockIndex = i
-      })
-    }
-    assignBlockIndices()
-
-    // Re-assign indices whenever the SemanticHtml child list changes
-    new window.MutationObserver(assignBlockIndices)
-      .observe(htmlHolder, { childList: true })
-
-    /** Build edit modal */
-    const overlay = document.createElement('div')
-    overlay.className = 'dumby-edit-overlay'
-    overlay.innerHTML = `
-      <div class="dumby-edit-modal">
-        <header class="dumby-edit-header">
-          <span>Edit Block</span>
-          <span class="dumby-edit-hint">Ctrl+Enter to save &nbsp;·&nbsp; Esc to cancel</span>
-        </header>
-        <textarea class="dumby-edit-textarea" spellcheck="false"></textarea>
-        <div class="dumby-edit-actions">
-          <button class="dumby-edit-cancel">Cancel</button>
-          <button class="dumby-edit-save">Save</button>
-        </div>
-      </div>
-    `
-    document.body.appendChild(overlay)
-
-    const textarea = overlay.querySelector('.dumby-edit-textarea')
-    let editingIndex = null
-
-    function openEditModal (index) {
-      editingIndex = index
-      overlay.classList.add('open')
-      textarea.focus()
-      textarea.selectionStart = textarea.selectionEnd = textarea.value.length
-    }
-
-    function closeEditModal () {
-      overlay.classList.remove('open')
-      editingIndex = null
-    }
-
-    const onEditKeydown = e => {
-      if (e.key === 'Escape') closeEditModal()
-    }
-    document.addEventListener('keydown', onEditKeydown)
-    textarea.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveEditModal()
-    })
-    overlay.querySelector('.dumby-edit-cancel').onclick = closeEditModal
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeEditModal() })
-
-    /** Markdown-backed editing: re-render the whole document on save */
-    const SEP = '\n\n\n'
-
-    function splitMd (md) {
-      const lines = md.split('\n')
-      const blocks = []
-      let buf = []
-      let inFence = false
-      let blanks = 0
-      for (const line of lines) {
-        if (/^```/.test(line)) inFence = !inFence
-        if (!inFence && line.trim() === '') {
-          blanks++
-          buf.push(line)
-        } else {
-          if (!inFence && blanks >= 2) {
-            const content = buf.slice(0, buf.length - blanks).join('\n').trim()
-            if (content) blocks.push(content)
-            buf = []
-          }
-          blanks = 0
-          buf.push(line)
-        }
-      }
-      if (buf.length > 0) {
-        const content = buf.join('\n').trim()
-        if (content) blocks.push(content)
-      }
-      return blocks
-    }
-
-    let mdBlocks = splitMd(container._dumbyMd)
-
-    const _open = openEditModal
-    openEditModal = index => {
-      textarea.value = mdBlocks[index]
-      _open(index)
-    }
-
-    const saveEditModal = () => {
-      if (editingIndex === null) return
-      mdBlocks.splice(editingIndex, 1, ...splitMd(textarea.value))
-      markdown2HTML(container, mdBlocks.join(SEP))
-      mdBlocks = splitMd(container._dumbyMd)
-      assignBlockIndices()
-      closeEditModal()
-    }
-
-    overlay.querySelector('.dumby-edit-save').onclick = saveEditModal
-
-    /** Add "Edit Block" item to context menu */
-    dumbymap.utils.setContextMenu((e, menu) => {
-      const block = e.target.closest('.dumby-block[data-block-index]')
-      if (!block) return
-      const item = document.createElement('div')
-      item.className = 'menu-item'
-      item.textContent = '✏ Edit Block'
-      item.onclick = () => openEditModal(+block.dataset.blockIndex)
-      menu.insertBefore(item, menu.firstChild)
-    })
-
-    /** Clean up overlay and global listener when container is removed */
-    onRemove(container, () => {
-      overlay.remove()
-      document.removeEventListener('keydown', onEditKeydown)
-    })
-  }
+  const editBlockItem = menuItem.setupBlockEdit(dumbymap, { container, htmlHolder, markdown2dumbyBlock, splitMd })
 
   /** Keybindings for map/block navigation */
   const onKeydown = e => {

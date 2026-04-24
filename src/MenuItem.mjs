@@ -648,6 +648,94 @@ export const addLinkbyGeocoding = (range) => {
 }
 
 /**
+ * setupBlockEdit. Set up block edit overlay and return a menu item factory.
+ *
+ * @param {Object} dumbymap
+ * @param {Object} options
+ * @param {HTMLElement} options.container
+ * @param {HTMLElement} options.htmlHolder
+ * @param {Function} options.markdown2dumbyBlock
+ * @param {Function} options.splitMd
+ */
+export const setupBlockEdit = (dumbymap, { container, htmlHolder, markdown2dumbyBlock, splitMd }) => {
+  const assignBlockIndices = () => {
+    container.querySelectorAll('.dumby-block').forEach((block, i) => {
+      block.dataset.blockIndex = i
+    })
+  }
+  assignBlockIndices()
+
+  new window.MutationObserver(assignBlockIndices)
+    .observe(htmlHolder, { childList: true })
+
+  /** Build edit modal */
+  const overlay = document.createElement('div')
+  overlay.className = 'dumby-edit-overlay'
+  overlay.innerHTML = `
+    <div class="dumby-edit-modal">
+      <header class="dumby-edit-header">
+        <span>Edit Block</span>
+        <span class="dumby-edit-hint">Ctrl+Enter to save &nbsp;·&nbsp; Esc to cancel</span>
+      </header>
+      <textarea class="dumby-edit-textarea" spellcheck="false"></textarea>
+      <div class="dumby-edit-actions">
+        <button class="dumby-edit-cancel">Cancel</button>
+        <button class="dumby-edit-save">Save</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(overlay)
+
+  const textarea = overlay.querySelector('.dumby-edit-textarea')
+  let editingIndex = null
+
+  const closeEditModal = () => {
+    overlay.classList.remove('open')
+    editingIndex = null
+  }
+
+  const SEP = '\n\n\n'
+
+  const saveEditModal = () => {
+    if (editingIndex === null) return
+    const allMd = dumbymap.blocks.map(b => b._md)
+    allMd.splice(editingIndex, 1, ...splitMd(textarea.value))
+    markdown2dumbyBlock(container, allMd.join(SEP))
+    assignBlockIndices()
+    closeEditModal()
+  }
+
+  const openEditModal = (index) => {
+    editingIndex = index
+    textarea.value = dumbymap.blocks[index]._md ?? ''
+    overlay.classList.add('open')
+    textarea.focus()
+    textarea.selectionStart = textarea.selectionEnd = textarea.value.length
+  }
+
+  const onEditKeydown = e => {
+    if (e.key === 'Escape') closeEditModal()
+  }
+  document.addEventListener('keydown', onEditKeydown)
+  textarea.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveEditModal()
+  })
+  overlay.querySelector('.dumby-edit-cancel').onclick = closeEditModal
+  overlay.querySelector('.dumby-edit-save').onclick = saveEditModal
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeEditModal() })
+
+  onRemove(container, () => {
+    overlay.remove()
+    document.removeEventListener('keydown', onEditKeydown)
+  })
+
+  return (block) => Item({
+    text: '✏ Edit Block',
+    onclick: () => openEditModal(+block.dataset.blockIndex),
+  })
+}
+
+/**
  * geocodingResult.
  *
  * @param {Array<Number[]>} bounds - boundingbox in format: [minLon, minLat, maxLon, maxLat]
