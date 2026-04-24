@@ -6,6 +6,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="../dist/css/style.css">
   <link rel="stylesheet" href="../dist/css/dumbymap.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "markdown-it": "/node_modules/markdown-it/index.mjs",
+      "markdown-it/": "/node_modules/markdown-it/",
+      "markdown-it-anchor": "/node_modules/markdown-it-anchor/dist/markdownItAnchor.mjs",
+      "markdown-it-footnote": "/node_modules/markdown-it-footnote/index.mjs",
+      "markdown-it-front-matter": "/src/vendor/markdown-it-front-matter.mjs",
+      "markdown-it-inject-linenumbers": "/src/vendor/markdown-it-inject-linenumbers.mjs",
+      "markdown-it-attrs": "/src/vendor/markdown-it-attrs/index.mjs",
+      "mapclay": "/node_modules/mapclay/index.mjs",
+      "plain-draggable": "/node_modules/plain-draggable/plain-draggable.esm.js",
+      "plain-modal": "/node_modules/plain-modal/plain-modal.esm.js",
+      "plain-overlay": "/node_modules/plain-overlay/plain-overlay.esm.js",
+      "proj4": "/src/vendor/proj4.mjs",
+      "ol/proj/proj4": "/node_modules/ol/proj/proj4.js",
+      "cssprefix": "/node_modules/cssprefix/cssprefix.esm.js",
+      "m-class-list": "/node_modules/m-class-list/m-class-list.esm.js",
+      "anim-event": "/node_modules/anim-event/anim-event.esm.js",
+      "pointer-event": "/node_modules/pointer-event/pointer-event.esm.js",
+      "timed-transition": "/node_modules/timed-transition/timed-transition.esm.js",
+      "linkify-it": "/node_modules/linkify-it/index.mjs",
+      "mdurl": "/node_modules/mdurl/index.mjs",
+      "uc.micro": "/node_modules/uc.micro/index.mjs",
+      "entities": "/node_modules/entities/lib/esm/index.js",
+      "punycode.js": "/node_modules/punycode.js/punycode.es6.js"
+    }
+  }
+  </script>
 </head>
 <body>
   <div id="app"></div>
@@ -66,7 +95,7 @@ Right-click on any map to open the **context menu** with editing options.
   </script>
 
   <script type="module">
-    import { markdown2HTML, generateMaps } from '../dist/dumbymap.mjs'
+    import { markdown2HTML, generateMaps } from '../src/dumbymap.mjs'
 
     const md = document.getElementById('md-content').textContent
     const container = document.getElementById('app')
