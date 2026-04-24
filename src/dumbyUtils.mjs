@@ -1,5 +1,5 @@
-import LeaderLine from './leader-line.min.js'
-import { replaceTextNodes, full2Half } from './utils'
+import LeaderLine from './vendor/leader-line.mjs'
+import { replaceTextNodes, full2Half } from './utils.mjs'
 import proj4 from 'proj4'
 import { coordPattern, GeoLink } from './Link.mjs'
 

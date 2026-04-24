@@ -1,5 +1,5 @@
 import PlainDraggable from 'plain-draggable'
-import { onRemove, animateRectTransition } from './utils'
+import { onRemove, animateRectTransition } from './utils.mjs'
 
 /**
  * Basic class for layout
