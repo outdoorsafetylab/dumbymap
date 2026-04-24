@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>htmlToMd – DumbyMap Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script type="importmap">
+  {
+    "imports": {
+      "markdown-it": "/node_modules/markdown-it/index.mjs",
+      "markdown-it/": "/node_modules/markdown-it/",
+      "markdown-it-anchor": "/node_modules/markdown-it-anchor/dist/markdownItAnchor.mjs",
+      "markdown-it-footnote": "/node_modules/markdown-it-footnote/index.mjs",
+      "markdown-it-front-matter": "/src/vendor/markdown-it-front-matter.mjs",
+      "markdown-it-inject-linenumbers": "/src/vendor/markdown-it-inject-linenumbers.mjs",
+      "markdown-it-attrs": "/src/vendor/markdown-it-attrs/index.mjs",
+      "mapclay": "/node_modules/mapclay/index.mjs",
+      "plain-draggable": "/node_modules/plain-draggable/plain-draggable.esm.js",
+      "plain-modal": "/node_modules/plain-modal/plain-modal.esm.js",
+      "plain-overlay": "/node_modules/plain-overlay/plain-overlay.esm.js",
+      "proj4": "/src/vendor/proj4.mjs",
+      "ol/proj/proj4": "/node_modules/ol/proj/proj4.js",
+      "cssprefix": "/node_modules/cssprefix/cssprefix.esm.js",
+      "m-class-list": "/node_modules/m-class-list/m-class-list.esm.js",
+      "anim-event": "/node_modules/anim-event/anim-event.esm.js",
+      "pointer-event": "/node_modules/pointer-event/pointer-event.esm.js",
+      "timed-transition": "/node_modules/timed-transition/timed-transition.esm.js",
+      "linkify-it": "/node_modules/linkify-it/index.mjs",
+      "mdurl": "/node_modules/mdurl/index.mjs",
+      "uc.micro": "/node_modules/uc.micro/index.mjs",
+      "entities": "/node_modules/entities/lib/esm/index.js",
+      "punycode.js": "/node_modules/punycode.js/punycode.es6.js"
+    }
+  }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #1e1e2e;
+      color: #cdd6f4;
+    }
+
+    header {
+      padding: 10px 20px;
+      background: #181825;
+      border-bottom: 1px solid #313244;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #cba6f7;
+    }
+
+    header .subtitle {
+      font-size: 12px;
+      color: #6c7086;
+    }
+
+    .columns {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .pane + .pane {
+      border-left: 1px solid #313244;
+    }
+
+    .pane-label {
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6c7086;
+      background: #181825;
+      border-bottom: 1px solid #313244;
+      flex-shrink: 0;
+    }
+
+    .pane-label span {
+      color: #89b4fa;
+    }
+
+    #html-input {
+      flex: 1;
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 16px;
+      tab-size: 2;
+    }
+
+    #md-output {
+      flex: 1;
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      background: #181825;
+      color: #a6e3a1;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 16px;
+    }
+
+    #html-input::placeholder,
+    #md-output::placeholder {
+      color: #45475a;
+    }
+
+    #toc {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: #181825;
+      border: 1px solid #313244;
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 12px;
+      z-index: 100;
+    }
+
+    #toc summary {
+      padding: 6px 12px;
+      cursor: pointer;
+      color: #89b4fa;
+      font-weight: 600;
+      list-style: none;
+      user-select: none;
+      background: #1e1e2e;
+      border-bottom: 1px solid #313244;
+    }
+
+    #toc summary::-webkit-details-marker { display: none; }
+
+    #toc[open] summary {
+      border-bottom: 1px solid #313244;
+    }
+
+    #toc ul {
+      list-style: none;
+      padding: 4px 0;
+      margin: 0;
+    }
+
+    #toc li button {
+      display: block;
+      width: 100%;
+      padding: 5px 14px;
+      background: none;
+      border: none;
+      color: #cdd6f4;
+      text-align: left;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #toc li button:hover {
+      background: #313244;
+      color: #cba6f7;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>htmlToMd</h1>
+    <span class="subtitle">Convert HTML nodes to Markdown — type HTML on the left, see Markdown on the right</span>
+  </header>
+
+  <div class="columns">
+    <div class="pane">
+      <div class="pane-label">HTML Input <span>(editable)</span></div>
+      <textarea id="html-input" spellcheck="false" placeholder="Paste or type HTML here…"></textarea>
+    </div>
+    <div class="pane">
+      <div class="pane-label">Markdown Output <span>(live)</span></div>
+      <textarea id="md-output" spellcheck="false" readonly placeholder="Markdown will appear here…"></textarea>
+    </div>
+  </div>
+
+  <details id="toc">
+    <summary>Examples</summary>
+    <ul>
+      <li><button data-example="headings">Headings</button></li>
+      <li><button data-example="inline">Inline styles</button></li>
+      <li><button data-example="lists">Lists</button></li>
+      <li><button data-example="code">Code blocks</button></li>
+      <li><button data-example="blockquote">Blockquote</button></li>
+      <li><button data-example="mixed">Mixed</button></li>
+    </ul>
+  </details>
+
+  <script type="module">
+    import { htmlToMd } from '../src/dumbymap.mjs'
+
+    const input = document.getElementById('html-input')
+    const output = document.getElementById('md-output')
+
+    function convert () {
+      const html = input.value.trim()
+      if (!html) {
+        output.value = ''
+        return
+      }
+      const wrapper = document.createElement('div')
+      wrapper.innerHTML = html
+      const md = Array.from(wrapper.childNodes).map(htmlToMd).join('').trim()
+      output.value = md
+    }
+
+    input.addEventListener('input', convert)
+
+    const examples = {
+      headings: `<h1>Heading 1</h1>\n<h2>Heading 2</h2>\n<h3>Heading 3</h3>\n<h4>Heading 4</h4>`,
+      inline: `<p>This is <strong>bold</strong>, <em>italic</em>, <strong><em>both</em></strong>, and <code>inline code</code>.</p>\n<p>A <a href="https://example.com">link</a> in a paragraph.</p>`,
+      lists: `<ul>\n  <li>Unordered item one</li>\n  <li>Unordered item two</li>\n</ul>\n<ol>\n  <li>Ordered item one</li>\n  <li>Ordered item two</li>\n</ol>`,
+      code: `<pre><code class="language-map">use: Maplibre\ncenter: [121.56, 25.03]\nzoom: 12\n</code></pre>\n<pre><code class="language-js">const x = 1\nconsole.log(x)\n</code></pre>`,
+      blockquote: `<blockquote><p>To be or not to be, that is the question.</p></blockquote>`,
+      mixed: `<h1>Hello, DumbyMap</h1>\n<p>This is a <strong>bold</strong> and <em>italic</em> example.</p>\n<h2>Features</h2>\n<ul>\n  <li>Converts headings</li>\n  <li>Handles <code>inline code</code> and links</li>\n  <li>Supports nested lists</li>\n</ul>\n<pre><code class="language-map">use: Maplibre\ncenter: [121.56, 25.03]\nzoom: 12\n</code></pre>\n<blockquote><p>Round-trip HTML back to editable Markdown.</p></blockquote>`,
+    }
+
+    document.querySelectorAll('#toc button[data-example]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        input.value = examples[btn.dataset.example]
+        convert()
+        document.getElementById('toc').open = false
+      })
+    })
+
+    // Default example
+    input.value = `<h1>Hello, DumbyMap</h1>
+<p>This is a <strong>bold</strong> and <em>italic</em> example.</p>
+<h2>Features</h2>
+<ul>
+  <li>Converts headings</li>
+  <li>Handles <code>inline code</code> and links</li>
+  <li>Supports nested lists</li>
+</ul>
+<pre><code class="language-map">use: Maplibre
+center: [121.56, 25.03]
+zoom: 12
+</code></pre>
+<blockquote><p>Round-trip HTML back to editable Markdown.</p></blockquote>`
+
+    convert()
+  </script>
+</body>
+</html>
