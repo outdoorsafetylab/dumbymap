@@ -797,7 +797,11 @@ export const generateMaps = (container, {
         const parent = target.parentElement
         parent.replaceChild(placeholder, target)
         onRemove(placeholder, () => {
-          parent.appendChild(target)
+          // Guard: skip if startViewTransition already returned the map to the DOM
+          // (target still in .Showcase means it still needs moving back)
+          if (!target.isConnected || target.closest('.Showcase')) {
+            parent.appendChild(target)
+          }
         })
 
         // FIXME Maybe use @start-style for CSS
@@ -831,7 +835,7 @@ export const generateMaps = (container, {
           placeholder.remove()
         }
 
-        // animation from Showcase to placeholder
+        // Animate from Showcase toward placeholder position while still in showcase, then move back
         animateRectTransition(target, placeholder.getBoundingClientRect(), {
           duration: 300,
         }).finished.finally(afterAnimation)
