@@ -28,18 +28,21 @@
     "prepack": "npm run lint && npm run style && npm run build",
     "addon": "scripts/addon.sh",
     "addon.zip": "cd addon; zip -r ../addon.zip *",
-    "dev-addon": "web-ext run -s addon"
+    "dev-addon": "web-ext run -s addon",
+    "test": "vitest run --config scripts/vitest.config.js"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^26.0.3",
     "@rollup/plugin-node-resolve": "^15.3.1",
     "@rollup/plugin-terser": "^0.4.4",
+    "happy-dom": "^20.9.0",
     "rollup": "^4.60.1",
     "rollup-plugin-bundle-stats": "^4.22.0",
     "stylelint": "^16.26.1",
     "stylelint-config-standard": "^36.0.1",
-    "stylelint-order": "^6.0.4"
+    "stylelint-order": "^6.0.4",
+    "vitest": "^4.1.5"
   },
   "dependencies": {
     "anim-event": "^1.0.17",

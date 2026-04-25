@@ -1,0 +1,361 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// These mocks must be declared before the module import.
+// Vitest hoists vi.mock() calls so they run before any import statements.
+
+vi.mock('mapclay', () => ({
+  renderWith: vi.fn(() => vi.fn()),
+  defaultAliases: {},
+  parseConfigsFromYaml: vi.fn(() => [
+    { aliases: { use: { osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' } } },
+  ]),
+}))
+
+vi.mock('plain-modal', () => ({
+  default: class PlainModal { constructor () {} },
+}))
+
+vi.mock('ol/proj/proj4', () => ({
+  register: vi.fn(),
+  fromEPSGCode: vi.fn(),
+}))
+
+vi.mock('proj4', () => ({ default: {} }))
+
+import {
+  setupContainer,
+  resolveHtmlHolder,
+  wrapDumbyBlocks,
+  storeMarkdownPerBlock,
+  createShowcase,
+  createModal,
+  buildDumbymap,
+  fetchDefaultAliases,
+} from '../src/dumbymap.mjs'
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
+
+const makeContainer = (innerHTML = '') => {
+  const container = document.createElement('div')
+  const htmlHolder = document.createElement('div')
+  htmlHolder.className = 'SemanticHtml'
+  htmlHolder.innerHTML = innerHTML
+  container.appendChild(htmlHolder)
+  const showcase = document.createElement('div')
+  showcase.className = 'Showcase'
+  container.appendChild(showcase)
+  return container
+}
+
+const makeBuildArgs = () => {
+  const container = makeContainer()
+  const modal = {}
+  const modalContent = document.createElement('div')
+  return { container, modal, modalContent }
+}
+
+// ─── setupContainer ───────────────────────────────────────────────────────────
+
+describe('setupContainer', () => {
+  it('adds Dumby class', () => {
+    const el = document.createElement('div')
+    setupContainer(el)
+    expect(el.classList.contains('Dumby')).toBe(true)
+  })
+
+  it('defaults crs to EPSG:4326', () => {
+    const el = document.createElement('div')
+    setupContainer(el)
+    expect(el.dataset.crs).toBe('EPSG:4326')
+  })
+
+  it('sets custom crs', () => {
+    const el = document.createElement('div')
+    setupContainer(el, { crs: 'EPSG:3857' })
+    expect(el.dataset.crs).toBe('EPSG:3857')
+  })
+
+  it('sets layout from initialLayout', () => {
+    const el = document.createElement('div')
+    setupContainer(el, { initialLayout: 'overlay' })
+    expect(el.dataset.layout).toBe('overlay')
+  })
+
+  it('falls back to first default layout name when initialLayout omitted', () => {
+    const el = document.createElement('div')
+    setupContainer(el)
+    expect(el.dataset.layout).toBe('normal')
+  })
+})
+
+// ─── resolveHtmlHolder ────────────────────────────────────────────────────────
+
+describe('resolveHtmlHolder', () => {
+  it('picks element by contentSelector', () => {
+    const container = document.createElement('div')
+    const target = document.createElement('div')
+    target.className = 'custom-content'
+    container.appendChild(target)
+    const result = resolveHtmlHolder(container, '.custom-content')
+    expect(result).toBe(target)
+    expect(result.classList.contains('SemanticHtml')).toBe(true)
+  })
+
+  it('falls back to .SemanticHtml class when no selector', () => {
+    const container = document.createElement('div')
+    const el = document.createElement('div')
+    el.className = 'SemanticHtml'
+    container.appendChild(el)
+    expect(resolveHtmlHolder(container, null)).toBe(el)
+  })
+
+  it('falls back to <main> element', () => {
+    const container = document.createElement('div')
+    const main = document.createElement('main')
+    container.appendChild(main)
+    expect(resolveHtmlHolder(container, null)).toBe(main)
+  })
+
+  it('falls back to <article> element', () => {
+    const container = document.createElement('div')
+    const article = document.createElement('article')
+    container.appendChild(article)
+    expect(resolveHtmlHolder(container, null)).toBe(article)
+  })
+
+  it('falls back to child with id matching /main|content/', () => {
+    const container = document.createElement('div')
+    const el = document.createElement('div')
+    el.id = 'main-content'
+    container.appendChild(el)
+    expect(resolveHtmlHolder(container, null)).toBe(el)
+  })
+
+  it('falls back to child with class matching /main|content/', () => {
+    const container = document.createElement('div')
+    const el = document.createElement('div')
+    el.className = 'content'
+    container.appendChild(el)
+    expect(resolveHtmlHolder(container, null)).toBe(el)
+  })
+})
+
+// ─── wrapDumbyBlocks ──────────────────────────────────────────────────────────
+
+describe('wrapDumbyBlocks', () => {
+  it('wraps flat content into a single .dumby-block', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<p>Hello</p><p>World</p>'
+    wrapDumbyBlocks(holder)
+    const blocks = holder.querySelectorAll('.dumby-block')
+    expect(blocks.length).toBe(1)
+    expect(blocks[0].querySelectorAll('p').length).toBe(2)
+  })
+
+  it('splits on h2 headings', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<h2>A</h2><p>a</p><h2>B</h2><p>b</p>'
+    wrapDumbyBlocks(holder)
+    expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
+  })
+
+  it('splits on h1 headings', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<h1>Title</h1><p>intro</p><h1>Next</h1><p>body</p>'
+    wrapDumbyBlocks(holder)
+    expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
+  })
+
+  it('promotes <section> children to .dumby-block', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<section><p>A</p></section><section><p>B</p></section>'
+    wrapDumbyBlocks(holder)
+    expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
+  })
+
+  it('promotes <article> children to .dumby-block', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<article><p>A</p></article><article><p>B</p></article>'
+    wrapDumbyBlocks(holder)
+    expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
+  })
+
+  it('does not re-wrap when .dumby-block already exists', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<article class="dumby-block"><p>pre-wrapped</p></article>'
+    wrapDumbyBlocks(holder)
+    expect(holder.querySelectorAll('.dumby-block').length).toBe(1)
+  })
+
+  it('wraps loose text nodes inside a pre-existing .dumby-block', () => {
+    const holder = document.createElement('div')
+    const block = document.createElement('article')
+    block.className = 'dumby-block'
+    block.appendChild(document.createTextNode('loose text'))
+    holder.appendChild(block)
+    wrapDumbyBlocks(holder)
+    expect(block.querySelector('p')).not.toBeNull()
+    expect(block.querySelector('p').textContent).toBe('loose text')
+  })
+})
+
+// ─── storeMarkdownPerBlock ────────────────────────────────────────────────────
+
+describe('storeMarkdownPerBlock', () => {
+  it('sets _md string on blocks that lack it', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<article class="dumby-block"><p>hello</p></article>'
+    storeMarkdownPerBlock(holder)
+    expect(typeof holder.querySelector('.dumby-block')._md).toBe('string')
+  })
+
+  it('does not overwrite existing _md', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<article class="dumby-block"><p>x</p></article>'
+    const block = holder.querySelector('.dumby-block')
+    block._md = 'preserved'
+    storeMarkdownPerBlock(holder)
+    expect(block._md).toBe('preserved')
+  })
+
+  it('stores distinct _md for different block contents', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = `
+      <article class="dumby-block"><h2>Alpha</h2></article>
+      <article class="dumby-block"><h2>Beta</h2></article>
+    `
+    storeMarkdownPerBlock(holder)
+    const [a, b] = holder.querySelectorAll('.dumby-block')
+    expect(a._md).not.toBe(b._md)
+  })
+
+  it('trims whitespace from _md', () => {
+    const holder = document.createElement('div')
+    holder.innerHTML = '<article class="dumby-block"><p>hi</p></article>'
+    storeMarkdownPerBlock(holder)
+    const block = holder.querySelector('.dumby-block')
+    expect(block._md).toBe(block._md.trim())
+  })
+})
+
+// ─── createShowcase ───────────────────────────────────────────────────────────
+
+describe('createShowcase', () => {
+  it('appends .Showcase div to container', () => {
+    const container = document.createElement('div')
+    const showcase = createShowcase(container)
+    expect(showcase.classList.contains('Showcase')).toBe(true)
+    expect(container.contains(showcase)).toBe(true)
+  })
+
+  it('returns the created element', () => {
+    const container = document.createElement('div')
+    const result = createShowcase(container)
+    expect(result).toBe(container.querySelector('.Showcase'))
+  })
+})
+
+// ─── createModal ──────────────────────────────────────────────────────────────
+
+describe('createModal', () => {
+  it('returns modal and modalContent', () => {
+    const container = document.createElement('div')
+    const result = createModal(container)
+    expect(result).toHaveProperty('modal')
+    expect(result).toHaveProperty('modalContent')
+  })
+
+  it('appends modalContent to container', () => {
+    const container = document.createElement('div')
+    const { modalContent } = createModal(container)
+    expect(container.contains(modalContent)).toBe(true)
+  })
+})
+
+// ─── buildDumbymap ────────────────────────────────────────────────────────────
+
+describe('buildDumbymap', () => {
+  it('sets container reference', () => {
+    const { container, modal, modalContent } = makeBuildArgs()
+    const dumbymap = buildDumbymap(container, { modal, modalContent })
+    expect(dumbymap.container).toBe(container)
+  })
+
+  it('initialises aliases as empty object', () => {
+    const { container, modal, modalContent } = makeBuildArgs()
+    const dumbymap = buildDumbymap(container, { modal, modalContent })
+    expect(dumbymap.aliases).toEqual({})
+  })
+
+  it('includes default layouts', () => {
+    const { container, modal, modalContent } = makeBuildArgs()
+    const dumbymap = buildDumbymap(container, { modal, modalContent })
+    expect(dumbymap.layouts.length).toBeGreaterThan(0)
+    expect(dumbymap.layouts[0]).toHaveProperty('name')
+  })
+
+  it('merges extra layout objects', () => {
+    const { container, modal, modalContent } = makeBuildArgs()
+    const extra = { name: 'custom' }
+    const dumbymap = buildDumbymap(container, { modal, modalContent, layouts: [extra] })
+    expect(dumbymap.layouts.map(l => l.name)).toContain('custom')
+  })
+
+  it('accepts extra layouts given as strings', () => {
+    const { container, modal, modalContent } = makeBuildArgs()
+    const dumbymap = buildDumbymap(container, { modal, modalContent, layouts: ['custom'] })
+    expect(dumbymap.layouts.map(l => l.name)).toContain('custom')
+  })
+
+  it('htmlHolder getter resolves .SemanticHtml', () => {
+    const { container, modal, modalContent } = makeBuildArgs()
+    const dumbymap = buildDumbymap(container, { modal, modalContent })
+    expect(dumbymap.htmlHolder).toBe(container.querySelector('.SemanticHtml'))
+  })
+
+  it('showcase getter resolves .Showcase', () => {
+    const { container, modal, modalContent } = makeBuildArgs()
+    const dumbymap = buildDumbymap(container, { modal, modalContent })
+    expect(dumbymap.showcase).toBe(container.querySelector('.Showcase'))
+  })
+
+  it('blocks getter returns .dumby-block elements', () => {
+    const { container, modal, modalContent } = makeBuildArgs()
+    const block = document.createElement('article')
+    block.className = 'dumby-block'
+    container.querySelector('.SemanticHtml').appendChild(block)
+    const dumbymap = buildDumbymap(container, { modal, modalContent })
+    expect(dumbymap.blocks).toHaveLength(1)
+    expect(dumbymap.blocks[0]).toBe(block)
+  })
+})
+
+// ─── fetchDefaultAliases ──────────────────────────────────────────────────────
+
+describe('fetchDefaultAliases', () => {
+  beforeEach(() => vi.unstubAllGlobals())
+
+  it('does nothing when url is falsy', () => {
+    const dumbymap = { aliases: {} }
+    expect(() => fetchDefaultAliases(null, dumbymap)).not.toThrow()
+    expect(dumbymap.aliases).toEqual({})
+  })
+
+  it('populates aliases from fetched YAML', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      text: () => Promise.resolve('aliases:\n  use:\n    osm: https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+    }))
+    const dumbymap = { aliases: {} }
+    fetchDefaultAliases('http://fake/default.yml', dumbymap)
+    await vi.waitFor(() => expect(Object.keys(dumbymap.aliases).length).toBeGreaterThan(0))
+  })
+
+  it('warns on fetch failure without throwing', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')))
+    const dumbymap = { aliases: {} }
+    fetchDefaultAliases('http://fake/default.yml', dumbymap)
+    await vi.waitFor(() => expect(warnSpy).toHaveBeenCalled())
+    warnSpy.mockRestore()
+  })
+})
