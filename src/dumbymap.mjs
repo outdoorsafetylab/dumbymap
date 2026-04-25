@@ -714,6 +714,7 @@ export const fetchDefaultAliases = (url, dumbymap) => {
  * @param {Function} options.render - Render function for maps
  * @param {Function} options.renderCallback - Callback function to be called after map rendering
  * @param {String | null} options.defaultApply
+ * @param {boolean} [options.urlParams=false] - If true, reads `?layout=` query param and sets data-layout on container
  */
 export const generateMaps = (container, {
   contentSelector,
@@ -724,6 +725,7 @@ export const generateMaps = (container, {
   render = defaultRender,
   renderCallback = () => null,
   defaultApply = 'https://outdoorsafetylab.github.io/dumbymap/assets/default.yml',
+  urlParams = true,
 } = {}) => {
   if (container.classList.contains('Dumby')) return
 
@@ -955,6 +957,22 @@ export const generateMaps = (container, {
   setupContentObserver(container, { renderMap })
   setupChildObserver(container, { renderMap, addGeoLinksByText })
   setupLayoutObserver(container, dumbymap)
+
+  if (urlParams) {
+    const params = new URLSearchParams(window.location.search)
+    const layoutParam = params.get('layout')
+    if (layoutParam) container.dataset.layout = layoutParam
+
+    new window.MutationObserver(mutations => {
+      const newLayout = mutations.at(-1).target.dataset.layout
+      const url = new URL(window.location)
+      url.searchParams.set('layout', newLayout)
+      window.history.replaceState(null, '', url)
+    }).observe(container, {
+      attributes: true,
+      attributeFilter: ['data-layout'],
+    })
+  }
 
   container.dataset.initDumby = 'true'
 
