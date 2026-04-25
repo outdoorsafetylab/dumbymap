@@ -237,56 +237,38 @@ const defaultRender = mapclay.renderWith(config => ({
   stepCallback: updateAttributeByStep,
 }))
 
-/**
- * Generates maps based on the provided configuration
- *
- * @param {HTMLElement} container - The container element for the maps
- * @param {Object} options
- * @param {String} options.contentSelector - CSS selector for Semantic HTML
- * @param {string} options.crs - CRS in EPSG/ESRI code, see epsg.io
- * @param {string} options.initialLayout
- * @param {number} [options.delay=1000] mapDelay - Delay before rendering maps (in milliseconds)
- * @param {Function} options.render - Render function for maps
- * @param {Function} options.renderCallback - Callback function to be called after map rendering
- * @param {String | null} options.defaultApply
- */
-export const generateMaps = (container, {
-  contentSelector,
-  crs = 'EPSG:4326',
-  initialLayout,
-  layouts = [],
-  mapDelay = 1000,
-  render = defaultRender,
-  renderCallback = () => null,
-  defaultApply = 'https://outdoorsafetylab.github.io/dumbymap/assets/default.yml',
-} = {}) => {
-  /** Prepare: Container */
-  if (container.classList.contains('Dumby')) return
+/** SETUP: Initialize container element for DumbyMap */
+export const setupContainer = (container, { crs = 'EPSG:4326', initialLayout } = {}) => {
   container.classList.add('Dumby')
   delete container.dataset.layout
   container.dataset.crs = crs
   container.dataset.layout = initialLayout ?? defaultLayouts.at(0).name
   register(proj4)
+}
 
-  /** Prepare: Semantic HTML part and blocks of contents inside */
+/** SETUP: Find and return the Semantic HTML holder element */
+export const resolveHtmlHolder = (container, contentSelector) => {
   const htmlHolder = container.querySelector(contentSelector) ??
     container.querySelector('.SemanticHtml, main, :scope > article') ??
     Array.from(container.children).find(e => e.id?.match(/main|content/) || e.className?.match?.(/main|content/)) ??
     Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
   htmlHolder.classList.add('SemanticHtml')
+  return htmlHolder
+}
 
-  /** Prepare: Wrap loose text nodes in <p> so they are treated as block content */
-  const wrapTextNodes = (parent) => {
-    Array.from(parent.childNodes)
-      .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
-      .forEach(node => {
-        const p = document.createElement('p')
-        node.replaceWith(p)
-        p.appendChild(node)
-      })
-  }
+/** SETUP: Wrap loose text nodes in <p> so they are treated as block content */
+const wrapTextNodes = (parent) => {
+  Array.from(parent.childNodes)
+    .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+    .forEach(node => {
+      const p = document.createElement('p')
+      node.replaceWith(p)
+      p.appendChild(node)
+    })
+}
 
-  /** Prepare: Wrap content into .dumby-block if not already done by markdown2dumbyBlock */
+/** SETUP: Wrap content into .dumby-block elements if not already done by markdown2dumbyBlock */
+export const wrapDumbyBlocks = (htmlHolder) => {
   if (!htmlHolder.querySelector('.dumby-block')) {
     wrapTextNodes(htmlHolder)
     const headings = htmlHolder.querySelectorAll('h1, h2, h3')
@@ -317,30 +299,35 @@ export const generateMaps = (container, {
   } else {
     htmlHolder.querySelectorAll('.dumby-block').forEach(wrapTextNodes)
   }
+}
 
-  /** Prepare: Store markdown source per block (derive from HTML when generateMaps() is used on raw HTML) */
+/** SETUP: Store markdown source per block (derive from HTML when generateMaps() is used on raw HTML) */
+export const storeMarkdownPerBlock = (htmlHolder) => {
   htmlHolder.querySelectorAll('.dumby-block').forEach(block => {
     if (block._md === undefined) {
       block._md = Array.from(block.childNodes).map(htmlToMd).join('').trim()
     }
   })
+}
 
-  /** Prepare: Remove all siblings and text nodes except .SemanticHtml */
-  Array.from(container.childNodes)
-    .filter(node => node !== htmlHolder)
-    .forEach(node => node.remove())
-
-  /** Prepare: Showcase */
+/** SETUP: Create and append Showcase element to container */
+export const createShowcase = (container) => {
   const showcase = document.createElement('div')
   container.appendChild(showcase)
   showcase.classList.add('Showcase')
+  return showcase
+}
 
-  /** Prepare: Other Variables */
+/** SETUP: Create and append modal to container */
+export const createModal = (container) => {
   const modalContent = document.createElement('div')
   container.appendChild(modalContent)
   const modal = new PlainModal(modalContent)
+  return { modal, modalContent }
+}
 
-  /** VAR: dumbymap Object */
+/** SETUP: Build and return the dumbymap object */
+export const buildDumbymap = (container, { modal, modalContent, layouts = [] }) => {
   const dumbymap = {
     layouts: [...defaultLayouts, ...layouts.map(l => typeof l === 'object' ? l : { name: l })],
     container,
@@ -376,8 +363,11 @@ export const generateMaps = (container, {
       dumbymap.utils[util] = value.bind(dumbymap)
     }
   })
+  return dumbymap
+}
 
-  /** WATCH: text content of Semantic HTML */
+/** OBSERVERS: Watch text content of Semantic HTML for geo-scheme text and map re-renders */
+export const setupContentObserver = (container, { renderMap }) => {
   new window.MutationObserver((mutations) => {
     for (const mutation of mutations) {
       const node = mutation.target
@@ -396,8 +386,10 @@ export const generateMaps = (container, {
     characterData: true,
     subtree: true,
   })
+}
 
-  /** WATCH: children of Semantic HTML */
+/** OBSERVERS: Watch children and attribute changes for block counts, links, and map renders */
+export const setupChildObserver = (container, { renderMap, addGeoLinksByText }) => {
   new window.MutationObserver((mutations) => {
     for (const mutation of mutations) {
       const target = mutation.target
@@ -424,7 +416,6 @@ export const generateMaps = (container, {
         .forEach(DocLink)
 
       // Add GeoLinks from text nodes
-      // const addedNodes = Array.from(mutation.addedNodes)
       if (mutation.type === 'attributes') {
         addGeoLinksByText(target)
       }
@@ -442,10 +433,10 @@ export const generateMaps = (container, {
     childList: true,
     subtree: true,
   })
+}
 
-  container.dataset.initDumby = 'true'
-
-  /** WATCH: Layout changes */
+/** OBSERVERS: Watch layout changes and apply enter/leave handlers */
+export const setupLayoutObserver = (container, dumbymap) => {
   new window.MutationObserver(mutations => {
     const mutation = mutations.at(-1)
     const oldLayout = mutation.oldValue
@@ -479,6 +470,277 @@ export const generateMaps = (container, {
     attributeFilter: ['data-layout'],
     attributeOldValue: true,
   })
+}
+
+/** EVENTS: Set up context menu handler */
+export const setupContextMenu = (container, dumbymap, editBlockItem) => {
+  container.oncontextmenu = e => {
+    /** Check if OK to show custom menu over context menu */
+    if (container.dataset.menu === 'disabled') return
+
+    container.querySelectorAll('.dumby-menu').forEach(m => m.remove())
+    const map = e.target.closest('.mapclay')
+    const block = e.target.closest('.dumby-block')
+    const linkWithLine = e.target.closest('.with-leader-line')
+    const rangeSelected = document.getSelection().type === 'Range'
+    if (!block && !map && !linkWithLine && !rangeSelected) return
+    e.preventDefault()
+
+    /** Add HTMLElement for menu */
+    const menu = document.createElement('div')
+    menu.setAttribute('popover', 'auto')
+    menu.classList.add('menu', 'dumby-menu')
+    menu.onclick = (e) => {
+      if (e.target.closest('.keep-menu')) return
+      menu.hidePopover()
+    }
+    container.appendChild(menu)
+
+    /** Menu Item for editing block - always first */
+    if (block?.dataset.blockIndex != null) {
+      menu.appendChild(editBlockItem(block))
+    }
+
+    const showMenu = () => {
+      if (menu.childElementCount === 0) return
+      console.log(e)
+      menu.style.left = (e.clientX + 10) + 'px'
+      menu.style.top = (e.clientY + 5) + 'px'
+      // Defer showPopover so it runs after pointerup, which on Linux fires
+      // after contextmenu and would otherwise trigger popover light-dismiss
+      setTimeout(() => {
+        if (!menu.isConnected) return
+        menu.showPopover()
+        shiftByWindow(menu)
+      }, 0)
+      return menu
+    }
+
+    /** Menu Item for Geocoding */
+    if (rangeSelected) {
+      // TODO check click is inside selection
+      const range = document.getSelection().getRangeAt(0)
+      menu.appendChild(menuItem.addLinkbyGeocoding(range))
+      return showMenu()
+    }
+
+    /** Menu Item for editing map */
+    const mapEditor = e.target.closest('.edit-map')
+    if (mapEditor) {
+      menu.appendChild(menuItem.Item({
+        text: 'Finish Editig',
+        onclick: () => mapEditor.blur(),
+      }))
+      return showMenu()
+    }
+
+    /** Menu Items for Links */
+    const geoLink = e.target.closest('.geolink')
+    if (geoLink) {
+      if (geoLink.classList.contains('from-text')) {
+        menu.appendChild(menuItem.Item({
+          innerHTML: '<strong style="color: red;">DELETE</strong>',
+          onclick: () => {
+            getMarkersByGeoLink(geoLink)
+              .forEach(m => m.remove())
+            geoLink.replaceWith(
+              document.createTextNode(geoLink.textContent),
+            )
+          },
+        }))
+      } else if (geoLink.classList.contains('from-geocoding')) {
+        menu.appendChild(menuItem.Item({
+          innerHTML: '<strong style="color: red;">DELETE</strong>',
+          onclick: () => {
+            getMarkersByGeoLink(geoLink)
+              .forEach(m => m.remove())
+
+            const sibling = [
+              geoLink.previousElementSibling,
+              geoLink.nextElementSibling,
+            ]
+              .find(a =>
+                a.classList.contains('from-geocoding') && a.textContent === geoLink.textContent,
+              )
+
+            if (sibling) {
+              geoLink.remove()
+            } else {
+              geoLink.replaceWith(
+                document.createTextNode(geoLink.textContent),
+              )
+            }
+          },
+        }))
+      }
+      menu.appendChild(menuItem.setGeoLinkType(geoLink))
+    }
+
+    if (linkWithLine) {
+      menu.appendChild(menuItem.setLeaderLineType(linkWithLine))
+      return showMenu()
+    }
+
+    /** Menu Items for map */
+    if (map) {
+      const rect = map.getBoundingClientRect()
+      const [x, y] = [e.x - rect.left, e.y - rect.top]
+      menu.appendChild(menuItem.simplePlaceholder(`MAP ID: ${map.id}`))
+      menu.appendChild(menuItem.editMap(map, dumbymap))
+      menu.appendChild(menuItem.renderResults(dumbymap, map))
+
+      if (map.dataset.render === 'fulfilled') {
+        menu.appendChild(menuItem.toggleMapFocus(map))
+        menu.appendChild(menuItem.Folder({
+          text: 'Actions',
+          items: [
+            menuItem.getCoordinatesByPixels(map, [x, y]),
+            menuItem.restoreCamera(map),
+            menuItem.addMarker({
+              point: [e.clientX, e.clientY],
+              map,
+            }),
+          ],
+        }))
+      }
+    } else {
+      /** Toggle block focus */
+      if (block) {
+        menu.appendChild(menuItem.toggleBlockFocus(block))
+      }
+    }
+
+    /** Menu Items for picking map/block/layout */
+    if (!map || map.closest('.Showcase')) {
+      if (dumbymap.utils.renderedMaps().length > 0) {
+        menu.appendChild(menuItem.pickMapItem(dumbymap))
+      }
+      menu.appendChild(menuItem.pickBlockItem(dumbymap))
+      menu.appendChild(menuItem.pickLayoutItem(dumbymap))
+    }
+
+    return showMenu()
+  }
+}
+
+/** EVENTS: Set up mouse drag handler for GeoLink creation */
+export const setupMouseDrag = (container) => {
+  container.ondragstart = () => false
+  container.onmousedown = (e) => {
+    // Check should start drag event for GeoLink
+    const selection = document.getSelection()
+    if (e.which !== 1 || selection.type !== 'Range') return
+
+    // Check if click is inside selection
+    const range = selection.getRangeAt(0)
+    const rect = range.getBoundingClientRect()
+    const mouseInRange = e.clientX < rect.right && e.clientX > rect.left && e.clientY < rect.bottom && e.clientY > rect.top
+    if (!mouseInRange) return
+
+    const pointByArrow = document.createElement('div')
+    pointByArrow.className = 'point-by-arrow'
+    container.appendChild(pointByArrow)
+
+    const timer = setTimeout(() => {
+      utils.addGeoLinkByDrag(container, range, pointByArrow)
+    }, 300)
+
+    // Update leader-line with mouse move
+    container.onmousemove = (event) => {
+      const rect = container.getBoundingClientRect()
+      pointByArrow.style.left = `${event.clientX - rect.left}px`
+      pointByArrow.style.top = `${event.clientY - rect.top}px`
+      // TODO Scroll dumbymap.htmlHolder when cursor is at upper/lower side
+    }
+    container.onmousemove(e)
+    container.onmouseup = () => {
+      clearTimeout(timer)
+      pointByArrow.remove()
+      container.onmouseup = null
+      container.onmousemove = null
+    }
+  }
+}
+
+/** EVENTS: Set up keyboard navigation handler */
+export const setupKeybindings = (container, dumbymap) => {
+  const onKeydown = e => {
+    if (document.activeElement.matches('textarea, input')) return
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      dumbymap.utils.focusNextMap(e.shiftKey)
+    } else if (e.key === 'x' || e.key === 'X') {
+      e.preventDefault()
+      dumbymap.utils.switchToNextLayout(e.shiftKey)
+    } else if (e.key === 'n') {
+      e.preventDefault()
+      dumbymap.utils.focusNextBlock()
+    } else if (e.key === 'p') {
+      e.preventDefault()
+      dumbymap.utils.focusNextBlock(true)
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      dumbymap.utils.removeBlockFocus()
+    }
+  }
+  document.addEventListener('keydown', onKeydown)
+  onRemove(container, () => document.removeEventListener('keydown', onKeydown))
+}
+
+/** CONFIG: Fetch and apply default YAML aliases to dumbymap */
+export const fetchDefaultAliases = (url, dumbymap) => {
+  if (!url) return
+  fetch(url)
+    .then(res => res.text())
+    .then(rawText => {
+      const config = mapclay.parseConfigsFromYaml(rawText)?.at(0)
+      Object.entries(config.aliases)
+        .forEach(([option, aliases]) => {
+          dumbymap.aliases[option] = aliases
+        })
+    })
+    .catch(err => console.warn(`Fail to get aliases from ${url}`, err))
+}
+
+/**
+ * Generates maps based on the provided configuration
+ *
+ * @param {HTMLElement} container - The container element for the maps
+ * @param {Object} options
+ * @param {String} options.contentSelector - CSS selector for Semantic HTML
+ * @param {string} options.crs - CRS in EPSG/ESRI code, see epsg.io
+ * @param {string} options.initialLayout
+ * @param {number} [options.delay=1000] mapDelay - Delay before rendering maps (in milliseconds)
+ * @param {Function} options.render - Render function for maps
+ * @param {Function} options.renderCallback - Callback function to be called after map rendering
+ * @param {String | null} options.defaultApply
+ */
+export const generateMaps = (container, {
+  contentSelector,
+  crs = 'EPSG:4326',
+  initialLayout,
+  layouts = [],
+  mapDelay = 1000,
+  render = defaultRender,
+  renderCallback = () => null,
+  defaultApply = 'https://outdoorsafetylab.github.io/dumbymap/assets/default.yml',
+} = {}) => {
+  if (container.classList.contains('Dumby')) return
+
+  setupContainer(container, { crs, initialLayout })
+
+  const htmlHolder = resolveHtmlHolder(container, contentSelector)
+  wrapDumbyBlocks(htmlHolder)
+  storeMarkdownPerBlock(htmlHolder)
+
+  /** Remove all siblings and text nodes except .SemanticHtml */
+  Array.from(container.childNodes)
+    .filter(node => node !== htmlHolder)
+    .forEach(node => node.remove())
+
+  const showcase = createShowcase(container)
+  const { modal, modalContent } = createModal(container)
+  const dumbymap = buildDumbymap(container, { modal, modalContent, layouts })
 
   /**
    * LINKS: addGeoLinksByText.
@@ -631,19 +893,9 @@ export const generateMaps = (container, {
     mapIdList.push(mapId)
     return config
   }
-  //
-  //   if (autoMap && elementsWithMapConfig.length === 0) {
-  //     const mapContainer = document.createElement('pre')
-  //     mapContainer.className = 'mapclay-container'
-  //     mapContainer.textContent = '#Created by DumbyMap'
-  //     mapContainer.style.cssText = 'display: none;'
-  //     htmlHolder.insertBefore(mapContainer, htmlHolder.firstElementChild)
-  //     elementsWithMapConfig.push(mapContainer)
-  //   }
-  //
 
   /**
-   * MAP: Render each taget element for maps by text content in YAML
+   * MAP: Render each target element for maps by text content in YAML
    *
    * @param {HTMLElement} target
    */
@@ -700,231 +952,19 @@ export const generateMaps = (container, {
     target.renderMap(configList)
   }
 
-  /** MENU: Menu Items for Context Menu */
-  container.oncontextmenu = e => {
-    /** Check if OK to show custom menu over context menu */
-    if (container.dataset.menu === 'disabled') return
+  setupContentObserver(container, { renderMap })
+  setupChildObserver(container, { renderMap, addGeoLinksByText })
+  setupLayoutObserver(container, dumbymap)
 
-    container.querySelectorAll('.dumby-menu').forEach(m => m.remove())
-    const map = e.target.closest('.mapclay')
-    const block = e.target.closest('.dumby-block')
-    const linkWithLine = e.target.closest('.with-leader-line')
-    const rangeSelected = document.getSelection().type === 'Range'
-    if (!block && !map && !linkWithLine && !rangeSelected) return
-    e.preventDefault()
-
-    /** Add HTMLElement for menu */
-    const menu = document.createElement('div')
-    menu.setAttribute('popover', 'auto')
-    menu.classList.add('menu', 'dumby-menu')
-    menu.onclick = (e) => {
-      if (e.target.closest('.keep-menu')) return
-      menu.hidePopover()
-    }
-    container.appendChild(menu)
-
-    /** Menu Item for editing block - always first */
-    if (block?.dataset.blockIndex != null) {
-      menu.appendChild(editBlockItem(block))
-    }
-
-    const showMenu = () => {
-      if (menu.childElementCount === 0) return
-      console.log(e)
-      menu.style.left = (e.clientX + 10) + 'px'
-      menu.style.top = (e.clientY + 5) + 'px'
-      // Defer showPopover so it runs after pointerup, which on Linux fires
-      // after contextmenu and would otherwise trigger popover light-dismiss
-      setTimeout(() => {
-        if (!menu.isConnected) return
-        menu.showPopover()
-        shiftByWindow(menu)
-      }, 0)
-      return menu
-    }
-
-    /** Menu Item for Geocoding */
-    if (rangeSelected) {
-      // TODO check click is inside selection
-      const range = document.getSelection().getRangeAt(0)
-      menu.appendChild(menuItem.addLinkbyGeocoding(range))
-      return showMenu()
-    }
-
-    /** Menu Item for editing map */
-    const mapEditor = e.target.closest('.edit-map')
-    if (mapEditor) {
-      menu.appendChild(menuItem.Item({
-        text: 'Finish Editig',
-        onclick: () => mapEditor.blur(),
-      }))
-      return showMenu()
-    }
-
-    /** Menu Items for Links */
-    const geoLink = e.target.closest('.geolink')
-    if (geoLink) {
-      if (geoLink.classList.contains('from-text')) {
-        menu.appendChild(menuItem.Item({
-          innerHTML: '<strong style="color: red;">DELETE</strong>',
-          onclick: () => {
-            getMarkersByGeoLink(geoLink)
-              .forEach(m => m.remove())
-            geoLink.replaceWith(
-              document.createTextNode(geoLink.textContent),
-            )
-          },
-        }))
-      } else if (geoLink.classList.contains('from-geocoding')) {
-        menu.appendChild(menuItem.Item({
-          innerHTML: '<strong style="color: red;">DELETE</strong>',
-          onclick: () => {
-            getMarkersByGeoLink(geoLink)
-              .forEach(m => m.remove())
-
-            const sibling = [
-              geoLink.previousElementSibling,
-              geoLink.nextElementSibling,
-            ]
-              .find(a =>
-                a.classList.contains('from-geocoding') && a.textContent === geoLink.textContent,
-              )
-
-            if (sibling) {
-              geoLink.remove()
-            } else {
-              geoLink.replaceWith(
-                document.createTextNode(geoLink.textContent),
-              )
-            }
-          },
-        }))
-      }
-      menu.appendChild(menuItem.setGeoLinkType(geoLink))
-    }
-
-    if (linkWithLine) {
-      menu.appendChild(menuItem.setLeaderLineType(linkWithLine))
-      return showMenu()
-    }
-
-    /** Menu Items for map */
-    if (map) {
-      const rect = map.getBoundingClientRect()
-      const [x, y] = [e.x - rect.left, e.y - rect.top]
-      menu.appendChild(menuItem.simplePlaceholder(`MAP ID: ${map.id}`))
-      menu.appendChild(menuItem.editMap(map, dumbymap))
-      menu.appendChild(menuItem.renderResults(dumbymap, map))
-
-      if (map.dataset.render === 'fulfilled') {
-        menu.appendChild(menuItem.toggleMapFocus(map))
-        menu.appendChild(menuItem.Folder({
-          text: 'Actions',
-          items: [
-            menuItem.getCoordinatesByPixels(map, [x, y]),
-            menuItem.restoreCamera(map),
-            menuItem.addMarker({
-              point: [e.clientX, e.clientY],
-              map,
-            }),
-          ],
-        }))
-      }
-    } else {
-      /** Toggle block focus */
-      if (block) {
-        menu.appendChild(menuItem.toggleBlockFocus(block))
-      }
-    }
-
-    /** Menu Items for picking map/block/layout */
-    if (!map || map.closest('.Showcase')) {
-      if (dumbymap.utils.renderedMaps().length > 0) {
-        menu.appendChild(menuItem.pickMapItem(dumbymap))
-      }
-      menu.appendChild(menuItem.pickBlockItem(dumbymap))
-      menu.appendChild(menuItem.pickLayoutItem(dumbymap))
-    }
-
-    return showMenu()
-  }
-
-  /** MOUSE: Drag/Drop on map for new GeoLink */
-  container.ondragstart = () => false
-  container.onmousedown = (e) => {
-    // Check should start drag event for GeoLink
-    const selection = document.getSelection()
-    if (e.which !== 1 || selection.type !== 'Range') return
-
-    // Check if click is inside selection
-    const range = selection.getRangeAt(0)
-    const rect = range.getBoundingClientRect()
-    const mouseInRange = e.clientX < rect.right && e.clientX > rect.left && e.clientY < rect.bottom && e.clientY > rect.top
-    if (!mouseInRange) return
-
-    const pointByArrow = document.createElement('div')
-    pointByArrow.className = 'point-by-arrow'
-    container.appendChild(pointByArrow)
-
-    const timer = setTimeout(() => {
-      utils.addGeoLinkByDrag(container, range, pointByArrow)
-    }, 300)
-
-    // Update leader-line with mouse move
-    container.onmousemove = (event) => {
-      const rect = container.getBoundingClientRect()
-      pointByArrow.style.left = `${event.clientX - rect.left}px`
-      pointByArrow.style.top = `${event.clientY - rect.top}px`
-      // TODO Scroll dumbymap.htmlHolder when cursor is at upper/lower side
-    }
-    container.onmousemove(e)
-    container.onmouseup = () => {
-      clearTimeout(timer)
-      pointByArrow.remove()
-      container.onmouseup = null
-      container.onmousemove = null
-    }
-  }
+  container.dataset.initDumby = 'true'
 
   /** BLOCK EDITING: inline edit modal for each .dumby-block */
   const editBlockItem = menuItem.setupBlockEdit(dumbymap, { container, htmlHolder, markdown2dumbyBlock, splitMd })
 
-  /** Keybindings for map/block navigation */
-  const onKeydown = e => {
-    if (document.activeElement.matches('textarea, input')) return
-    if (e.key === 'Tab') {
-      e.preventDefault()
-      dumbymap.utils.focusNextMap(e.shiftKey)
-    } else if (e.key === 'x' || e.key === 'X') {
-      e.preventDefault()
-      dumbymap.utils.switchToNextLayout(e.shiftKey)
-    } else if (e.key === 'n') {
-      e.preventDefault()
-      dumbymap.utils.focusNextBlock()
-    } else if (e.key === 'p') {
-      e.preventDefault()
-      dumbymap.utils.focusNextBlock(true)
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      dumbymap.utils.removeBlockFocus()
-    }
-  }
-  document.addEventListener('keydown', onKeydown)
-  onRemove(container, () => document.removeEventListener('keydown', onKeydown))
-
-  /** Get default applied config */
-  if (defaultApply) {
-    fetch(defaultApply)
-      .then(res => res.text())
-      .then(rawText => {
-        const config = mapclay.parseConfigsFromYaml(rawText)?.at(0)
-        Object.entries(config.aliases)
-          .forEach(([option, aliases]) => {
-            dumbymap.aliases[option] = aliases
-          })
-      })
-      .catch(err => console.warn(`Fail to get aliases from ${defaultApply}`, err))
-  }
+  setupContextMenu(container, dumbymap, editBlockItem)
+  setupMouseDrag(container)
+  setupKeybindings(container, dumbymap)
+  fetchDefaultAliases(defaultApply, dumbymap)
 
   /** Return Object for utils */
   return Object.seal(dumbymap)

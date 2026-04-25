@@ -68,6 +68,7 @@
   nav#toc li { margin: .2rem 0; break-inside: avoid; }
   nav#toc a { color: #333; text-decoration: none; font-size: .9rem; }
   nav#toc a:hover { text-decoration: underline; }
+  nav#toc small { font-size: .72rem; color: #999; font-family: monospace; margin-left: .2rem; }
   nav#toc .toc-tag {
     font-size: .68rem;
     font-weight: 600;
@@ -147,34 +148,40 @@
 <h1>dumbymap.mjs — Code Report</h1>
 <p>
   A top-to-bottom walkthrough of <code>src/dumbymap.mjs</code>, the core library of DumbyMap.
+  After the refactor, <code>generateMaps()</code> delegates to a set of composable exported
+  setup functions. Each setup function is independently importable and testable.
   Line references link to the sections described.
 </p>
 
 <nav id="toc">
   <h2>Contents <button class="toc-toggle" title="Toggle contents">▼</button></h2>
   <ol>
-    <li><a href="#imports"><span class="toc-tag tag-var">var</span>Dependencies</a></li>
-    <li><a href="#htmlToMd"><span class="toc-tag tag-export">export</span><code>htmlToMd()</code></a></li>
-    <li><a href="#splitMd"><span class="toc-tag tag-internal">internal</span><code>splitMd()</code></a></li>
-    <li><a href="#constants"><span class="toc-tag tag-var">var</span>Module constants</a></li>
-    <li><a href="#markdown2dumbyBlock"><span class="toc-tag tag-export">export</span><code>markdown2dumbyBlock()</code></a></li>
-    <li><a href="#updateAttributeByStep"><span class="toc-tag tag-internal">internal</span><code>updateAttributeByStep</code> &amp; <code>defaultRender</code></a></li>
-    <li><a href="#generateMaps"><span class="toc-tag tag-export">export</span><code>generateMaps()</code></a></li>
-    <li><a href="#htmlHolder"><span class="toc-tag tag-internal">prepare</span>htmlHolder discovery</a></li>
-    <li><a href="#wrapTextNodes"><span class="toc-tag tag-internal">prepare</span><code>wrapTextNodes()</code></a></li>
-    <li><a href="#blockWrapping"><span class="toc-tag tag-internal">prepare</span><code>.dumby-block</code> wrapping</a></li>
-    <li><a href="#perBlockMd"><span class="toc-tag tag-internal">prepare</span>Per-block <code>._md</code> storage</a></li>
-    <li><a href="#dumbymapObj"><span class="toc-tag tag-internal">prepare</span><code>dumbymap</code> object</a></li>
-    <li><a href="#observers"><span class="toc-tag tag-watch">watch</span>MutationObservers</a></li>
-    <li><a href="#addGeoLinksByText"><span class="toc-tag tag-internal">links</span><code>addGeoLinksByText()</code></a></li>
-    <li><a href="#mapClassObserver"><span class="toc-tag tag-watch">watch</span><code>mapClassObserver()</code></a></li>
-    <li><a href="#afterMapRendered"><span class="toc-tag tag-internal">map</span><code>afterMapRendered()</code></a></li>
-    <li><a href="#renderMap"><span class="toc-tag tag-internal">map</span><code>assignMapId</code> &amp; <code>renderMap()</code></a></li>
-    <li><a href="#contextMenu"><span class="toc-tag tag-ui">ui</span>Context menu</a></li>
-    <li><a href="#dragGeoLink"><span class="toc-tag tag-ui">ui</span>Drag-to-GeoLink</a></li>
-    <li><a href="#blockEditing"><span class="toc-tag tag-ui">ui</span>Block editing modal</a></li>
-    <li><a href="#keybindings"><span class="toc-tag tag-ui">ui</span>Keyboard shortcuts</a></li>
-    <li><a href="#defaultApply"><span class="toc-tag tag-internal">init</span>Default config fetch &amp; return</a></li>
+    <li><a href="#imports"><span class="toc-tag tag-var">var</span>Dependencies <small>L1–15 · 15 ln</small></a></li>
+    <li><a href="#htmlToMd"><span class="toc-tag tag-export">export</span><code>htmlToMd()</code> <small>L25–74 · 50 ln</small></a></li>
+    <li><a href="#splitMd"><span class="toc-tag tag-internal">internal</span><code>splitMd()</code> <small>L87–113 · 27 ln</small></a></li>
+    <li><a href="#constants"><span class="toc-tag tag-var">var</span>Module constants <small>L116–129 · 14 ln</small></a></li>
+    <li><a href="#markdown2dumbyBlock"><span class="toc-tag tag-export">export</span><code>markdown2dumbyBlock()</code> <small>L139–201 · 63 ln</small></a></li>
+    <li><a href="#updateAttributeByStep"><span class="toc-tag tag-internal">internal</span><code>updateAttributeByStep</code> &amp; <code>defaultRender</code> <small>L208–238 · 31 ln</small></a></li>
+    <li><a href="#setupContainer"><span class="toc-tag tag-export">export</span><code>setupContainer()</code> <small>L241–247 · 7 ln</small></a></li>
+    <li><a href="#resolveHtmlHolder"><span class="toc-tag tag-export">export</span><code>resolveHtmlHolder()</code> <small>L250–257 · 8 ln</small></a></li>
+    <li><a href="#wrapDumbyBlocks"><span class="toc-tag tag-export">export</span><code>wrapDumbyBlocks()</code> <small>L271–302 · 32 ln</small></a></li>
+    <li><a href="#storeMarkdownPerBlock"><span class="toc-tag tag-export">export</span><code>storeMarkdownPerBlock()</code> <small>L305–311 · 7 ln</small></a></li>
+    <li><a href="#createShowcase"><span class="toc-tag tag-export">export</span><code>createShowcase()</code> <small>L314–319 · 6 ln</small></a></li>
+    <li><a href="#createModal"><span class="toc-tag tag-export">export</span><code>createModal()</code> <small>L322–327 · 6 ln</small></a></li>
+    <li><a href="#buildDumbymap"><span class="toc-tag tag-export">export</span><code>buildDumbymap()</code> <small>L330–367 · 38 ln</small></a></li>
+    <li><a href="#setupContentObserver"><span class="toc-tag tag-export">export</span><code>setupContentObserver()</code> <small>L370–389 · 20 ln</small></a></li>
+    <li><a href="#setupChildObserver"><span class="toc-tag tag-export">export</span><code>setupChildObserver()</code> <small>L392–436 · 45 ln</small></a></li>
+    <li><a href="#setupLayoutObserver"><span class="toc-tag tag-export">export</span><code>setupLayoutObserver()</code> <small>L439–473 · 35 ln</small></a></li>
+    <li><a href="#setupContextMenu"><span class="toc-tag tag-export">export</span><code>setupContextMenu()</code> <small>L476–624 · 149 ln</small></a></li>
+    <li><a href="#setupMouseDrag"><span class="toc-tag tag-export">export</span><code>setupMouseDrag()</code> <small>L627–663 · 37 ln</small></a></li>
+    <li><a href="#setupKeybindings"><span class="toc-tag tag-export">export</span><code>setupKeybindings()</code> <small>L666–688 · 23 ln</small></a></li>
+    <li><a href="#fetchDefaultAliases"><span class="toc-tag tag-export">export</span><code>fetchDefaultAliases()</code> <small>L691–703 · 13 ln</small></a></li>
+    <li><a href="#generateMaps"><span class="toc-tag tag-export">export</span><code>generateMaps()</code> <small>L718–971 · 254 ln</small></a></li>
+    <li><a href="#addGeoLinksByText"><span class="toc-tag tag-internal">local</span><code>addGeoLinksByText()</code> <small>L750–759 · 10 ln</small></a></li>
+    <li><a href="#mapClassObserver"><span class="toc-tag tag-watch">watch</span><code>mapClassObserver()</code> <small>L765–836 · 72 ln</small></a></li>
+    <li><a href="#afterMapRendered"><span class="toc-tag tag-internal">local</span><code>afterMapRendered()</code> <small>L843–875 · 33 ln</small></a></li>
+    <li><a href="#renderMap"><span class="toc-tag tag-internal">local</span><code>assignMapId</code> &amp; <code>renderMap()</code> <small>L878–953 · 76 ln</small></a></li>
+    <li><a href="#blockEditing"><span class="toc-tag tag-ui">ui</span>Block editing modal <small>L962 · 1 ln</small></a></li>
   </ol>
 </nav>
 
@@ -183,7 +190,7 @@
 <div class="section">
   <p>The file opens by pulling in all third-party and local modules it needs:</p>
   <ul>
-    <li><strong>Markdown rendering</strong> — <code>markdown-it</code> plus six plugins:
+    <li><strong>Markdown rendering</strong> — <code>markdown-it</code> plus five plugins:
       <code>markdown-it-anchor</code> (heading permalinks),
       <code>markdown-it-footnote</code>,
       <code>markdown-it-front-matter</code>,
@@ -229,7 +236,7 @@ case 'pre': {
   <h3>Unknown tags — <code>UNWRAP_TAGS</code> vs. <code>outerHTML</code></h3>
   <p>
     The <code>default</code> branch distinguishes two cases using the module-level set
-    <code>UNWRAP_TAGS</code> <a class="lineref">L76</a>:
+    <code>UNWRAP_TAGS</code> <a class="lineref">L77</a>:
   </p>
   <pre><code>const UNWRAP_TAGS = new Set([
   'div','article','section','main','aside','header','footer','nav'
@@ -244,7 +251,7 @@ default:
 </div>
 
 <!-- ─── splitMd ─────────────────────────────────────────────── -->
-<h2 id="splitMd"><span class="tag tag-internal">internal</span> <code>splitMd(md)</code> <a class="lineref">L86–112</a></h2>
+<h2 id="splitMd"><span class="tag tag-internal">internal</span> <code>splitMd(md)</code> <a class="lineref">L87–113</a></h2>
 <div class="section">
   <p>
     Splits a Markdown string into an array of block strings at every run of
@@ -261,19 +268,19 @@ if (!inFence && blanks >= 2) {
   </p>
   <ul>
     <li>In <code>markdown2dumbyBlock()</code> to pair each rendered <code>.dumby-block</code> with its source text.</li>
-    <li>In <code>saveEditModal()</code> to split user-typed text that contains <code>\n\n\n</code> separators into multiple new blocks.</li>
+    <li>In <code>saveEditModal()</code> inside <code>MenuItem.mjs</code> to split user-typed text that contains <code>\n\n\n</code> separators into multiple new blocks.</li>
   </ul>
 </div>
 
 <!-- ─── Module constants ─────────────────────────────────────── -->
-<h2 id="constants"><span class="tag tag-var">vars</span> Module-level constants <a class="lineref">L114–128</a></h2>
+<h2 id="constants"><span class="tag tag-var">vars</span> Module-level constants <a class="lineref">L116–129</a></h2>
 <div class="section">
   <h3>CSS selectors</h3>
   <pre><code>const mapBlockSelector = 'pre:has(code[class*=map]), .mapclay-container'
 const docLinkSelector  = 'a[href^="#"][title^="=>"]:not(.doclink)'
 const geoLinkSelector  = 'a[href^="geo:"]:not(.geolink)'</code></pre>
   <p>
-    These three selectors are used throughout <code>generateMaps()</code> and its observers
+    These three selectors are used throughout the observer setup functions
     to identify map code blocks, document-fragment links, and geo-scheme links respectively.
     The <code>:not()</code> guards prevent double-initialisation.
   </p>
@@ -297,7 +304,7 @@ const geoLinkSelector  = 'a[href^="geo:"]:not(.geolink)'</code></pre>
 </div>
 
 <!-- ─── markdown2dumbyBlock ─────────────────────────────────── -->
-<h2 id="markdown2dumbyBlock"><span class="tag tag-export">export</span> <code>markdown2dumbyBlock(container, mdContent)</code> <a class="lineref">L138–200</a></h2>
+<h2 id="markdown2dumbyBlock"><span class="tag tag-export">export</span> <code>markdown2dumbyBlock(container, mdContent)</code> <a class="lineref">L139–201</a></h2>
 <div class="section">
   <p>
     Accepts a Markdown (or raw HTML, since Markdown is a superset) string and renders it
@@ -350,7 +357,7 @@ htmlHolder.querySelectorAll('.dumby-block').forEach((block, i) => {
 </div>
 
 <!-- ─── updateAttributeByStep / defaultRender ───────────────── -->
-<h2 id="updateAttributeByStep"><span class="tag tag-internal">internal</span> <code>updateAttributeByStep</code> &amp; <code>defaultRender</code> <a class="lineref">L207–237</a></h2>
+<h2 id="updateAttributeByStep"><span class="tag tag-internal">internal</span> <code>updateAttributeByStep</code> &amp; <code>defaultRender</code> <a class="lineref">L208–238</a></h2>
 <div class="section">
   <h3><code>updateAttributeByStep</code></h3>
   <p>
@@ -378,24 +385,25 @@ if (final) setTimeout(() => delete target.dataset.report, 100)</code></pre>
   </p>
 </div>
 
-<!-- ─── generateMaps ────────────────────────────────────────── -->
-<h2 id="generateMaps"><span class="tag tag-export">export</span> <code>generateMaps(container, options)</code> <a class="lineref">L252–1015</a></h2>
+<!-- ─── setupContainer ──────────────────────────────────────── -->
+<h2 id="setupContainer"><span class="tag tag-export">export</span> <code>setupContainer(container, options)</code> <a class="lineref">L241–247</a></h2>
 <div class="section">
   <p>
-    The main entry point. Accepts an <code>HTMLElement</code> and an options object and
-    wires up the complete DumbyMap system: block detection, map rendering, link decoration,
-    layout management, context menu, keyboard shortcuts, and inline block editing.
-    Returns a sealed <code>dumbymap</code> object.
+    Initialises the root container element by adding the <code>Dumby</code> class,
+    setting <code>data-crs</code> for coordinate reference system support, and applying
+    the initial layout name. It also calls <code>register(proj4)</code> to make proj4
+    projections available to OpenLayers.
   </p>
-  <p>
-    The function is idempotent — if the container already has class <code>Dumby</code>
-    it returns immediately:
-  </p>
-  <pre><code>if (container.classList.contains('Dumby')) return</code></pre>
+  <pre><code>container.classList.add('Dumby')
+delete container.dataset.layout
+container.dataset.crs = crs
+container.dataset.layout = initialLayout ?? defaultLayouts.at(0).name
+register(proj4)</code></pre>
+  <p>Options: <code>crs</code> (default <code>'EPSG:4326'</code>), <code>initialLayout</code>.</p>
 </div>
 
-<!-- ─── Prepare: htmlHolder ─────────────────────────────────── -->
-<h2 id="htmlHolder"><span class="tag tag-internal">prepare</span> htmlHolder discovery <a class="lineref">L270–275</a></h2>
+<!-- ─── resolveHtmlHolder ───────────────────────────────────── -->
+<h2 id="resolveHtmlHolder"><span class="tag tag-export">export</span> <code>resolveHtmlHolder(container, contentSelector)</code> <a class="lineref">L250–257</a></h2>
 <div class="section">
   <p>
     Finds the element that will hold the semantic content using a waterfall of heuristics,
@@ -413,35 +421,22 @@ if (final) setTimeout(() => delete target.dataset.report, 100)</code></pre>
     .at(0)</code></pre>
   <p>
     The last fallback picks the child element with the most text — a reasonable guess
-    when no other signal is present.
+    when no other signal is present. The resolved element has <code>SemanticHtml</code>
+    added to its class list before being returned.
   </p>
 </div>
 
-<!-- ─── Prepare: wrapTextNodes ──────────────────────────────── -->
-<h2 id="wrapTextNodes"><span class="tag tag-internal">prepare</span> <code>wrapTextNodes(parent)</code> <a class="lineref">L278–286</a></h2>
+<!-- ─── wrapDumbyBlocks ─────────────────────────────────────── -->
+<h2 id="wrapDumbyBlocks"><span class="tag tag-export">export</span> <code>wrapDumbyBlocks(htmlHolder)</code> <a class="lineref">L271–302</a></h2>
 <div class="section">
   <p>
-    Bare text nodes directly inside <code>htmlHolder</code> are invisible to CSS block
-    selectors. This helper wraps them in <code>&lt;p&gt;</code> elements so they are treated
-    as first-class block content:
+    Wraps content into <code>.dumby-block</code> elements if not already done by
+    <code>markdown2dumbyBlock()</code>. A private helper <code>wrapTextNodes(parent)</code>
+    <a class="lineref">L260–268</a> first promotes any bare text nodes directly inside
+    <code>htmlHolder</code> into <code>&lt;p&gt;</code> elements so they are visible to CSS
+    block selectors.
   </p>
-  <pre><code>Array.from(parent.childNodes)
-  .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
-  .forEach(node => {
-    const p = document.createElement('p')
-    node.replaceWith(p)
-    p.appendChild(node)
-  })</code></pre>
-</div>
-
-<!-- ─── Prepare: .dumby-block wrapping ──────────────────────── -->
-<h2 id="blockWrapping"><span class="tag tag-internal">prepare</span> <code>.dumby-block</code> wrapping <a class="lineref">L288–318</a></h2>
-<div class="section">
-  <p>
-    If <code>markdown2dumbyBlock()</code> was already called, <code>.dumby-block</code>
-    elements already exist; the branch just calls <code>wrapTextNodes</code> on each.
-    Otherwise it creates them from raw HTML using three strategies in order:
-  </p>
+  <p>If <code>.dumby-block</code> elements already exist, it just calls <code>wrapTextNodes</code> on each. Otherwise it creates them using three strategies in order:</p>
   <ul>
     <li><strong>Heading-based split</strong> — if any <code>h1</code>/<code>h2</code>/<code>h3</code> is present, a new block is started at each heading (after the first has content).</li>
     <li><strong>Semantic sections</strong> — if the direct children are <code>&lt;section&gt;</code> or <code>&lt;article&gt;</code> elements, they are promoted to <code>.dumby-block</code>.</li>
@@ -459,8 +454,8 @@ if (final) setTimeout(() => delete target.dataset.report, 100)</code></pre>
 }</code></pre>
 </div>
 
-<!-- ─── Prepare: per-block _md ──────────────────────────────── -->
-<h2 id="perBlockMd"><span class="tag tag-internal">prepare</span> Per-block <code>._md</code> storage <a class="lineref">L320–325</a></h2>
+<!-- ─── storeMarkdownPerBlock ───────────────────────────────── -->
+<h2 id="storeMarkdownPerBlock"><span class="tag tag-export">export</span> <code>storeMarkdownPerBlock(htmlHolder)</code> <a class="lineref">L305–311</a></h2>
 <div class="section">
   <p>
     After blocks are established (by either path), any block that lacks a <code>._md</code>
@@ -478,73 +473,275 @@ if (final) setTimeout(() => delete target.dataset.report, 100)</code></pre>
   </p>
 </div>
 
-<!-- ─── dumbymap object ─────────────────────────────────────── -->
-<h2 id="dumbymapObj"><span class="tag tag-internal">prepare</span> <code>dumbymap</code> object <a class="lineref">L342–377</a></h2>
+<!-- ─── createShowcase ──────────────────────────────────────── -->
+<h2 id="createShowcase"><span class="tag tag-export">export</span> <code>createShowcase(container)</code> <a class="lineref">L314–319</a></h2>
 <div class="section">
   <p>
-    A plain object returned to the caller (and used internally) that provides live getters
-    to always reflect the current DOM state:
+    Creates and appends the <code>.Showcase</code> <code>&lt;div&gt;</code> to the container.
+    The Showcase is the panel that displays a focused map separately from the content flow
+    when a non-normal layout is active.
+  </p>
+  <pre><code>const showcase = document.createElement('div')
+container.appendChild(showcase)
+showcase.classList.add('Showcase')
+return showcase</code></pre>
+</div>
+
+<!-- ─── createModal ─────────────────────────────────────────── -->
+<h2 id="createModal"><span class="tag tag-export">export</span> <code>createModal(container)</code> <a class="lineref">L322–327</a></h2>
+<div class="section">
+  <p>
+    Creates a <code>plain-modal</code> instance for the full-content overlay and appends its
+    content element to the container. Returns both <code>modal</code> and
+    <code>modalContent</code> so callers can attach content to the modal element directly.
+  </p>
+  <pre><code>const modalContent = document.createElement('div')
+container.appendChild(modalContent)
+const modal = new PlainModal(modalContent)
+return { modal, modalContent }</code></pre>
+</div>
+
+<!-- ─── buildDumbymap ───────────────────────────────────────── -->
+<h2 id="buildDumbymap"><span class="tag tag-export">export</span> <code>buildDumbymap(container, options)</code> <a class="lineref">L330–367</a></h2>
+<div class="section">
+  <p>
+    Constructs and returns the <code>dumbymap</code> plain object that is the public API
+    surface returned to callers of <code>generateMaps()</code>. It provides live DOM getters
+    and a <code>utils</code> namespace with all navigation and rendering helpers, all
+    bound to <code>dumbymap</code>:
   </p>
   <pre><code>const dumbymap = {
+  layouts: [...defaultLayouts, ...layouts.map(...)],
+  container,
   get htmlHolder () { return container.querySelector('.SemanticHtml') },
   get showcase ()   { return container.querySelector('.Showcase') },
   get blocks ()     { return Array.from(container.querySelectorAll('.dumby-block')) },
   utils: { ...utils, renderedMaps, setContextMenu, focusNextMap, switchToNextLayout },
   aliases: {},
-  ...
+  modal,
+  modalContent,
 }</code></pre>
   <p>
     All utility functions are bound to <code>dumbymap</code> so that <code>this</code>
     inside them refers to the dumbymap instance. The object is sealed with
-    <code>Object.seal()</code> before being returned.
+    <code>Object.seal()</code> before being returned from <code>generateMaps()</code>.
+    Options: <code>modal</code>, <code>modalContent</code>, <code>layouts</code>.
   </p>
 </div>
 
-<!-- ─── MutationObservers ────────────────────────────────────── -->
-<h2 id="observers"><span class="tag tag-watch">watch</span> MutationObservers <a class="lineref">L379–480</a></h2>
+<!-- ─── setupContentObserver ────────────────────────────────── -->
+<h2 id="setupContentObserver"><span class="tag tag-export">export</span> <code>setupContentObserver(container, { renderMap })</code> <a class="lineref">L370–389</a></h2>
 <div class="section">
-  <h3>Text content observer <a class="lineref">L379–397</a></h3>
   <p>
-    Watches for <code>characterData</code> changes (text edits). For each mutation,
-    it skips map elements and then:
+    Installs a <code>MutationObserver</code> on <code>characterData</code> changes (text edits).
+    For each mutation it skips map elements and then:
   </p>
   <ul>
     <li>Calls <code>utils.addGeoSchemeByText()</code> to auto-linkify coordinate-like text.</li>
-    <li>Re-renders any parent map block via <code>renderMap()</code>.</li>
+    <li>Re-renders any parent map block via the injected <code>renderMap()</code> callback.</li>
   </ul>
+  <pre><code>new window.MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    if (node.matches?.('.mapclay') || node.closest?.('.mapclay')) return
+    utils.addGeoSchemeByText(node)
+    const mapTarget = node.parentElement?.closest(mapBlockSelector)
+    if (mapTarget) renderMap(mapTarget)
+  }
+}).observe(container, { characterData: true, subtree: true })</code></pre>
+</div>
 
-  <h3>Children observer <a class="lineref">L399–443</a></h3>
+<!-- ─── setupChildObserver ──────────────────────────────────── -->
+<h2 id="setupChildObserver"><span class="tag tag-export">export</span> <code>setupChildObserver(container, { renderMap, addGeoLinksByText })</code> <a class="lineref">L392–436</a></h2>
+<div class="section">
   <p>
-    Watches <code>childList</code> and a single attribute (<code>data-init-dumby</code>).
-    On each mutation it:
+    Installs a <code>MutationObserver</code> on <code>childList</code> changes and the
+    <code>data-init-dumby</code> attribute. On each mutation it:
   </p>
   <ul>
+    <li>Clears <code>data-init-dumby</code> on attribute mutations to prevent re-triggers.</li>
     <li>Updates <code>block.dataset.total</code> on all blocks so CSS can number them.</li>
     <li>Initialises any new <code>geoLinkSelector</code> and <code>docLinkSelector</code> elements as <code>GeoLink</code> / <code>DocLink</code> instances.</li>
+    <li>Calls <code>addGeoLinksByText</code> on attribute-triggered mutations.</li>
     <li>Renders any new map code blocks found via <code>mapBlockSelector</code>.</li>
   </ul>
   <p>
-    The entire observation is bootstrapped by setting <code>container.dataset.initDumby = 'true'</code>
-    <a class="lineref">L445</a>, which triggers the attribute filter and processes the initial DOM.
+    The entire observation is bootstrapped by <code>generateMaps()</code> setting
+    <code>container.dataset.initDumby = 'true'</code> <a class="lineref">L959</a>,
+    which triggers the attribute filter and processes the initial DOM.
   </p>
-
-  <h3>Layout observer <a class="lineref">L447–480</a></h3>
-  <p>
-    Watches <code>data-layout</code> attribute changes. On change, it calls the
-    <code>leaveHandler</code> of the old layout and the <code>enterHandler</code> of the new
-    one, clears inline styles, and nudges the focused map to ensure it re-positions correctly:
-  </p>
-  <pre><code>dumbymap.layouts.find(l => l.name === newLayout)
-  ?.enterHandler?.call(this, dumbymap)</code></pre>
 </div>
 
-<!-- ─── addGeoLinksByText ────────────────────────────────────── -->
-<h2 id="addGeoLinksByText"><span class="tag tag-internal">links</span> <code>addGeoLinksByText(node)</code> <a class="lineref">L487–496</a></h2>
+<!-- ─── setupLayoutObserver ─────────────────────────────────── -->
+<h2 id="setupLayoutObserver"><span class="tag tag-export">export</span> <code>setupLayoutObserver(container, dumbymap)</code> <a class="lineref">L439–473</a></h2>
 <div class="section">
   <p>
-    Finds coordinate-like text in <code>node</code> and converts it to
-    <code>&lt;a href="geo:..."&gt;</code> GeoLink anchors. It also applies the current CRS
-    transformation so coordinates are expressed in the correct projection:
+    Installs a <code>MutationObserver</code> on the <code>data-layout</code> attribute.
+    On change, it calls the <code>leaveHandler</code> of the old layout and the
+    <code>enterHandler</code> of the new one, clears all inline styles, and nudges the
+    focused map to ensure it re-positions correctly:
+  </p>
+  <pre><code>dumbymap.layouts.find(l => l.name === newLayout)
+  ?.enterHandler?.call(this, dumbymap)
+
+const focusMap =
+  container.querySelector('.mapclay.focus') ??
+  container.querySelector('.mapclay')
+focusMap?.classList?.add('focus')</code></pre>
+</div>
+
+<!-- ─── setupContextMenu ────────────────────────────────────── -->
+<h2 id="setupContextMenu"><span class="tag tag-export">export</span> <code>setupContextMenu(container, dumbymap, editBlockItem)</code> <a class="lineref">L476–624</a></h2>
+<div class="section">
+  <p>
+    Overrides <code>container.oncontextmenu</code> to show a custom popover menu.
+    The menu is built fresh on every right-click with items conditional on what was clicked:
+  </p>
+  <ul>
+    <li><strong>Block element (always first)</strong> — "✏ Edit Block" via <code>editBlockItem(block)</code>, appended immediately after menu creation.</li>
+    <li><strong>Text selection</strong> — "Add GeoLink by geocoding" for the selected text.</li>
+    <li><strong>Map editor active</strong> — "Finish Editing" item.</li>
+    <li><strong>GeoLink</strong> — Delete option (if auto-created from text or geocoding) and link-type picker.</li>
+    <li><strong>LeaderLine link</strong> — Line-type picker.</li>
+    <li><strong>Map element</strong> — Map ID label, edit map, render results, toggle focus, Actions folder (get coordinates, restore camera, add marker).</li>
+    <li><strong>Block element</strong> — Toggle block focus.</li>
+    <li><strong>Always</strong> (if not in map or in Showcase map) — Pick map, pick block, pick layout items.</li>
+  </ul>
+  <pre><code>menu.setAttribute('popover', 'auto')
+// Defer showPopover so it runs after pointerup, which on Linux fires
+// after contextmenu and would otherwise trigger popover light-dismiss
+setTimeout(() => { menu.showPopover(); shiftByWindow(menu) }, 0)</code></pre>
+  <p>
+    The <code>popover</code> API provides native light-dismiss behaviour. <code>shiftByWindow</code>
+    nudges the menu back into viewport if it would overflow.
+  </p>
+</div>
+
+<!-- ─── setupMouseDrag ──────────────────────────────────────── -->
+<h2 id="setupMouseDrag"><span class="tag tag-export">export</span> <code>setupMouseDrag(container)</code> <a class="lineref">L627–663</a></h2>
+<div class="section">
+  <p>
+    Installs <code>onmousedown</code> on the container to allow the user to drag from a
+    text selection to create a GeoLink. A <code>.point-by-arrow</code> div follows the
+    cursor. If the mouse button is held for more than 300 ms,
+    <code>utils.addGeoLinkByDrag()</code> is called:
+  </p>
+  <pre><code>const timer = setTimeout(() => {
+  utils.addGeoLinkByDrag(container, range, pointByArrow)
+}, 300)
+
+container.onmousemove = (event) => {
+  pointByArrow.style.left = `${event.clientX - rect.left}px`
+  pointByArrow.style.top  = `${event.clientY - rect.top}px`
+}
+container.onmouseup = () => {
+  clearTimeout(timer)
+  pointByArrow.remove()
+}</code></pre>
+</div>
+
+<!-- ─── setupKeybindings ─────────────────────────────────────── -->
+<h2 id="setupKeybindings"><span class="tag tag-export">export</span> <code>setupKeybindings(container, dumbymap)</code> <a class="lineref">L666–688</a></h2>
+<div class="section">
+  <p>
+    Adds a global <code>keydown</code> listener (ignored when focus is in a
+    <code>textarea</code> or <code>input</code>) providing navigation shortcuts:
+  </p>
+  <ul>
+    <li><code>Tab</code> / <code>Shift+Tab</code> — focus next / previous map.</li>
+    <li><code>x</code> / <code>X</code> — cycle layouts forward / backward.</li>
+    <li><code>n</code> / <code>p</code> — focus next / previous block.</li>
+    <li><code>Escape</code> — remove block focus.</li>
+  </ul>
+  <p>The listener is removed via <code>onRemove(container, ...)</code> when the container leaves the DOM.</p>
+</div>
+
+<!-- ─── fetchDefaultAliases ─────────────────────────────────── -->
+<h2 id="fetchDefaultAliases"><span class="tag tag-export">export</span> <code>fetchDefaultAliases(url, dumbymap)</code> <a class="lineref">L691–703</a></h2>
+<div class="section">
+  <p>
+    If a URL is provided (defaults in <code>generateMaps()</code> to the project's hosted
+    <code>default.yml</code>), it is fetched and its <code>aliases</code> section is merged
+    into <code>dumbymap.aliases</code>. This lets a remote YAML file provide renderer aliases
+    (e.g. shorthand names for tile sources) without baking them into the bundle:
+  </p>
+  <pre><code>fetch(url)
+  .then(res => res.text())
+  .then(rawText => {
+    const config = mapclay.parseConfigsFromYaml(rawText)?.at(0)
+    Object.entries(config.aliases).forEach(([option, aliases]) => {
+      dumbymap.aliases[option] = aliases
+    })
+  })
+  .catch(err => console.warn(`Fail to get aliases from ${url}`, err))</code></pre>
+</div>
+
+<!-- ─── generateMaps ────────────────────────────────────────── -->
+<h2 id="generateMaps"><span class="tag tag-export">export</span> <code>generateMaps(container, options)</code> <a class="lineref">L718–971</a></h2>
+<div class="section">
+  <p>
+    The main entry point and orchestrator. Accepts an <code>HTMLElement</code> and an
+    options object and wires up the complete DumbyMap system by calling the exported
+    setup functions in order, then wiring together a few local closures that depend on
+    the fully-built <code>dumbymap</code> object.
+    Returns a sealed <code>dumbymap</code> object.
+  </p>
+  <p>The function is idempotent — if the container already has class <code>Dumby</code> it returns immediately:</p>
+  <pre><code>if (container.classList.contains('Dumby')) return</code></pre>
+
+  <h3>Orchestration sequence</h3>
+  <pre><code>setupContainer(container, { crs, initialLayout })
+
+const htmlHolder = resolveHtmlHolder(container, contentSelector)
+wrapDumbyBlocks(htmlHolder)
+storeMarkdownPerBlock(htmlHolder)
+
+// Remove all non-htmlHolder siblings
+Array.from(container.childNodes)
+  .filter(node => node !== htmlHolder)
+  .forEach(node => node.remove())
+
+const showcase = createShowcase(container)
+const { modal, modalContent } = createModal(container)
+const dumbymap = buildDumbymap(container, { modal, modalContent, layouts })
+
+// ... define local closures: addGeoLinksByText, mapClassObserver,
+//     afterMapRendered, assignMapId, renderMap ...
+
+setupContentObserver(container, { renderMap })
+setupChildObserver(container, { renderMap, addGeoLinksByText })
+setupLayoutObserver(container, dumbymap)
+
+container.dataset.initDumby = 'true'   // triggers initial DOM scan
+
+const editBlockItem = menuItem.setupBlockEdit(dumbymap, { ... })
+setupContextMenu(container, dumbymap, editBlockItem)
+setupMouseDrag(container)
+setupKeybindings(container, dumbymap)
+fetchDefaultAliases(defaultApply, dumbymap)
+
+return Object.seal(dumbymap)</code></pre>
+
+  <h3>Options</h3>
+  <ul>
+    <li><code>contentSelector</code> — CSS selector for the Semantic HTML element.</li>
+    <li><code>crs</code> — CRS in EPSG/ESRI code (default <code>'EPSG:4326'</code>).</li>
+    <li><code>initialLayout</code> — name of the initial layout.</li>
+    <li><code>layouts</code> — additional layout objects or names to append.</li>
+    <li><code>mapDelay</code> — debounce delay before rendering maps (default <code>1000</code> ms).</li>
+    <li><code>render</code> — custom render function (default <code>defaultRender</code>).</li>
+    <li><code>renderCallback</code> — called after each map renders.</li>
+    <li><code>defaultApply</code> — URL of a YAML aliases file to fetch on startup.</li>
+  </ul>
+</div>
+
+<!-- ─── addGeoLinksByText (local) ───────────────────────────── -->
+<h2 id="addGeoLinksByText"><span class="tag tag-internal">local</span> <code>addGeoLinksByText(node)</code> <a class="lineref">L750–759</a></h2>
+<div class="section">
+  <p>
+    A closure defined inside <code>generateMaps()</code> that captures the container's
+    CRS string. It finds coordinate-like text in <code>node</code>, converts it to
+    <code>&lt;a href="geo:..."&gt;</code> anchors, and applies the current CRS
+    transformation:
   </p>
   <pre><code>Promise.all([fromEPSGCode(crsString), addGeoScheme]).then((values) => {
   values.at(-1)
@@ -554,12 +751,13 @@ if (final) setTimeout(() => delete target.dataset.report, 100)</code></pre>
 })</code></pre>
 </div>
 
-<!-- ─── mapClassObserver ─────────────────────────────────────── -->
-<h2 id="mapClassObserver"><span class="tag tag-watch">watch</span> <code>mapClassObserver()</code> <a class="lineref">L502–573</a></h2>
+<!-- ─── mapClassObserver (local) ────────────────────────────── -->
+<h2 id="mapClassObserver"><span class="tag tag-watch">watch</span> <code>mapClassObserver()</code> <a class="lineref">L765–836</a></h2>
 <div class="section">
   <p>
-    Returns a <code>MutationObserver</code> that watches the <code>class</code> attribute of
-    a single map element. Its main job is moving the map element between the
+    A factory closure inside <code>generateMaps()</code> that returns a
+    <code>MutationObserver</code> watching the <code>class</code> attribute of a single
+    map element. Its main job is moving the map element between the
     <code>.SemanticHtml</code> content area and the <code>.Showcase</code> panel when the
     map gains or loses the <code>focus</code> class.
   </p>
@@ -584,8 +782,8 @@ animateRectTransition(target, placeholder.getBoundingClientRect(), {
   </p>
 </div>
 
-<!-- ─── afterMapRendered ─────────────────────────────────────── -->
-<h2 id="afterMapRendered"><span class="tag tag-internal">map</span> <code>afterMapRendered(renderer)</code> <a class="lineref">L580–612</a></h2>
+<!-- ─── afterMapRendered (local) ────────────────────────────── -->
+<h2 id="afterMapRendered"><span class="tag tag-internal">local</span> <code>afterMapRendered(renderer)</code> <a class="lineref">L843–875</a></h2>
 <div class="section">
   <p>
     Called by <code>renderMap()</code> when a mapclay renderer resolves. It:
@@ -603,8 +801,8 @@ const observer = mapClassObserver()
 observer.observe(mapElement, { attributes: true, attributeFilter: ['class'] })</code></pre>
 </div>
 
-<!-- ─── assignMapId / renderMap ──────────────────────────────── -->
-<h2 id="renderMap"><span class="tag tag-internal">map</span> <code>assignMapId</code> &amp; <code>renderMap(target)</code> <a class="lineref">L614–700</a></h2>
+<!-- ─── assignMapId / renderMap (local) ─────────────────────── -->
+<h2 id="renderMap"><span class="tag tag-internal">local</span> <code>assignMapId</code> &amp; <code>renderMap(target)</code> <a class="lineref">L878–953</a></h2>
 <div class="section">
   <h3><code>assignMapId(config)</code></h3>
   <p>
@@ -629,61 +827,8 @@ while (!mapId || mapIdList.includes(mapId)) {
 )</code></pre>
 </div>
 
-<!-- ─── Context menu ─────────────────────────────────────────── -->
-<h2 id="contextMenu"><span class="tag tag-ui">ui</span> Context menu <a class="lineref">L704–850</a></h2>
-<div class="section">
-  <p>
-    Overrides <code>container.oncontextmenu</code> to show a custom popover menu.
-    The menu is built fresh on every right-click with items conditional on what was clicked:
-  </p>
-  <ul>
-    <li><strong>Block element (always first)</strong> — "✏ Edit Block" via <code>editBlockItem(block)</code>, appended immediately after menu creation so it is always the first item when a block is targeted.</li>
-    <li><strong>Text selection</strong> — "Add GeoLink by geocoding" for the selected text.</li>
-    <li><strong>Map editor active</strong> — "Finish Editing" item.</li>
-    <li><strong>GeoLink</strong> — Delete option (if auto-created from text or geocoding) and link-type picker.</li>
-    <li><strong>LeaderLine link</strong> — Line-type picker.</li>
-    <li><strong>Map element</strong> — Map ID label, edit map, render results, toggle focus, Actions folder (get coordinates, restore camera, add marker).</li>
-    <li><strong>Block element</strong> — Toggle block focus.</li>
-    <li><strong>Always</strong> (if not in map or in Showcase map) — Pick map, pick block, pick layout items.</li>
-  </ul>
-  <pre><code>/** Menu Item for editing block - always first */
-if (block?.dataset.blockIndex != null) {
-  menu.appendChild(editBlockItem(block))
-}
-
-menu.setAttribute('popover', 'auto')
-// Defer showPopover so it runs after pointerup
-setTimeout(() => { menu.showPopover(); shiftByWindow(menu) }, 0)</code></pre>
-  <p>
-    The <code>popover</code> API provides native light-dismiss behaviour. <code>shiftByWindow</code>
-    nudges the menu back into viewport if it would overflow.
-  </p>
-</div>
-
-<!-- ─── Mouse drag for GeoLink ──────────────────────────────── -->
-<h2 id="dragGeoLink"><span class="tag tag-ui">ui</span> Drag-to-GeoLink <a class="lineref">L845–880</a></h2>
-<div class="section">
-  <p>
-    Allows the user to drag from a text selection to create a GeoLink. A
-    <code>.point-by-arrow</code> div follows the cursor. If the mouse button is held for
-    more than 300 ms, <code>utils.addGeoLinkByDrag()</code> is called:
-  </p>
-  <pre><code>const timer = setTimeout(() => {
-  utils.addGeoLinkByDrag(container, range, pointByArrow)
-}, 300)
-
-container.onmousemove = (event) => {
-  pointByArrow.style.left = `${event.clientX - rect.left}px`
-  pointByArrow.style.top  = `${event.clientY - rect.top}px`
-}
-container.onmouseup = () => {
-  clearTimeout(timer)
-  pointByArrow.remove()
-}</code></pre>
-</div>
-
 <!-- ─── Block editing ────────────────────────────────────────── -->
-<h2 id="blockEditing"><span class="tag tag-ui">ui</span> Block editing modal <a class="lineref">L889–890</a></h2>
+<h2 id="blockEditing"><span class="tag tag-ui">ui</span> Block editing modal <a class="lineref">L962</a></h2>
 <div class="section">
   <p>
     The entire block editing setup is delegated to <code>menuItem.setupBlockEdit()</code>
@@ -697,7 +842,7 @@ container.onmouseup = () => {
     <code>setupBlockEdit()</code> handles all one-time initialisation — block index
     tracking, overlay/modal creation, keyboard wiring, save/close logic, and
     <code>onRemove</code> cleanup — then returns <code>(block) =&gt; Item(...)</code>.
-    The factory is called directly inside <code>container.oncontextmenu</code> to
+    The factory is called directly inside <code>setupContextMenu</code> to
     inject "✏ Edit Block" as the first menu item whenever a block is targeted.
   </p>
 
@@ -723,49 +868,6 @@ container.onmouseup = () => {
     so one block can become several. The whole document is then re-rendered via
     <code>markdown2dumbyBlock()</code>, which re-uses cached maps and stores fresh
     <code>._md</code> on every new block.
-  </p>
-</div>
-
-<!-- ─── Keybindings ──────────────────────────────────────────── -->
-<h2 id="keybindings"><span class="tag tag-ui">ui</span> Keyboard shortcuts <a class="lineref">L892–913</a></h2>
-<div class="section">
-  <p>
-    A global <code>keydown</code> listener (ignored when focus is in a <code>textarea</code>
-    or <code>input</code>) provides navigation shortcuts:
-  </p>
-  <ul>
-    <li><code>Tab</code> / <code>Shift+Tab</code> — focus next / previous map.</li>
-    <li><code>x</code> / <code>X</code> — cycle layouts forward / backward.</li>
-    <li><code>n</code> / <code>p</code> — focus next / previous block.</li>
-    <li><code>Escape</code> — remove block focus.</li>
-  </ul>
-  <p>The listener is removed via <code>onRemove(container, ...)</code> when the container leaves the DOM.</p>
-</div>
-
-<!-- ─── defaultApply / return ────────────────────────────────── -->
-<h2 id="defaultApply"><span class="tag tag-internal">init</span> Default config fetch &amp; return <a class="lineref">L915–933</a></h2>
-<div class="section">
-  <h3><code>defaultApply</code></h3>
-  <p>
-    If a URL is provided (defaults to the project's hosted <code>default.yml</code>),
-    it is fetched and its <code>aliases</code> section is merged into
-    <code>dumbymap.aliases</code>. This lets a remote YAML file provide renderer aliases
-    (e.g. shorthand names for tile sources) without baking them into the bundle:
-  </p>
-  <pre><code>fetch(defaultApply)
-  .then(res => res.text())
-  .then(rawText => {
-    const config = mapclay.parseConfigsFromYaml(rawText)?.at(0)
-    Object.entries(config.aliases).forEach(([option, aliases]) => {
-      dumbymap.aliases[option] = aliases
-    })
-  })</code></pre>
-
-  <h3>Return value</h3>
-  <pre><code>return Object.seal(dumbymap)</code></pre>
-  <p>
-    The <code>dumbymap</code> object is sealed so callers cannot accidentally add or
-    delete properties, while still being able to mutate existing ones (e.g. <code>aliases</code>).
   </p>
 </div>
 
