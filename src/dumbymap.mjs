@@ -447,7 +447,7 @@ export const setupLayoutObserver = (container, dumbymap) => {
     if (oldLayout) {
       dumbymap.layouts
         .find(l => l.name === oldLayout)
-        ?.leaveHandler?.call(this, dumbymap)
+        ?.leaveHandler?.(dumbymap)
     }
 
     Object.values(dumbymap)
@@ -457,7 +457,7 @@ export const setupLayoutObserver = (container, dumbymap) => {
     if (newLayout) {
       dumbymap.layouts
         .find(l => l.name === newLayout)
-        ?.enterHandler?.call(this, dumbymap)
+        ?.enterHandler?.(dumbymap)
     }
 
     // Since layout change may show/hide showcase, the current focused map may need to go into/outside showcase
@@ -504,7 +504,6 @@ export const setupContextMenu = (container, dumbymap, editBlockItem) => {
 
     const showMenu = () => {
       if (menu.childElementCount === 0) return
-      console.log(e)
       menu.style.left = (e.clientX + 10) + 'px'
       menu.style.top = (e.clientY + 5) + 'px'
       // Defer showPopover so it runs after pointerup, which on Linux fires
@@ -529,7 +528,7 @@ export const setupContextMenu = (container, dumbymap, editBlockItem) => {
     const mapEditor = e.target.closest('.edit-map')
     if (mapEditor) {
       menu.appendChild(menuItem.Item({
-        text: 'Finish Editig',
+        text: 'Finish Editing',
         onclick: () => mapEditor.blur(),
       }))
       return showMenu()
