@@ -343,7 +343,7 @@ export const buildDumbymap = (container, { modal, modalContent, layouts = [] }) 
       renderedMaps: () =>
         Array.from(
           container.querySelectorAll('.mapclay[data-render=fulfilled]'),
-        ).sort((a, b) => a.style.order > b.style.order),
+        ).sort((a, b) => Number(a.style.order) - Number(b.style.order)),
       setContextMenu: (menuCallback) => {
         const originalCallback = container.oncontextmenu
         container.oncontextmenu = (e) => {
@@ -857,6 +857,9 @@ export const generateMaps = (container, {
     // Cache if render is fulfilled
     if (mapElement.dataset.render === 'fulfilled') {
       mapCache[mapElement.id] = renderer
+      mapElement.style.order = String(
+        Array.from(container.querySelectorAll('.mapclay')).indexOf(mapElement),
+      )
     } else {
       return
     }
