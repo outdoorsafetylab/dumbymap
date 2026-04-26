@@ -31,6 +31,7 @@ import {
   createModal,
   buildDumbymap,
   fetchDefaultAliases,
+  splitMd,
 } from '../src/dumbymap.mjs'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -327,6 +328,75 @@ describe('buildDumbymap', () => {
     const dumbymap = buildDumbymap(container, { modal, modalContent })
     expect(dumbymap.blocks).toHaveLength(1)
     expect(dumbymap.blocks[0]).toBe(block)
+  })
+})
+
+// ─── splitMd ──────────────────────────────────────────────────────────────────
+
+describe('splitMd', () => {
+  it('returns empty array for empty string', () => {
+    expect(splitMd('')).toEqual([])
+  })
+
+  it('returns single block when no double blank lines', () => {
+    const md = 'line one\nline two\nline three'
+    expect(splitMd(md)).toEqual([md])
+  })
+
+  it('splits on two consecutive blank lines', () => {
+    const md = 'block one\n\n\nblock two'
+    const result = splitMd(md)
+    expect(result).toHaveLength(2)
+    expect(result[0]).toBe('block one')
+    expect(result[1]).toBe('block two')
+  })
+
+  it('does not split on a single blank line', () => {
+    const md = 'para one\n\npara two'
+    expect(splitMd(md)).toHaveLength(1)
+  })
+
+  it('does not split inside a fenced code block', () => {
+    const md = '```\ncode\n\n\nstill in fence\n```'
+    expect(splitMd(md)).toHaveLength(1)
+  })
+
+  it('splits before and after a fenced block containing blank lines', () => {
+    const md = 'intro\n\n\n```\ncode\n\n\nstill fence\n```\n\n\noutro'
+    const result = splitMd(md)
+    expect(result).toHaveLength(3)
+    expect(result[0]).toBe('intro')
+    expect(result[1]).toBe('```\ncode\n\n\nstill fence\n```')
+    expect(result[2]).toBe('outro')
+  })
+
+  it('trims leading/trailing whitespace from each block', () => {
+    const md = '  block one  \n\n\n  block two  '
+    const result = splitMd(md)
+    expect(result[0]).toBe('block one')
+    expect(result[1]).toBe('block two')
+  })
+
+  it('ignores leading/trailing blank lines (no empty blocks)', () => {
+    const md = '\n\nblock\n\n'
+    const result = splitMd(md)
+    expect(result).toHaveLength(1)
+    expect(result[0]).toBe('block')
+  })
+
+  it('handles three or more consecutive blank lines as a single separator', () => {
+    const md = 'a\n\n\n\n\nb'
+    const result = splitMd(md)
+    expect(result).toHaveLength(2)
+    expect(result[0]).toBe('a')
+    expect(result[1]).toBe('b')
+  })
+
+  it('returns multiple blocks when split occurs multiple times', () => {
+    const md = 'one\n\n\ntwo\n\n\nthree'
+    const result = splitMd(md)
+    expect(result).toHaveLength(3)
+    expect(result).toEqual(['one', 'two', 'three'])
   })
 })
 

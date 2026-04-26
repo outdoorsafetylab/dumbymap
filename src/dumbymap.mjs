@@ -84,19 +84,20 @@ const UNWRAP_TAGS = new Set(['div', 'article', 'section', 'main', 'aside', 'head
  * @param {string} md
  * @returns {string[]}
  */
-const splitMd = (md) => {
+export const splitMd = (md) => {
   const lines = md.split('\n')
   const blocks = []
   let buf = []
   let inFence = false
   let blanks = 0
   for (const line of lines) {
+    const wasInFence = inFence
     if (/^```/.test(line)) inFence = !inFence
-    if (!inFence && line.trim() === '') {
+    if (!wasInFence && line.trim() === '') {
       blanks++
       buf.push(line)
     } else {
-      if (!inFence && blanks >= 2) {
+      if (!wasInFence && blanks >= 2) {
         const content = buf.slice(0, buf.length - blanks).join('\n').trim()
         if (content) blocks.push(content)
         buf = []
