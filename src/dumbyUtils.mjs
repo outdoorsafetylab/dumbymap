@@ -22,6 +22,10 @@ export function focusNextMap (reverse = false) {
  *
  * @param {Boolean} reverse - focus previous block
  */
+// TODO: in SideBySide layout this is only reachable via keyboard (n/p).
+// Scrollama (https://github.com/russellsamora/scrollama) or scrollytell
+// (https://google.github.io/scrollytell/) could call this automatically when
+// a block scrolls into the center of the viewport, enabling pure-scroll navigation.
 export function focusNextBlock (reverse = false) {
   const blocks = this.blocks.filter(b =>
     b.checkVisibility({

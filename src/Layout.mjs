@@ -43,6 +43,10 @@ export class SideBySide extends Layout {
    * @param {HTMLElement} options.htmlHolder - The HTML content holder
    * @param {HTMLElement} options.showcase - The showcase element
    */
+  // TODO: consider using Scrollama (https://github.com/russellsamora/scrollama) here to
+  // auto-focus blocks as they enter the viewport while scrolling htmlHolder, so the
+  // showcase map updates without requiring keyboard (n/p/Tab) interaction.
+  // Each .dumby-block would be a "step" element; onStepEnter → block.classList.add('focus').
   enterHandler = ({ container, htmlHolder, showcase }) => {
     const bar = document.createElement('div')
     bar.className = 'bar'
