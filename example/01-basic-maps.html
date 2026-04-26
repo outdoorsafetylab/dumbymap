@@ -100,7 +100,7 @@ Right-click on any map to open the **context menu** with editing options.
     const md = document.getElementById('md-content').textContent
     const container = document.getElementById('app')
     markdown2dumbyBlock(container, md)
-    generateMaps(container)
+    window.dumbymap = generateMaps(container)
   </script>
 </body>
 </html>
