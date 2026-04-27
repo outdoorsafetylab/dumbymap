@@ -1,0 +1,65 @@
+aliases:
+  use:
+    Leaflet:
+      value: https://outdoorsafetylab.github.io/dumbymap/dist/renderers/leaflet.mjs
+      description: Leaflet is the leading open-source JavaScript library for mobile-friendly interactive maps. It has all the mapping features most developers ever need.
+    Maplibre:
+      value: https://outdoorsafetylab.github.io/dumbymap/dist/renderers/maplibre.mjs
+      description: MapLibre GL JS is a TypeScript library that uses WebGL to render interactive maps from vector tiles in a browser. The customization of the map comply with the MapLibre Style Spec.
+    Openlayers:
+      value: https://outdoorsafetylab.github.io/dumbymap/dist/renderers/openlayers.mjs
+      description: OpenLayers makes it easy to put a dynamic map in any web page. It can display map tiles, vector data and markers loaded from any source. OpenLayers has been developed to further the use of geographic information of all kinds.
+  width:
+    One-Third: 33%
+    Half: 50%
+    Three-Quarter: 75%
+    Full: 100%
+  height:
+    Small: 200px
+    Medium: 30vh
+    Huge: 75vh
+  center:
+    彰化縣: [120.5445, 24.0756]
+    新竹縣: [121.0128, 24.8267]
+    花蓮縣: [121.6112, 23.9911]
+    高雄市: [120.2667, 22.6333]
+    基隆市: [121.741, 25.131]
+    苗栗縣: [120.8152, 24.5734]
+    南投縣: [120.9818101, 23.9512034]
+    新北市: [121.457, 25.062]
+    屏東縣: [120.5502695, 22.5468588]
+    台中市: [120.6736, 24.1477]
+    台南市: [120.2067478, 22.9963617]
+    台北市: [121.5182451, 25.0504781]
+    台東縣: [121.1508031, 22.7706117]
+    桃園市: [121.297, 24.994]
+    宜蘭縣: [121.7627819, 24.7637321]
+  zoom:
+    全球範圍(0): 0
+    本鳥範圍(6): 6
+    縣市範圍(11): 11
+    街區(16): 16
+  XYZ:
+    OSM Carto: https://tile.openstreetmap.org/{z}/{x}/{y}.png
+    OpenTopoMap: https://tile.opentopomap.org/{z}/{x}/{y}.png
+    OpenMapTiles: https://tile.openstreetmap.jp/styles/openmaptiles/512/{z}/{x}/{y}.png
+    魯地圖: https://tile.happyman.idv.tw/map/moi_osm/{z}/{x}/{y}.png
+    地圖產生器-GPX: https://tile.happyman.idv.tw/map/gpxtrack/{z}/{x}/{y}.png
+    地圖產生器-魯地圖: https://tile.happyman.idv.tw/map/moi_osm/{z}/{x}/{y}.png
+    TAIWAN TERRAIN RGB: https://osmhacktw.github.io/terrain-rgb/tiles/{z}/{x}/{y}.png
+  WMTS:
+    NLSC: https://wmts.nlsc.gov.tw/wmts
+    TERRAIN-RGB: https://osmhacktw.github.io/terrain-rgb/wmts.xml
+    TAIPEI-GOV: https://www.historygis.udd.gov.taipei/wmts
+    SINICA: https://gis.sinica.edu.tw/tileserver/wmts
+    SINICA_TAOYUAN: https://gis.sinica.edu.tw/taoyuan/wmts
+    SINICA_TAICHUNG:  https://gis.sinica.edu.tw/taichung/wmts
+    SINICA_CHIAYI:  https://gis.sinica.edu.tw/chiayi/wmts
+    SINICA_HUALIAN:  https://gis.sinica.edu.tw/hualien/wmts
+    SINICA_SHANGHAI: http://gis.sinica.edu.tw/shanghai/wmts
+    SINICA_BEIJING:  http://gis.sinica.edu.tw/beijing/wmts
+    SINICA_WORLD: https://gis.sinica.edu.tw/worldmap/wmts-proxy
+    SINICA_CCTS:  https://gis.sinica.edu.tw/ccts/wmts
+    NCU_REMOTE:  https://data.csrsr.ncu.edu.tw/SP/wmts
+    NCU_REMOTE_TW: https://data.csrsr.ncu.edu.tw/SP_TW_FC/wmts
+    CHIAYI-GOV: https://3dmap.chiayi.gov.tw/wmts/
