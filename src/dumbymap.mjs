@@ -226,6 +226,25 @@ const updateAttributeByStep = ({ results, target, steps }) => {
   })
 }
 
+/** Assign a unique ID to a map config, derived from its renderer name */
+export const assignMapId = (config) => {
+  const mapIdList = Array.from(document.querySelectorAll('.mapclay'))
+    .map(map => map.id)
+    .filter(id => id)
+  let mapId = config.id?.replaceAll('\x20', '_')
+  if (!mapId) {
+    mapId = config.use?.split('/')?.at(-1)
+    let counter = 1
+    while (!mapId || mapIdList.includes(mapId)) {
+      mapId = `${config.use ?? 'unnamed'}-${counter}`
+      counter++
+    }
+  }
+  config.id = mapId
+  mapIdList.push(mapId)
+  return config
+}
+
 /** Get default render method by converter */
 const defaultRender = mapclay.renderWith(config => ({
   use: config.use ?? 'Leaflet',
@@ -359,6 +378,10 @@ export const buildDumbymap = (container, { modal, modalContent, layouts = [] }) 
       switchToNextLayout: throttle(utils.switchToNextLayout, 300),
     },
   }
+  // Bind all utils functions to dumbymap so they can reference it via `this`.
+  // Functions imported from dumbyUtils.mjs (focusNextMap, focusNextBlock, etc.) use `this`
+  // and require binding. Closure-based utils (renderedMaps, setContextMenu) don't use `this`
+  // but are harmlessly re-bound here for uniformity.
   Object.entries(dumbymap.utils).forEach(([util, value]) => {
     if (typeof value === 'function') {
       dumbymap.utils[util] = value.bind(dumbymap)
@@ -537,38 +560,22 @@ export const setupContextMenu = (container, dumbymap, editBlockItem) => {
     /** Menu Items for Links */
     const geoLink = e.target.closest('.geolink')
     if (geoLink) {
-      if (geoLink.classList.contains('from-text')) {
+      if (geoLink.classList.contains('from-text') || geoLink.classList.contains('from-geocoding')) {
         menu.appendChild(menuItem.Item({
           innerHTML: '<strong style="color: red;">DELETE</strong>',
           onclick: () => {
-            getMarkersByGeoLink(geoLink)
-              .forEach(m => m.remove())
-            geoLink.replaceWith(
-              document.createTextNode(geoLink.textContent),
-            )
-          },
-        }))
-      } else if (geoLink.classList.contains('from-geocoding')) {
-        menu.appendChild(menuItem.Item({
-          innerHTML: '<strong style="color: red;">DELETE</strong>',
-          onclick: () => {
-            getMarkersByGeoLink(geoLink)
-              .forEach(m => m.remove())
+            getMarkersByGeoLink(geoLink).forEach(m => m.remove())
 
-            const sibling = [
+            // For geocoding links a paired sibling anchor may exist; remove only this one
+            const pairedSibling = geoLink.classList.contains('from-geocoding') && [
               geoLink.previousElementSibling,
               geoLink.nextElementSibling,
-            ]
-              .find(a =>
-                a.classList.contains('from-geocoding') && a.textContent === geoLink.textContent,
-              )
+            ].find(a => a?.classList.contains('from-geocoding') && a.textContent === geoLink.textContent)
 
-            if (sibling) {
+            if (pairedSibling) {
               geoLink.remove()
             } else {
-              geoLink.replaceWith(
-                document.createTextNode(geoLink.textContent),
-              )
+              geoLink.replaceWith(document.createTextNode(geoLink.textContent))
             }
           },
         }))
@@ -761,10 +768,9 @@ export const generateMaps = (container, {
   }
 
   /**
-   * MAP: mapFocusObserver. observe for map focus
-   * @return {MutationObserver} observer
+   * MAP: Create a MutationObserver that moves a map into/out of Showcase when its focus class changes
    */
-  const mapClassObserver = () =>
+  const createMapClassObserver = () =>
     new window.MutationObserver(mutations => {
       const mutation = mutations.at(-1)
       const target = mutation.target
@@ -867,7 +873,7 @@ export const generateMaps = (container, {
     renderCallback?.(renderer)
 
     // Watch change of class
-    const observer = mapClassObserver()
+    const observer = createMapClassObserver()
     observer.observe(mapElement, {
       attributes: true,
       attributeFilter: ['class'],
@@ -881,26 +887,6 @@ export const generateMaps = (container, {
     ) {
       mapElement.classList.add('focus')
     }
-  }
-
-  // Set unique ID for map container
-  function assignMapId (config) {
-    const mapIdList = Array.from(document.querySelectorAll('.mapclay'))
-      .map(map => map.id)
-      .filter(id => id)
-    let mapId = config.id?.replaceAll('\x20', '_')
-    if (!mapId) {
-      mapId = config.use?.split('/')?.at(-1)
-      let counter = 1
-      while (!mapId || mapIdList.includes(mapId)) {
-        mapId = `${config.use ?? 'unnamed'}-${counter}`
-        counter++
-      }
-    }
-
-    config.id = mapId
-    mapIdList.push(mapId)
-    return config
   }
 
   /**

@@ -32,6 +32,7 @@ import {
   buildDumbymap,
   fetchDefaultAliases,
   splitMd,
+  assignMapId,
 } from '../src/dumbymap.mjs'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -427,5 +428,48 @@ describe('fetchDefaultAliases', () => {
     fetchDefaultAliases('http://fake/default.yml', dumbymap)
     await vi.waitFor(() => expect(warnSpy).toHaveBeenCalled())
     warnSpy.mockRestore()
+  })
+})
+
+// ─── assignMapId ──────────────────────────────────────────────────────────────
+
+describe('assignMapId', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('derives id from use: renderer name', () => {
+    const config = assignMapId({ use: 'Leaflet' })
+    expect(config.id).toBe('Leaflet')
+  })
+
+  it('appends numeric suffix on collision', () => {
+    const map = document.createElement('div')
+    map.className = 'mapclay'
+    map.id = 'Leaflet'
+    document.body.appendChild(map)
+    const config = assignMapId({ use: 'Leaflet' })
+    expect(config.id).toBe('Leaflet-1')
+  })
+
+  it('increments suffix until unique', () => {
+    for (const id of ['Leaflet', 'Leaflet-1', 'Leaflet-2']) {
+      const map = document.createElement('div')
+      map.className = 'mapclay'
+      map.id = id
+      document.body.appendChild(map)
+    }
+    const config = assignMapId({ use: 'Leaflet' })
+    expect(config.id).toBe('Leaflet-3')
+  })
+
+  it('replaces spaces with underscores in explicit id', () => {
+    const config = assignMapId({ id: 'my map', use: 'Leaflet' })
+    expect(config.id).toBe('my_map')
+  })
+
+  it('uses unnamed-N when use: is absent', () => {
+    const config = assignMapId({})
+    expect(config.id).toMatch(/^unnamed-\d+$/)
   })
 })
