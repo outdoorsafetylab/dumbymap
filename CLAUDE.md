@@ -25,7 +25,11 @@ npm run addon     # Build Firefox addon
 npm run dev-addon # Run Firefox addon in development mode
 ```
 
-No test framework is configured. Code quality is maintained via StandardJS (`lint`) and Stylelint (`style`).
+**Tests:**
+- `npm run test` — Vitest unit tests (config: `scripts/vitest.config.js`); excludes e2e
+- `npm run test:e2e` — Playwright e2e tests (config: `scripts/playwright.config.js`)
+
+Code quality is maintained via StandardJS (`lint`) and Stylelint (`style`).
 
 ## Architecture
 
@@ -44,13 +48,14 @@ The rendered DOM structure:
 | File | Role |
 |------|------|
 | `src/dumbymap.mjs` | Core library; map rendering, DOM observers, layout/link orchestration |
-| `src/editor.mjs` | EasyMDE editor integration; connects editing to map generation |
 | `src/Layout.mjs` | Layout classes: `Layout`, `SideBySide`, `Overlay`, `Sticky` |
 | `src/Link.mjs` | `GeoLink` (geo-scheme anchors), `DocLink` (fragment links), LeaderLine wiring |
 | `src/MenuItem.mjs` | Context menu item factories for maps, blocks, and links |
 | `src/marker.mjs` | Predefined marker icon definitions (pin, circle, campsite, caution, etc.) |
 | `src/dumbyUtils.mjs` | Map utilities: focus navigation, marker placement, geo-coordinate parsing |
 | `src/utils.mjs` | Generic DOM helpers: `onRemove()`, `animateRectTransition()`, `throttle()`, `debounce()` |
+| `src/tutorial.mjs` | Tutorial/onboarding logic |
+| `src/vendor/` | Vendored libs: `leader-line.mjs`, `markdown-it-*`, `proj4.mjs` |
 
 **Map rendering** delegates to the `mapclay` library, which supports MapLibre, OpenLayers, and Leaflet. Maps are defined as YAML inside fenced code blocks tagged `` `map ``.
 
@@ -59,4 +64,14 @@ The rendered DOM structure:
 - *DocLinks* — `<a href="#selector">` elements linking to document fragments
 - Both use `leader-line` to draw visual connectors between content and maps
 
-**Build:** `scripts/build.sh` symlinks CSS/renderer assets into `dist/`, then Rollup (config in `scripts/rollup.config.js`) bundles `src/editor.mjs` and `src/dumbymap.mjs` as ESM output. Set `PRODUCTION=true` to enable terser minification.
+**`generateMaps` decomposition:** The function is composed from many individually exported setup functions — `setupContainer`, `resolveHtmlHolder`, `wrapDumbyBlocks`, `storeMarkdownPerBlock`, `createShowcase`, `createModal`, `buildDumbymap`, `setupContentObserver`, `setupChildObserver`, `setupLayoutObserver`, `setupContextMenu`, `setupMouseDrag`, `setupKeybindings`. These are unit-testable independently.
+
+Notable exports: `assignMapId(config)`, `fetchDefaultAliases(url, dumbymap)` (loads YAML alias config from URL), `htmlToMd(node)`, `splitMd(md)`.
+
+`generateMaps` option `urlParams: true` reads `?layout=` query param and syncs it with the active layout.
+
+**Reference docs:**
+- `docs/FEATURES.md` — numbered, exhaustive list of all behaviors (initialization, rendering, layouts, links, keybindings, public API, etc.)
+- `docs/workflow.mermaid` — full flowchart of the `generateMaps()` execution path, including all composable setup functions and the `renderMap()` sub-flow
+
+**Build:** `scripts/build.sh` symlinks CSS/renderer assets into `dist/`, then Rollup (config in `scripts/rollup.config.js`) bundles `src/dumbymap.mjs` as ESM output. Set `PRODUCTION=true` to enable terser minification.
