@@ -25,6 +25,7 @@ vi.mock('proj4', () => ({ default: {} }))
 import {
   setupContainer,
   resolveHtmlHolder,
+  md2dumbyBlocks,
   wrapDumbyBlocks,
   storeMarkdownPerBlock,
   createShowcase,
@@ -142,42 +143,61 @@ describe('resolveHtmlHolder', () => {
   })
 })
 
+// ─── md2dumbyBlocks ───────────────────────────────────────────────────────────
+
+describe('md2dumbyBlocks', () => {
+  it('returns a string', () => {
+    expect(typeof md2dumbyBlocks('hello')).toBe('string')
+  })
+
+  it('wraps content in a .dumby-block article', () => {
+    const html = md2dumbyBlocks('# Title\n\nsome text')
+    const div = document.createElement('div')
+    div.innerHTML = html
+    expect(div.querySelector('article.dumby-block')).not.toBeNull()
+  })
+
+  it('produces a single block when no triple newline', () => {
+    const html = md2dumbyBlocks('para one\n\npara two')
+    const div = document.createElement('div')
+    div.innerHTML = html
+    expect(div.querySelectorAll('.dumby-block').length).toBe(1)
+  })
+
+  it('splits on 2+ blank lines (triple newline)', () => {
+    const html = md2dumbyBlocks('block one\n\n\nblock two')
+    const div = document.createElement('div')
+    div.innerHTML = html
+    expect(div.querySelectorAll('.dumby-block').length).toBe(2)
+  })
+
+  it('produces multiple blocks for multi-section markdown', () => {
+    const html = md2dumbyBlocks('# A\n\npara\n\n\n# B\n\npara')
+    const div = document.createElement('div')
+    div.innerHTML = html
+    expect(div.querySelectorAll('.dumby-block').length).toBe(2)
+  })
+
+  it('passes inline HTML through unchanged', () => {
+    const html = md2dumbyBlocks('<p class="custom">text</p>')
+    expect(html).toContain('class="custom"')
+  })
+})
+
+
 // ─── wrapDumbyBlocks ──────────────────────────────────────────────────────────
 
 describe('wrapDumbyBlocks', () => {
-  it('wraps flat content into a single .dumby-block', () => {
+  it('wraps flat HTML into a single .dumby-block', () => {
     const holder = document.createElement('div')
     holder.innerHTML = '<p>Hello</p><p>World</p>'
     wrapDumbyBlocks(holder)
-    const blocks = holder.querySelectorAll('.dumby-block')
-    expect(blocks.length).toBe(1)
-    expect(blocks[0].querySelectorAll('p').length).toBe(2)
+    expect(holder.querySelectorAll('.dumby-block').length).toBe(1)
   })
 
-  it('splits on h2 headings', () => {
+  it('splits on 2+ blank lines in serialized HTML', () => {
     const holder = document.createElement('div')
-    holder.innerHTML = '<h2>A</h2><p>a</p><h2>B</h2><p>b</p>'
-    wrapDumbyBlocks(holder)
-    expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
-  })
-
-  it('splits on h1 headings', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<h1>Title</h1><p>intro</p><h1>Next</h1><p>body</p>'
-    wrapDumbyBlocks(holder)
-    expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
-  })
-
-  it('promotes <section> children to .dumby-block', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<section><p>A</p></section><section><p>B</p></section>'
-    wrapDumbyBlocks(holder)
-    expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
-  })
-
-  it('promotes <article> children to .dumby-block', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<article><p>A</p></article><article><p>B</p></article>'
+    holder.innerHTML = '<p>A</p>\n\n\n<p>B</p>'
     wrapDumbyBlocks(holder)
     expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
   })

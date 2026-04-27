@@ -130,18 +130,14 @@ const defaultLayouts = [
 const mapCache = {}
 
 /**
- * Converts Markdown/HTML content into .dumby-block elements inside container.
- * Since markdown-it has html:true, raw HTML is also accepted as input.
+ * Convert a markdown (superset of HTML) string into an HTML string
+ * containing one or more .dumby-block elements.
+ * Splits into separate blocks at every gap of 2+ blank lines (\n\n\n).
  *
- * @param {HTMLElement} container - Target Element to include generated HTML contents
  * @param {string} mdContent - Text in Markdown (superset of HTML) format
- * @returns {HTMLElement} container
+ * @returns {string} HTML string with .dumby-block article elements
  */
-export const markdown2dumbyBlock = (container, mdContent) => {
-  /** Prepare Elements for Container */
-  container.querySelector('.SemanticHtml')?.remove()
-
-  /** Prepare MarkdownIt Instance */
+export const md2dumbyBlocks = (mdContent) => {
   const md = MarkdownIt({
     html: true,
     breaks: true,
@@ -157,8 +153,6 @@ export const markdown2dumbyBlock = (container, mdContent) => {
     .use(MarkdownItInjectLinenumbers)
     .use(MarkdownItAttrs)
 
-  /** Custom rule for Blocks in DumbyMap */
-  // Split into .dumby-block at every gap of 2+ blank lines (i.e. triple newline \n\n\n)
   md.renderer.rules.dumby_block_open = () => '<article class="dumby-block">'
   md.renderer.rules.dumby_block_close = () => '</article>'
   md.core.ruler.after('block', 'dumby_block', state => {
@@ -186,20 +180,9 @@ export const markdown2dumbyBlock = (container, mdContent) => {
     state.tokens = out
   })
 
-  /** Render HTML */
-  const htmlHolder = document.createElement('div')
-  htmlHolder.className = 'SemanticHtml'
-  htmlHolder.innerHTML = md.render(mdContent)
-  container.appendChild(htmlHolder)
-
-  /** Store markdown source per block for editing */
-  const mdPieces = splitMd(mdContent)
-  htmlHolder.querySelectorAll('.dumby-block').forEach((block, i) => {
-    block._md = mdPieces[i] ?? ''
-  })
-
-  return container
+  return md.render(mdContent)
 }
+
 
 /**
  * updateAttributeByStep.
@@ -289,36 +272,11 @@ const wrapTextNodes = (parent) => {
 
 /** SETUP: Wrap content into .dumby-block elements if not already done by markdown2dumbyBlock */
 export const wrapDumbyBlocks = (htmlHolder) => {
-  if (!htmlHolder.querySelector('.dumby-block')) {
-    wrapTextNodes(htmlHolder)
-    const headings = htmlHolder.querySelectorAll('h1, h2, h3')
-    if (headings.length) {
-      const childNodes = Array.from(htmlHolder.childNodes)
-      let block = document.createElement('article')
-      block.className = 'dumby-block'
-      htmlHolder.appendChild(block)
-      childNodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE && node.matches('h1, h2, h3') && block.children.length) {
-          block = document.createElement('article')
-          block.className = 'dumby-block'
-          htmlHolder.appendChild(block)
-        }
-        block.appendChild(node)
-      })
-    } else {
-      const sections = htmlHolder.querySelectorAll(':scope > section, :scope > article')
-      if (sections.length) {
-        sections.forEach(el => el.classList.add('dumby-block'))
-      } else {
-        const block = document.createElement('article')
-        block.className = 'dumby-block'
-        Array.from(htmlHolder.childNodes).forEach(node => block.appendChild(node))
-        htmlHolder.appendChild(block)
-      }
-    }
-  } else {
+  if (htmlHolder.querySelector('.dumby-block')) {
     htmlHolder.querySelectorAll('.dumby-block').forEach(wrapTextNodes)
+    return
   }
+  htmlHolder.innerHTML = md2dumbyBlocks(htmlHolder.innerHTML)
 }
 
 /** SETUP: Store markdown source per block (derive from HTML when generateMaps() is used on raw HTML) */
@@ -970,7 +928,7 @@ export const generateMaps = (container, {
   container.dataset.initDumby = 'true'
 
   /** BLOCK EDITING: inline edit modal for each .dumby-block */
-  const editBlockItem = menuItem.setupBlockEdit(dumbymap, { container, htmlHolder, markdown2dumbyBlock, splitMd })
+  const editBlockItem = menuItem.setupBlockEdit(dumbymap, { container, htmlHolder, md2dumbyBlocks, splitMd })
 
   setupContextMenu(container, dumbymap, editBlockItem)
   setupMouseDrag(container)

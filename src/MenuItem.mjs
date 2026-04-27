@@ -654,10 +654,10 @@ export const addLinkbyGeocoding = (range) => {
  * @param {Object} options
  * @param {HTMLElement} options.container
  * @param {HTMLElement} options.htmlHolder
- * @param {Function} options.markdown2dumbyBlock
+ * @param {Function} options.md2dumbyBlocks
  * @param {Function} options.splitMd
  */
-export const setupBlockEdit = (dumbymap, { container, htmlHolder, markdown2dumbyBlock, splitMd }) => {
+export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks, splitMd }) => {
   const assignBlockIndices = () => {
     container.querySelectorAll('.dumby-block').forEach((block, i) => {
       block.dataset.blockIndex = i
@@ -700,8 +700,10 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, markdown2dumby
     if (editingIndex === null) return
     const allMd = dumbymap.blocks.map(b => b._md)
     allMd.splice(editingIndex, 1, ...splitMd(textarea.value))
-    markdown2dumbyBlock(container, allMd.join(SEP))
-    assignBlockIndices()
+    htmlHolder.innerHTML = md2dumbyBlocks(allMd.join(SEP))
+    htmlHolder.querySelectorAll('.dumby-block').forEach((block, i) => {
+      block._md = allMd[i] ?? ''
+    })
     closeEditModal()
   }
 
