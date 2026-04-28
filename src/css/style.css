@@ -110,11 +110,109 @@ body {
     max-width: 800px;
     margin: 0 auto;
     padding: 2rem 1rem;
+
+    &::after {
+      animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
+    }
+  }
+
+  &[data-layout] .dumby-block {
+    padding: 1rem 1rem 1rem 2rem;
+
+    position: relative;
+
+    counter-increment: block;
+
+    &::before {
+      content: '';
+      height: calc(100% - 2rem);
+
+      position: absolute;
+      left: 0.8rem;
+
+      border-left: 0.5em solid var(--border);
+    }
+
+    &.focus {
+      &::before {
+        border-color: var(--link);
+      }
+
+      &::after {
+        content: counter(block) '/' attr(data-total);
+        padding: 0.3rem 0.5rem;
+
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 9999;
+
+        border: solid transparent;
+        border-radius: 0.25em;
+
+        background: var(--dark);
+
+        color: var(--light);
+        font-size: 1.5em;
+        font-weight: bold;
+
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
+      }
+    }
   }
 
   /* ── Typography scoped to rendered content ── */
 
   .SemanticHtml {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100%;
+    gap: 1rem;
+    overflow-y: auto;
+
+    /* Gray out text not focused */
+    &:has(.dumby-block.focus) {
+      color: var(--lesslight);
+
+      .dumby-block.focus {
+        color: initial;
+      }
+    }
+
+    :has(> .mapclay, > [data-placeholder]) {
+      display: flex;
+      gap: 0.5em;
+
+      background-color: white;
+    }
+
+    /* If map not in showcase, add border when focused */
+    .mapclay {
+      border: 3px solid var(--light);
+
+      &.focus {
+        border: 3px solid var(--link);
+      }
+
+      &[data-render='unfulfilled'] {
+        border: 3px solid crimson;
+
+        opacity: 0.6;
+      }
+    }
+
+    [data-placeholder] {
+      border: 3px solid gray;
+      flex-grow: 0;
+
+      & > * {
+        opacity: 0.3;
+      }
+    }
+
     h1,
     h2,
     h3,
