@@ -15,60 +15,89 @@ const UNWRAP_TAGS = new Set(['div', 'article', 'section', 'main', 'aside', 'head
  * @param {Node} node
  * @returns {string}
  */
-export const htmlToMd = (node) => {
-  if (node.nodeType === Node.TEXT_NODE) {
-    const t = node.textContent
-    return t.trim() ? t : ''
-  }
+export const htmlToMd = (rootNode) => {
+  const urlToLabel = new Map() // url → label
+  const usedLabels = new Set()
 
-  if (node.nodeType !== Node.ELEMENT_NODE) return ''
-
-  const tag = node.tagName.toLowerCase()
-  const inner = () => Array.from(node.childNodes).map(htmlToMd).join('')
-  const headingInner = (n) =>
-    Array.from(n.childNodes)
-      .filter(c => !(c.nodeType === Node.ELEMENT_NODE && c.classList?.contains('header-anchor')))
-      .map(htmlToMd).join('').trim()
-
-  switch (tag) {
-    case 'h1': return `# ${headingInner(node)}\n\n`
-    case 'h2': return `## ${headingInner(node)}\n\n`
-    case 'h3': return `### ${headingInner(node)}\n\n`
-    case 'h4': return `#### ${headingInner(node)}\n\n`
-    case 'h5': return `##### ${headingInner(node)}\n\n`
-    case 'h6': return `###### ${headingInner(node)}\n\n`
-    case 'p': return `${inner().trim()}\n\n`
-    case 'br': return '\n'
-    case 'hr': return '---\n\n'
-    case 'strong':
-    case 'b': return `**${inner()}**`
-    case 'em':
-    case 'i': return `*${inner()}*`
-    case 'a': return `[${inner()}](${node.getAttribute('href') ?? ''})`
-    case 'img': return `![${node.getAttribute('alt') ?? ''}](${node.getAttribute('src') ?? ''})`
-    case 'code':
-      return node.closest('pre')
-        ? node.textContent
-        : `\`${node.textContent}\``
-    case 'pre': {
-      const code = node.querySelector('code')
-      const lang = (code?.className ?? '').match(/language-(\w+)/)?.[1] ?? ''
-      return `\`\`\`${lang}\n${(code ?? node).textContent.trim()}\n\`\`\`\n\n`
+  const getLabel = (href, text) => {
+    if (urlToLabel.has(href)) return urlToLabel.get(href)
+    let label = text
+    if (usedLabels.has(label)) {
+      let i = 2
+      while (usedLabels.has(`${text}-${i}`)) i++
+      label = `${text}-${i}`
     }
-    case 'blockquote':
-      return inner().trim().split('\n').map(l => `> ${l}`).join('\n') + '\n\n'
-    case 'li': return inner()
-    case 'ul':
-      return Array.from(node.children)
-        .map(li => `- ${htmlToMd(li).trim()}`)
-        .join('\n') + '\n\n'
-    case 'ol':
-      return Array.from(node.children)
-        .map((li, i) => `${i + 1}. ${htmlToMd(li).trim()}`)
-        .join('\n') + '\n\n'
-    default:
-      return UNWRAP_TAGS.has(tag) ? inner() : node.outerHTML
+    urlToLabel.set(href, label)
+    usedLabels.add(label)
+    return label
   }
+
+  const convert = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = node.textContent
+      return t.trim() ? t : ''
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) return ''
+
+    const tag = node.tagName.toLowerCase()
+    const inner = () => Array.from(node.childNodes).map(convert).join('')
+    const headingInner = (n) =>
+      Array.from(n.childNodes)
+        .filter(c => !(c.nodeType === Node.ELEMENT_NODE && c.classList?.contains('header-anchor')))
+        .map(convert).join('').trim()
+
+    switch (tag) {
+      case 'h1': return `# ${headingInner(node)}\n\n`
+      case 'h2': return `## ${headingInner(node)}\n\n`
+      case 'h3': return `### ${headingInner(node)}\n\n`
+      case 'h4': return `#### ${headingInner(node)}\n\n`
+      case 'h5': return `##### ${headingInner(node)}\n\n`
+      case 'h6': return `###### ${headingInner(node)}\n\n`
+      case 'p': return `${inner().trim()}\n\n`
+      case 'br': return '\n'
+      case 'hr': return '---\n\n'
+      case 'strong':
+      case 'b': return `**${inner()}**`
+      case 'em':
+      case 'i': return `*${inner()}*`
+      case 'a': {
+        const href = node.getAttribute('href') ?? ''
+        if (!href) return `[${inner()}]()`
+        const text = inner()
+        const label = getLabel(href, text)
+        return text === label ? `[${text}]` : `[${text}][${label}]`
+      }
+      case 'img': return `![${node.getAttribute('alt') ?? ''}](${node.getAttribute('src') ?? ''})`
+      case 'code':
+        return node.closest('pre')
+          ? node.textContent
+          : `\`${node.textContent}\``
+      case 'pre': {
+        const code = node.querySelector('code')
+        const lang = (code?.className ?? '').match(/language-(\w+)/)?.[1] ?? ''
+        return `\`\`\`${lang}\n${(code ?? node).textContent.trim()}\n\`\`\`\n\n`
+      }
+      case 'blockquote':
+        return inner().trim().split('\n').map(l => `> ${l}`).join('\n') + '\n\n'
+      case 'li': return inner()
+      case 'ul':
+        return Array.from(node.children)
+          .map(li => `- ${convert(li).trim()}`)
+          .join('\n') + '\n\n'
+      case 'ol':
+        return Array.from(node.children)
+          .map((li, i) => `${i + 1}. ${convert(li).trim()}`)
+          .join('\n') + '\n\n'
+      default:
+        return UNWRAP_TAGS.has(tag) ? inner() : node.outerHTML
+    }
+  }
+
+  const body = convert(rootNode)
+  if (!urlToLabel.size) return body
+  const defs = [...urlToLabel.entries()].map(([url, label]) => `[${label}]: ${url}`).join('\n')
+  return `${body}\n${defs}\n`
 }
 
 /**

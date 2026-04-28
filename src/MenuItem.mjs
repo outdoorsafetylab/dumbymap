@@ -708,7 +708,7 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
 
   const openEditModal = (index) => {
     editingIndex = index
-    textarea.value = Array.from(dumbymap.blocks[index].childNodes).map(htmlToMd).join('').trim()
+    textarea.value = htmlToMd(dumbymap.blocks[index]).trim()
     overlay.classList.add('open')
     textarea.focus()
     textarea.selectionStart = textarea.selectionEnd = textarea.value.length

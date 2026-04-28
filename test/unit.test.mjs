@@ -31,6 +31,7 @@ import {
   fetchDefaultAliases,
   splitMd,
   assignMapId,
+  htmlToMd,
 } from '../src/dumbymap.mjs'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -333,6 +334,99 @@ describe('fetchDefaultAliases', () => {
     fetchDefaultAliases('http://fake/default.yml', dumbymap)
     await vi.waitFor(() => expect(warnSpy).toHaveBeenCalled())
     warnSpy.mockRestore()
+  })
+})
+
+// ─── htmlToMd ─────────────────────────────────────────────────────────────────
+
+describe('htmlToMd — anchor reference links', () => {
+  const makeA = (href, text) => {
+    const a = document.createElement('a')
+    a.setAttribute('href', href)
+    a.textContent = text
+    return a
+  }
+
+  const wrap = (...children) => {
+    const div = document.createElement('div')
+    for (const c of children) div.appendChild(c)
+    return div
+  }
+
+  it('emits shorthand [text] when there are no other anchors', () => {
+    const root = wrap(makeA('https://foo.example.com', 'foo'))
+    const out = htmlToMd(root)
+    expect(out).toContain('[foo]')
+    expect(out).toContain('[foo]: https://foo.example.com')
+  })
+
+  it('appends no ref section when there are no anchors', () => {
+    const root = document.createElement('p')
+    root.textContent = 'plain text'
+    const out = htmlToMd(root)
+    expect(out).not.toContain('[')
+    expect(out).not.toContain(':')
+  })
+
+  it('reuses label for same URL, emits [text][label] for second anchor', () => {
+    const root = wrap(
+      makeA('https://foo.example.com', 'foo'),
+      makeA('https://foo.example.com', 'bar'),
+    )
+    const out = htmlToMd(root)
+    expect(out).toContain('[foo]')
+    expect(out).toContain('[bar][foo]')
+    // Only one definition for the shared URL
+    expect(out.match(/\[foo\]: https:\/\/foo\.example\.com/g)).toHaveLength(1)
+  })
+
+  it('creates separate definitions for distinct URLs', () => {
+    const root = wrap(
+      makeA('https://foo.example.com', 'foo'),
+      makeA('https://bar.example.com', 'bar'),
+    )
+    const out = htmlToMd(root)
+    expect(out).toContain('[foo]: https://foo.example.com')
+    expect(out).toContain('[bar]: https://bar.example.com')
+  })
+
+  it('resolves label collision (same text, different URL) with -2 suffix', () => {
+    const root = wrap(
+      makeA('https://foo.example.com', 'foo'),
+      makeA('https://other.example.com', 'foo'),
+    )
+    const out = htmlToMd(root)
+    expect(out).toContain('[foo]: https://foo.example.com')
+    expect(out).toContain('[foo-2]: https://other.example.com')
+    expect(out).toContain('[foo][foo-2]')
+  })
+
+  it('increments suffix until unique for repeated collision', () => {
+    const root = wrap(
+      makeA('https://a.example.com', 'x'),
+      makeA('https://b.example.com', 'x'),
+      makeA('https://c.example.com', 'x'),
+    )
+    const out = htmlToMd(root)
+    expect(out).toContain('[x]: https://a.example.com')
+    expect(out).toContain('[x-2]: https://b.example.com')
+    expect(out).toContain('[x-3]: https://c.example.com')
+  })
+
+  it('renders empty href as inline [text]() without adding a ref', () => {
+    const root = wrap(makeA('', 'nothing'))
+    const out = htmlToMd(root)
+    expect(out).toContain('[nothing]()')
+    expect(out).not.toContain('[nothing]:')
+  })
+
+  it('collects refs from anchors nested inside paragraphs', () => {
+    const p = document.createElement('p')
+    p.appendChild(makeA('https://foo.example.com', 'foo'))
+    const root = wrap(p)
+    const out = htmlToMd(root)
+    expect(out).toContain('[foo]')
+    expect(out).toContain('[foo]: https://foo.example.com')
   })
 })
 

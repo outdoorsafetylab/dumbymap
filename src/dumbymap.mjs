@@ -501,7 +501,7 @@ export const generateMaps = (container, {
 } = {}) => {
   if (container.classList.contains('Dumby')) return
 
-  const mdContent = markdown ?? Array.from(container.childNodes).map(htmlToMd).join('')
+  const mdContent = markdown ?? htmlToMd(container)
 
   setupContainer(container, { crs, initialLayout })
 
