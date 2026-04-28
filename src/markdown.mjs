@@ -56,12 +56,35 @@ export const htmlToMd = (rootNode) => {
       case 'h6': return `###### ${headingInner(node)}\n\n`
       case 'p': return `${inner().trim()}\n\n`
       case 'br': return '\n'
-      case 'hr': return '---\n\n'
+      case 'hr':
+        return node.classList.contains('footnotes-sep') ? '' : '---\n\n'
       case 'strong':
       case 'b': return `**${inner()}**`
       case 'em':
       case 'i': return `*${inner()}*`
+      case 'sup':
+        if (node.classList.contains('footnote-ref')) {
+          const fnHref = node.querySelector('a')?.getAttribute('href') ?? ''
+          const key = fnHref.replace(/^#fn/, '')
+          return `[^${key}]`
+        }
+        return node.outerHTML
+      case 'section':
+        if (node.classList.contains('footnotes')) {
+          const items = Array.from(node.querySelectorAll('li.footnote-item'))
+            .map(li => {
+              const key = li.id.replace(/^fn/, '')
+              const paras = Array.from(li.children)
+                .map(c => convert(c).trim())
+                .filter(Boolean)
+              const [first, ...rest] = paras
+              return `[^${key}]: ${first}` + rest.map(p => `\n\n    ${p}`).join('')
+            })
+          return items.join('\n\n') + '\n\n'
+        }
+        return inner()
       case 'a': {
+        if (node.classList.contains('footnote-backref')) return ''
         const href = node.getAttribute('href') ?? ''
         if (!href) return `[${inner()}]()`
         const text = inner()

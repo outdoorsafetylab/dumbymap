@@ -430,6 +430,92 @@ describe('htmlToMd — anchor reference links', () => {
   })
 })
 
+// ─── htmlToMd — footnotes ─────────────────────────────────────────────────────
+
+describe('htmlToMd — footnotes', () => {
+  const fromHtml = (html) => {
+    const div = document.createElement('div')
+    div.innerHTML = html
+    return div
+  }
+
+  it('converts footnote-ref <sup> to [^N]', () => {
+    const div = fromHtml('<p>Hello<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup></p>')
+    expect(htmlToMd(div)).toContain('[^1]')
+  })
+
+  it('suppresses <hr class="footnotes-sep">', () => {
+    const hr = document.createElement('hr')
+    hr.className = 'footnotes-sep'
+    expect(htmlToMd(hr)).toBe('')
+  })
+
+  it('still emits --- for regular <hr>', () => {
+    const hr = document.createElement('hr')
+    expect(htmlToMd(hr)).toBe('---\n\n')
+  })
+
+  it('passes through regular <sup> as outerHTML', () => {
+    const sup = document.createElement('sup')
+    sup.textContent = '2'
+    expect(htmlToMd(sup)).toBe('<sup>2</sup>')
+  })
+
+  it('converts footnote section to [^N]: definition', () => {
+    const div = fromHtml(`
+      <section class="footnotes">
+        <ol class="footnotes-list">
+          <li id="fn1" class="footnote-item">
+            <p>Short note. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+          </li>
+        </ol>
+      </section>`)
+    const out = htmlToMd(div)
+    expect(out).toContain('[^1]: Short note.')
+    expect(out).not.toContain('↩')
+  })
+
+  it('handles multi-paragraph footnote with indented continuation', () => {
+    const div = fromHtml(`
+      <section class="footnotes">
+        <ol class="footnotes-list">
+          <li id="fn2" class="footnote-item">
+            <p>First.</p>
+            <p>Continued. <a href="#fnref2" class="footnote-backref">↩︎</a></p>
+          </li>
+        </ol>
+      </section>`)
+    const out = htmlToMd(div)
+    expect(out).toContain('[^2]: First.')
+    expect(out).toContain('    Continued.')
+  })
+
+  it('suppresses footnote-backref link', () => {
+    const a = document.createElement('a')
+    a.className = 'footnote-backref'
+    a.textContent = '↩︎'
+    expect(htmlToMd(a)).toBe('')
+  })
+
+  it('full tree: ref in body + definitions in section', () => {
+    const div = fromHtml(`
+      <p>Hello<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup></p>
+      <hr class="footnotes-sep">
+      <section class="footnotes">
+        <ol class="footnotes-list">
+          <li id="fn1" class="footnote-item">
+            <p>Footnote text. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+          </li>
+        </ol>
+      </section>`)
+    const out = htmlToMd(div)
+    expect(out).toContain('[^1]')
+    expect(out).toContain('[^1]: Footnote text.')
+    expect(out).not.toContain('↩')
+    expect(out).not.toContain('footnotes-sep')
+  })
+})
+
 // ─── assignMapId ──────────────────────────────────────────────────────────────
 
 describe('assignMapId', () => {
