@@ -25,14 +25,18 @@ export const htmlToMd = (node) => {
 
   const tag = node.tagName.toLowerCase()
   const inner = () => Array.from(node.childNodes).map(htmlToMd).join('')
+  const headingInner = (n) =>
+    Array.from(n.childNodes)
+      .filter(c => !(c.nodeType === Node.ELEMENT_NODE && c.classList?.contains('header-anchor')))
+      .map(htmlToMd).join('').trim()
 
   switch (tag) {
-    case 'h1': return `# ${inner().trim()}\n\n`
-    case 'h2': return `## ${inner().trim()}\n\n`
-    case 'h3': return `### ${inner().trim()}\n\n`
-    case 'h4': return `#### ${inner().trim()}\n\n`
-    case 'h5': return `##### ${inner().trim()}\n\n`
-    case 'h6': return `###### ${inner().trim()}\n\n`
+    case 'h1': return `# ${headingInner(node)}\n\n`
+    case 'h2': return `## ${headingInner(node)}\n\n`
+    case 'h3': return `### ${headingInner(node)}\n\n`
+    case 'h4': return `#### ${headingInner(node)}\n\n`
+    case 'h5': return `##### ${headingInner(node)}\n\n`
+    case 'h6': return `###### ${headingInner(node)}\n\n`
     case 'p': return `${inner().trim()}\n\n`
     case 'br': return '\n'
     case 'hr': return '---\n\n'
