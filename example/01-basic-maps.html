@@ -95,12 +95,10 @@ Right-click on any map to open the **context menu** with editing options.
   </script>
 
   <script type="module">
-    import { markdown2dumbyBlock, generateMaps } from '../src/dumbymap.mjs'
+    import { generateMaps } from '../src/dumbymap.mjs'
 
-    const md = document.getElementById('md-content').textContent
     const container = document.getElementById('app')
-    markdown2dumbyBlock(container, md)
-    window.dumbymap = generateMaps(container)
+    window.dumbymap = generateMaps(container, { markdown: document.getElementById('md-content').textContent })
   </script>
 </body>
 </html>
