@@ -24,9 +24,7 @@ vi.mock('proj4', () => ({ default: {} }))
 
 import {
   setupContainer,
-  resolveHtmlHolder,
   md2dumbyBlocks,
-  wrapDumbyBlocks,
   storeMarkdownPerBlock,
   createShowcase,
   createModal,
@@ -89,59 +87,22 @@ describe('setupContainer', () => {
     setupContainer(el)
     expect(el.dataset.layout).toBe('normal')
   })
+
+  it('clears existing children', () => {
+    const el = document.createElement('div')
+    el.innerHTML = '<p>old content</p><span>more</span>'
+    setupContainer(el)
+    expect(el.querySelector('p')).toBeNull()
+    expect(el.querySelector('span')).toBeNull()
+  })
+
+  it('creates a .SemanticHtml child', () => {
+    const el = document.createElement('div')
+    setupContainer(el)
+    expect(el.querySelector('.SemanticHtml')).not.toBeNull()
+  })
 })
 
-// ─── resolveHtmlHolder ────────────────────────────────────────────────────────
-
-describe('resolveHtmlHolder', () => {
-  it('picks element by contentSelector', () => {
-    const container = document.createElement('div')
-    const target = document.createElement('div')
-    target.className = 'custom-content'
-    container.appendChild(target)
-    const result = resolveHtmlHolder(container, '.custom-content')
-    expect(result).toBe(target)
-    expect(result.classList.contains('SemanticHtml')).toBe(true)
-  })
-
-  it('falls back to .SemanticHtml class when no selector', () => {
-    const container = document.createElement('div')
-    const el = document.createElement('div')
-    el.className = 'SemanticHtml'
-    container.appendChild(el)
-    expect(resolveHtmlHolder(container, null)).toBe(el)
-  })
-
-  it('falls back to <main> element', () => {
-    const container = document.createElement('div')
-    const main = document.createElement('main')
-    container.appendChild(main)
-    expect(resolveHtmlHolder(container, null)).toBe(main)
-  })
-
-  it('falls back to <article> element', () => {
-    const container = document.createElement('div')
-    const article = document.createElement('article')
-    container.appendChild(article)
-    expect(resolveHtmlHolder(container, null)).toBe(article)
-  })
-
-  it('falls back to child with id matching /main|content/', () => {
-    const container = document.createElement('div')
-    const el = document.createElement('div')
-    el.id = 'main-content'
-    container.appendChild(el)
-    expect(resolveHtmlHolder(container, null)).toBe(el)
-  })
-
-  it('falls back to child with class matching /main|content/', () => {
-    const container = document.createElement('div')
-    const el = document.createElement('div')
-    el.className = 'content'
-    container.appendChild(el)
-    expect(resolveHtmlHolder(container, null)).toBe(el)
-  })
-})
 
 // ─── md2dumbyBlocks ───────────────────────────────────────────────────────────
 
@@ -185,41 +146,6 @@ describe('md2dumbyBlocks', () => {
 })
 
 
-// ─── wrapDumbyBlocks ──────────────────────────────────────────────────────────
-
-describe('wrapDumbyBlocks', () => {
-  it('wraps flat HTML into a single .dumby-block', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<p>Hello</p><p>World</p>'
-    wrapDumbyBlocks(holder)
-    expect(holder.querySelectorAll('.dumby-block').length).toBe(1)
-  })
-
-  it('splits on 2+ blank lines in serialized HTML', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<p>A</p>\n\n\n<p>B</p>'
-    wrapDumbyBlocks(holder)
-    expect(holder.querySelectorAll('.dumby-block').length).toBe(2)
-  })
-
-  it('does not re-wrap when .dumby-block already exists', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<article class="dumby-block"><p>pre-wrapped</p></article>'
-    wrapDumbyBlocks(holder)
-    expect(holder.querySelectorAll('.dumby-block').length).toBe(1)
-  })
-
-  it('wraps loose text nodes inside a pre-existing .dumby-block', () => {
-    const holder = document.createElement('div')
-    const block = document.createElement('article')
-    block.className = 'dumby-block'
-    block.appendChild(document.createTextNode('loose text'))
-    holder.appendChild(block)
-    wrapDumbyBlocks(holder)
-    expect(block.querySelector('p')).not.toBeNull()
-    expect(block.querySelector('p').textContent).toBe('loose text')
-  })
-})
 
 // ─── storeMarkdownPerBlock ────────────────────────────────────────────────────
 

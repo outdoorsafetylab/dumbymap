@@ -82,43 +82,17 @@ const defaultRender = mapclay.renderWith(config => ({
   stepCallback: updateAttributeByStep,
 }))
 
-/** SETUP: Initialize container element for DumbyMap */
+/** SETUP: Initialize container element for DumbyMap, clearing existing children and creating .SemanticHtml */
 export const setupContainer = (container, { crs = 'EPSG:4326', initialLayout } = {}) => {
+  container.innerHTML = ''
   container.classList.add('Dumby')
   delete container.dataset.layout
   container.dataset.crs = crs
   container.dataset.layout = initialLayout ?? defaultLayouts.at(0).name
   register(proj4)
-}
-
-/** SETUP: Find and return the Semantic HTML holder element */
-export const resolveHtmlHolder = (container, contentSelector) => {
-  const htmlHolder = container.querySelector(contentSelector) ??
-    container.querySelector('.SemanticHtml, main, :scope > article') ??
-    Array.from(container.children).find(e => e.id?.match(/main|content/) || e.className?.match?.(/main|content/)) ??
-    Array.from(container.children).sort((a, b) => a.textContent.length < b.textContent.length).at(0)
+  const htmlHolder = document.createElement('div')
   htmlHolder.classList.add('SemanticHtml')
-  return htmlHolder
-}
-
-/** SETUP: Wrap loose text nodes in <p> so they are treated as block content */
-const wrapTextNodes = (parent) => {
-  Array.from(parent.childNodes)
-    .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
-    .forEach(node => {
-      const p = document.createElement('p')
-      node.replaceWith(p)
-      p.appendChild(node)
-    })
-}
-
-/** SETUP: Wrap content into .dumby-block elements if not already done by markdown2dumbyBlock */
-export const wrapDumbyBlocks = (htmlHolder) => {
-  if (htmlHolder.querySelector('.dumby-block')) {
-    htmlHolder.querySelectorAll('.dumby-block').forEach(wrapTextNodes)
-    return
-  }
-  htmlHolder.innerHTML = md2dumbyBlocks(htmlHolder.innerHTML)
+  container.appendChild(htmlHolder)
 }
 
 /** SETUP: Store markdown source per block (derive from HTML when generateMaps() is used on raw HTML) */
@@ -514,7 +488,7 @@ export const fetchDefaultAliases = (url, dumbymap) => {
  *
  * @param {HTMLElement} container - The container element for the maps
  * @param {Object} options
- * @param {String} options.contentSelector - CSS selector for Semantic HTML
+ * @param {string} [options.markdown] - Markdown string to render; falls back to container's current children
  * @param {string} options.crs - CRS in EPSG/ESRI code, see epsg.io
  * @param {string} options.initialLayout
  * @param {number} [options.delay=1000] mapDelay - Delay before rendering maps (in milliseconds)
@@ -524,7 +498,7 @@ export const fetchDefaultAliases = (url, dumbymap) => {
  * @param {boolean} [options.urlParams=false] - If true, reads `?layout=` query param and sets data-layout on container
  */
 export const generateMaps = (container, {
-  contentSelector,
+  markdown,
   crs = 'EPSG:4326',
   initialLayout,
   layouts = [],
@@ -536,16 +510,13 @@ export const generateMaps = (container, {
 } = {}) => {
   if (container.classList.contains('Dumby')) return
 
+  const mdContent = markdown ?? Array.from(container.childNodes).map(htmlToMd).join('')
+
   setupContainer(container, { crs, initialLayout })
 
-  const htmlHolder = resolveHtmlHolder(container, contentSelector)
-  wrapDumbyBlocks(htmlHolder)
+  const htmlHolder = container.querySelector('.SemanticHtml')
+  htmlHolder.innerHTML = md2dumbyBlocks(mdContent)
   storeMarkdownPerBlock(htmlHolder)
-
-  /** Remove all siblings and text nodes except .SemanticHtml */
-  Array.from(container.childNodes)
-    .filter(node => node !== htmlHolder)
-    .forEach(node => node.remove())
 
   const showcase = createShowcase(container)
   const { modal, modalContent } = createModal(container)
