@@ -1,5 +1,5 @@
 import * as mapclay from 'mapclay'
-import { htmlToMd, splitMd, md2dumbyBlocks } from './markdown.mjs'
+import { htmlToMd, md2dumbyBlocks } from './markdown.mjs'
 export { htmlToMd, splitMd, md2dumbyBlocks } from './markdown.mjs'
 import { onRemove, animateRectTransition, throttle, debounce, shiftByWindow } from './utils.mjs'
 import { Layout, SideBySide, Overlay, Sticky } from './Layout.mjs'
@@ -93,15 +93,6 @@ export const setupContainer = (container, { crs = 'EPSG:4326', initialLayout } =
   const htmlHolder = document.createElement('div')
   htmlHolder.classList.add('SemanticHtml')
   container.appendChild(htmlHolder)
-}
-
-/** SETUP: Store markdown source per block (derive from HTML when generateMaps() is used on raw HTML) */
-export const storeMarkdownPerBlock = (htmlHolder) => {
-  htmlHolder.querySelectorAll('.dumby-block').forEach(block => {
-    if (block._md === undefined) {
-      block._md = Array.from(block.childNodes).map(htmlToMd).join('').trim()
-    }
-  })
 }
 
 /** SETUP: Create and append Showcase element to container */
@@ -516,7 +507,6 @@ export const generateMaps = (container, {
 
   const htmlHolder = container.querySelector('.SemanticHtml')
   htmlHolder.innerHTML = md2dumbyBlocks(mdContent)
-  storeMarkdownPerBlock(htmlHolder)
 
   const showcase = createShowcase(container)
   const { modal, modalContent } = createModal(container)
@@ -741,7 +731,7 @@ export const generateMaps = (container, {
   container.dataset.initDumby = 'true'
 
   /** BLOCK EDITING: inline edit modal for each .dumby-block */
-  const editBlockItem = menuItem.setupBlockEdit(dumbymap, { container, htmlHolder, md2dumbyBlocks, splitMd })
+  const editBlockItem = menuItem.setupBlockEdit(dumbymap, { container, htmlHolder, md2dumbyBlocks })
 
   setupContextMenu(container, dumbymap, editBlockItem)
   setupMouseDrag(container)

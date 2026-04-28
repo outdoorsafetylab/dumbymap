@@ -25,7 +25,6 @@ vi.mock('proj4', () => ({ default: {} }))
 import {
   setupContainer,
   md2dumbyBlocks,
-  storeMarkdownPerBlock,
   createShowcase,
   createModal,
   buildDumbymap,
@@ -145,46 +144,6 @@ describe('md2dumbyBlocks', () => {
   })
 })
 
-
-
-// ─── storeMarkdownPerBlock ────────────────────────────────────────────────────
-
-describe('storeMarkdownPerBlock', () => {
-  it('sets _md string on blocks that lack it', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<article class="dumby-block"><p>hello</p></article>'
-    storeMarkdownPerBlock(holder)
-    expect(typeof holder.querySelector('.dumby-block')._md).toBe('string')
-  })
-
-  it('does not overwrite existing _md', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<article class="dumby-block"><p>x</p></article>'
-    const block = holder.querySelector('.dumby-block')
-    block._md = 'preserved'
-    storeMarkdownPerBlock(holder)
-    expect(block._md).toBe('preserved')
-  })
-
-  it('stores distinct _md for different block contents', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = `
-      <article class="dumby-block"><h2>Alpha</h2></article>
-      <article class="dumby-block"><h2>Beta</h2></article>
-    `
-    storeMarkdownPerBlock(holder)
-    const [a, b] = holder.querySelectorAll('.dumby-block')
-    expect(a._md).not.toBe(b._md)
-  })
-
-  it('trims whitespace from _md', () => {
-    const holder = document.createElement('div')
-    holder.innerHTML = '<article class="dumby-block"><p>hi</p></article>'
-    storeMarkdownPerBlock(holder)
-    const block = holder.querySelector('.dumby-block')
-    expect(block._md).toBe(block._md.trim())
-  })
-})
 
 // ─── createShowcase ───────────────────────────────────────────────────────────
 

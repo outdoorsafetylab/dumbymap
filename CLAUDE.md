@@ -64,7 +64,7 @@ The rendered DOM structure:
 - *DocLinks* — `<a href="#selector">` elements linking to document fragments
 - Both use `leader-line` to draw visual connectors between content and maps
 
-**`generateMaps` decomposition:** The function is composed from many individually exported setup functions — `setupContainer`, `resolveHtmlHolder`, `wrapDumbyBlocks`, `storeMarkdownPerBlock`, `createShowcase`, `createModal`, `buildDumbymap`, `setupContentObserver`, `setupChildObserver`, `setupLayoutObserver`, `setupContextMenu`, `setupMouseDrag`, `setupKeybindings`. These are unit-testable independently.
+**`generateMaps` decomposition:** The function is composed from many individually exported setup functions — `setupContainer`, `resolveHtmlHolder`, `wrapDumbyBlocks`, `createShowcase`, `createModal`, `buildDumbymap`, `setupContentObserver`, `setupChildObserver`, `setupLayoutObserver`, `setupContextMenu`, `setupMouseDrag`, `setupKeybindings`. These are unit-testable independently.
 
 Notable exports: `assignMapId(config)`, `fetchDefaultAliases(url, dumbymap)` (loads YAML alias config from URL), `htmlToMd(node)`, `splitMd(md)`.
 

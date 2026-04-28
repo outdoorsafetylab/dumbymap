@@ -1,4 +1,5 @@
 import { onRemove, shiftByWindow } from './utils.mjs'
+import { htmlToMd } from './markdown.mjs'
 import { addMarkerByPoint } from './dumbyUtils.mjs'
 /* eslint-disable-next-line no-unused-vars */
 import { GeoLink, getMarkersFromMaps, getMarkersByGeoLink, removeLeaderLines } from './Link.mjs'
@@ -657,7 +658,7 @@ export const addLinkbyGeocoding = (range) => {
  * @param {Function} options.md2dumbyBlocks
  * @param {Function} options.splitMd
  */
-export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks, splitMd }) => {
+export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks }) => {
   const assignBlockIndices = () => {
     container.querySelectorAll('.dumby-block').forEach((block, i) => {
       block.dataset.blockIndex = i
@@ -694,22 +695,20 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
     editingIndex = null
   }
 
-  const SEP = '\n\n\n'
-
   const saveEditModal = () => {
     if (editingIndex === null) return
-    const allMd = dumbymap.blocks.map(b => b._md)
-    allMd.splice(editingIndex, 1, ...splitMd(textarea.value))
-    htmlHolder.innerHTML = md2dumbyBlocks(allMd.join(SEP))
-    htmlHolder.querySelectorAll('.dumby-block').forEach((block, i) => {
-      block._md = allMd[i] ?? ''
-    })
+    const block = dumbymap.blocks[editingIndex]
+    // TODO: per-block rendering restarts markdown-it context — heading anchor IDs
+    // and footnote numbers in the edited block are independent of other blocks.
+    const tmp = document.createElement('div')
+    tmp.innerHTML = md2dumbyBlocks(textarea.value)
+    block.replaceWith(...tmp.querySelectorAll('.dumby-block'))
     closeEditModal()
   }
 
   const openEditModal = (index) => {
     editingIndex = index
-    textarea.value = dumbymap.blocks[index]._md ?? ''
+    textarea.value = Array.from(dumbymap.blocks[index].childNodes).map(htmlToMd).join('').trim()
     overlay.classList.add('open')
     textarea.focus()
     textarea.selectionStart = textarea.selectionEnd = textarea.value.length
