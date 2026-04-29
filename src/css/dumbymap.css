@@ -213,9 +213,10 @@ pre:has(.mapclay) {
 }
 
 .dumby-menu {
+  margin: 0;
+
   position: fixed;
   inset: auto;
-  margin: 0;
 
   &:popover-open {
     display: block;
@@ -783,14 +784,14 @@ textarea .edit-map {
 
 .dumby-edit-overlay {
   display: none;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 
   position: fixed;
-  inset: 0;
   z-index: 99999;
 
   background: rgb(0 0 0 / 40%);
+  inset: 0;
 
   &.open {
     display: flex;
@@ -806,7 +807,7 @@ textarea .edit-map {
 
   border-radius: 10px;
 
-  background: #fff;
+  background: white;
 
   gap: 12px;
   box-shadow: 0 16px 48px rgb(0 0 0 / 22%);
@@ -814,8 +815,8 @@ textarea .edit-map {
 
 .dumby-edit-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 
   font-family: system-ui, sans-serif;
 
@@ -826,9 +827,8 @@ textarea .edit-map {
 }
 
 .dumby-edit-hint {
-  font-size: 12px;
-
   color: #888;
+  font-size: 12px;
 }
 
 .dumby-edit-textarea {
@@ -840,12 +840,13 @@ textarea .edit-map {
   border-radius: 6px;
 
   color: #1a1a1a;
-  font-family: ui-monospace, SFMono-Regular, 'Courier New', monospace;
+  font-family: ui-monospace, SFMono-Regular, Courier New, monospace;
   font-size: 13px;
   line-height: 1.6;
 
   outline: none;
   resize: vertical;
+
   transition: border-color 0.15s;
 
   &:focus {
@@ -869,6 +870,7 @@ textarea .edit-map {
     border-radius: 6px;
 
     font-size: 13px;
+
     cursor: pointer;
 
     &:hover {
@@ -880,7 +882,7 @@ textarea .edit-map {
 .dumby-edit-save {
   background: #2563eb;
 
-  color: #fff;
+  color: white;
   font-weight: 600;
 }
 

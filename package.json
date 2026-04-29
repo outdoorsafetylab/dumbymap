@@ -73,6 +73,14 @@
     "type": "git",
     "url": "https://github.com/outdoorsafetylab/dumbymap"
   },
+  "standard": {
+    "globals": ["Node"],
+    "ignore": [
+      "src/vendor/**",
+      "assets/bookmarklet.js",
+      "test/**"
+    ]
+  },
   "prettier": {
     "arrowParens": "avoid",
     "semi": true,

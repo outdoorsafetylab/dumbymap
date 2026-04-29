@@ -14,6 +14,7 @@
     "declaration-block-single-line-max-declarations": 1,
     "declaration-empty-line-before": null,
     "font-family-name-quotes": "always-where-required",
+    "no-descending-specificity": null,
     "no-duplicate-selectors": true,
     "property-no-vendor-prefix": true,
     "selector-attribute-quotes": "always",

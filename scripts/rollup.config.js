@@ -6,7 +6,6 @@ import { join } from 'path'
 import { bundleStats } from 'rollup-plugin-bundle-stats'
 
 const prod = process.env.PRODUCTION
-const watch = process.env.ROLLUP_WATCH
 
 function resolve (file, origin) {
   // Your way to resolve local include path

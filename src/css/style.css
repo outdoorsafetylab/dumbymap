@@ -3,25 +3,27 @@
 }
 
 :root {
-  color-scheme: light dark;
-  --light: #fff;
+  --light: white;
   --lesslight: #efefef;
   --dark: #404040;
-  --moredark: #000;
+  --moredark: black;
   --link: royalblue;
   --border: #d0d7de;
 
   border-top: 5px solid var(--dark);
-  line-height: 1.5em;
+
+  color: var(--dark);
   font-family: system-ui, sans-serif;
   font-size: 16px;
-  color: var(--dark);
+  line-height: 1.5em;
+  color-scheme: light dark;
 }
 
 body {
-  background-color: var(--light);
   margin: 0;
-  padding: 0 20px 20px 20px;
+  padding: 0 20px 20px;
+
+  background-color: var(--light);
 }
 
 .Dumby {
@@ -41,6 +43,7 @@ body {
 
   a {
     outline: none;
+
     color: var(--dark);
   }
 
@@ -49,10 +52,11 @@ body {
   }
 
   pre {
-    background-color: var(--lesslight);
+    overflow: auto;
     margin: 0.5em 0;
     padding: 0.5em;
-    overflow: auto;
+
+    background-color: var(--lesslight);
   }
 
   code {
@@ -60,8 +64,9 @@ body {
   }
 
   blockquote {
-    border-left: 0.25rem solid var(--dark);
     padding-left: 1rem;
+
+    border-left: 0.25rem solid var(--dark);
   }
 
   button,
@@ -72,37 +77,44 @@ body {
   }
 
   input {
-    border: 1px solid var(--dark);
-    background-color: var(--lesslight);
-    border-radius: 0.25em;
     padding: 0.5em;
+
+    border: 1px solid var(--dark);
+    border-radius: 0.25em;
+
+    background-color: var(--lesslight);
   }
 
   button,
   .button,
   input[type="submit"] {
     display: inline-block;
+    padding: 0.5em;
+
+    border: none;
+    border-radius: 0.25em;
+
     background-color: var(--dark);
+
     color: var(--light);
     text-align: center;
-    padding: 0.5em;
-    border-radius: 0.25em;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-  }
 
-  button:hover,
-  .button:hover,
-  input[type="submit"]:hover {
-    color: var(--lesslight);
-    background-color: var(--moredark);
+    cursor: pointer;
+    text-decoration: none;
   }
 
   button + button,
   .button + .button,
   input[type="submit"] + input[type="submit"] {
     margin-left: 1em;
+  }
+
+  button:hover,
+  .button:hover,
+  input[type="submit"]:hover {
+    background-color: var(--moredark);
+
+    color: var(--lesslight);
   }
 
   /* Center normal-layout DumbyMap pages like a markdown document */
@@ -222,32 +234,36 @@ body {
       margin-top: 1.5em;
       margin-bottom: 0.5em;
 
+      color: var(--moredark);
       font-weight: 600;
       line-height: 1.3;
-      color: var(--moredark);
-    }
-
-    h1:first-child,
-    h2:first-child,
-    h3:first-child {
-      margin-top: 0;
     }
 
     h1 {
       padding-bottom: 0.35em;
+
       border-bottom: 2px solid var(--border);
+
       font-size: 2em;
       line-height: 1em;
     }
 
     h2 {
       padding-bottom: 0.25em;
+
       border-bottom: 1px solid var(--border);
+
       font-size: 1.5em;
     }
 
     h3 {
       font-size: 1.25em;
+    }
+
+    h1:first-child,
+    h2:first-child,
+    h3:first-child {
+      margin-top: 0;
     }
 
     h4 {
@@ -259,8 +275,8 @@ body {
     }
 
     h6 {
-      font-size: 0.85em;
       color: #656d76;
+      font-size: 0.85em;
     }
 
     p {
@@ -282,8 +298,11 @@ body {
     code {
       display: inline;
       padding: 0.2em 0.4em;
+
       border-radius: 6px;
+
       background-color: var(--lesslight);
+
       font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas,
         Liberation Mono, monospace;
       font-size: 0.875em;
@@ -293,16 +312,22 @@ body {
       width: 100%;
       margin-bottom: 1em;
       padding: 1rem;
+
       border-radius: 8px;
+
       background-color: var(--lesslight);
+
       font-size: 0.875em;
       line-height: 1.6;
       overflow-x: auto;
 
       code {
         padding: 0;
+
         border-radius: 0;
+
         background-color: transparent;
+
         color: inherit;
         font-size: inherit;
         white-space: pre;
@@ -325,23 +350,26 @@ body {
     }
 
     table {
-      border-collapse: collapse;
       display: block;
+      overflow: auto;
       width: max-content;
       max-width: 100%;
       margin-bottom: 1em;
-      overflow: auto;
+      border-collapse: collapse;
     }
 
     th,
     td {
       padding: 6px 13px;
+
       border: 1px solid var(--border);
+
       text-align: left;
     }
 
     th {
       background-color: var(--lesslight);
+
       font-weight: 600;
     }
 
@@ -352,7 +380,9 @@ body {
     blockquote {
       margin-bottom: 1em;
       padding: 0 1em;
+
       border-left: 4px solid var(--border);
+
       color: #656d76;
 
       > :first-child {
@@ -367,13 +397,16 @@ body {
     hr {
       height: 2px;
       margin: 1.5em 0;
+
       border: none;
+
       background-color: var(--border);
     }
 
     img {
       max-width: 100%;
       height: auto;
+
       border-radius: 6px;
     }
   }
