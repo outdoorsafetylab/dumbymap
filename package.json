@@ -5,9 +5,12 @@
   "license": "MIT",
   "type": "module",
   "main": "dist/dumbymap.mjs",
-  "style": "dist/css/dummby.css",
+  "exports": {
+    ".": "./dist/dumbymap.mjs"
+  },
+  "style": "dist/css/dumbymap.css",
   "files": [
-    "dist/*",
+    "dist",
     "src/"
   ],
   "keywords": [
@@ -64,7 +67,7 @@
     "proj4": "^2.20.8",
     "timed-transition": "^1.5.4"
   },
-  "author": "Hsiehg Chin Fan <pham@topo.tw>",
+  "author": "Hsieh Chin Fan <pham@topo.tw>",
   "homepage": "https://outdoorsafetylab.github.io/dumbymap",
   "repository": {
     "type": "git",
