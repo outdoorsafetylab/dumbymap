@@ -1,5 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+import {
+  setupContainer,
+  md2dumbyBlocks,
+  createShowcase,
+  createModal,
+  buildDumbymap,
+  fetchDefaultAliases,
+  splitMd,
+  assignMapId,
+  htmlToMd,
+} from '../src/dumbymap.mjs'
+
 // These mocks must be declared before the module import.
 // Vitest hoists vi.mock() calls so they run before any import statements.
 
@@ -21,18 +33,6 @@ vi.mock('ol/proj/proj4', () => ({
 }))
 
 vi.mock('proj4', () => ({ default: {} }))
-
-import {
-  setupContainer,
-  md2dumbyBlocks,
-  createShowcase,
-  createModal,
-  buildDumbymap,
-  fetchDefaultAliases,
-  splitMd,
-  assignMapId,
-  htmlToMd,
-} from '../src/dumbymap.mjs'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -103,7 +103,6 @@ describe('setupContainer', () => {
   })
 })
 
-
 // ─── md2dumbyBlocks ───────────────────────────────────────────────────────────
 
 describe('md2dumbyBlocks', () => {
@@ -144,7 +143,6 @@ describe('md2dumbyBlocks', () => {
     expect(html).toContain('class="custom"')
   })
 })
-
 
 // ─── createShowcase ───────────────────────────────────────────────────────────
 

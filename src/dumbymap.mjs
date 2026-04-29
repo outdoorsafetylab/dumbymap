@@ -1,6 +1,5 @@
 import * as mapclay from 'mapclay'
 import { htmlToMd, md2dumbyBlocks } from './markdown.mjs'
-export { htmlToMd, splitMd, md2dumbyBlocks } from './markdown.mjs'
 import { onRemove, animateRectTransition, throttle, debounce, shiftByWindow } from './utils.mjs'
 import { Layout, SideBySide, Overlay, Sticky } from './Layout.mjs'
 import { GeoLink, DocLink, getMarkersByGeoLink } from './Link.mjs'
@@ -9,6 +8,7 @@ import * as menuItem from './MenuItem.mjs'
 import PlainModal from 'plain-modal'
 import proj4 from 'proj4'
 import { register, fromEPSGCode } from 'ol/proj/proj4'
+export { htmlToMd, splitMd, md2dumbyBlocks } from './markdown.mjs'
 
 /** VAR: CSS Selector for main components */
 const mapBlockSelector = 'pre:has(code[class*=map]), .mapclay-container'
@@ -758,7 +758,7 @@ if (thisScript && !thisScript.textContent.trim()) {
   const base = new URL('.', import.meta.url).href
   for (const href of ['css/dumbymap.css', 'css/style.css']) {
     document.head.appendChild(
-      Object.assign(document.createElement('link'), { rel: 'stylesheet', href: base + href })
+      Object.assign(document.createElement('link'), { rel: 'stylesheet', href: base + href }),
     )
   }
   const markdown = [...document.body.childNodes]
