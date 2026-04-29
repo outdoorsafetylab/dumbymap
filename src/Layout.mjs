@@ -286,6 +286,13 @@ export class Overlay extends Layout {
 export class Sticky extends Layout {
   draggable = document.createElement('div')
 
+  /**
+   * Handler called when entering the Sticky layout.
+   * Wraps the Showcase in a draggable container pinned to the bottom-right of the viewport.
+   *
+   * @param {Object} options - The options object
+   * @param {HTMLElement} options.showcase - The showcase element to make sticky/draggable
+   */
   enterHandler = ({ showcase }) => {
     showcase.replaceWith(this.draggable)
     this.draggable.appendChild(showcase)
@@ -294,6 +301,13 @@ export class Sticky extends Layout {
     this.draggable.style.cssText = `left: ${window.innerWidth - rect.width - 20}px; top: ${window.innerHeight - rect.height - 20}px;`
   }
 
+  /**
+   * Handler called when leaving the Sticky layout.
+   * Removes the draggable wrapper and restores the Showcase to its original position.
+   *
+   * @param {Object} options - The options object
+   * @param {HTMLElement} options.showcase - The showcase element to restore
+   */
   leaveHandler = ({ showcase }) => {
     this.draggableInstance?.remove()
     this.draggable.replaceWith(showcase)

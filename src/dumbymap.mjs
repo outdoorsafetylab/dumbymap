@@ -513,13 +513,17 @@ export const generateMaps = (container, {
   const dumbymap = buildDumbymap(container, { modal, modalContent, layouts })
 
   /**
-   * LINKS: addGeoLinksByText.
+   * LINKS: addGeoLinksByText. Scan plain-text geo coordinates in node, convert to GeoLinks.
+   * Waits for the CRS projection to be registered before transforming coordinates.
    *
    * @param {Node} node
    */
   function addGeoLinksByText (node) {
+    // Kick off coordinate scanning and CRS registration in parallel
     const addGeoScheme = utils.addGeoSchemeByText(node)
     const crsString = container.dataset.crs
+
+    // Once both are ready, transform coordinates to WGS84 and wire up GeoLink behaviour
     Promise.all([fromEPSGCode(crsString), addGeoScheme]).then((values) => {
       values.at(-1)
         .map(utils.updateGeoSchemeByCRS(crsString))
@@ -529,7 +533,8 @@ export const generateMaps = (container, {
   }
 
   /**
-   * MAP: Create a MutationObserver that moves a map into/out of Showcase when its focus class changes
+   * MAP: Create a MutationObserver that moves a map into/out of Showcase when its focus class changes.
+   * Each rendered map gets its own observer instance so mutations are scoped to one element.
    */
   const createMapClassObserver = () =>
     new window.MutationObserver(mutations => {
@@ -539,11 +544,13 @@ export const generateMaps = (container, {
       const shouldBeInShowcase = focus && showcase.checkVisibility()
 
       if (focus) {
+        // Enforce single-focus: remove focus from all other rendered maps
         dumbymap.utils
           .renderedMaps()
           .filter(map => map.id !== target.id)
           .forEach(map => map.classList.remove('focus'))
 
+        // focus-manual is a transient class used to scroll the map into view; clear it after delay
         if (target.classList.contains('focus-manual')) {
           setTimeout(
             () => target.classList.remove('focus-manual'),
@@ -555,7 +562,7 @@ export const generateMaps = (container, {
       if (shouldBeInShowcase) {
         if (showcase.contains(target)) return
 
-        // Placeholder for map in Showcase, it should has the same DOMRect
+        // Insert a size-matched placeholder so the block doesn't collapse while the map is in Showcase
         const placeholder = target.cloneNode(true)
         delete placeholder.id
         placeholder.className = ''
@@ -578,24 +585,24 @@ export const generateMaps = (container, {
         placeholder.getBoundingClientRect()
         placeholder.dataset.placeholder = target.id
 
-        // To fit showcase, remove all inline style
+        // Strip inline styles so the map stretches to fit the Showcase, preserving only order
         target.style.cssText = ''
         target.style.order = placeholder.style.order
         showcase.appendChild(target)
 
-        // Resume rect from Semantic HTML to Showcase, with animation
+        // Animate from placeholder position back to its new Showcase position
         animateRectTransition(target, placeholder.getBoundingClientRect(), {
           duration: 300,
           resume: true,
         })
       } else if (showcase.contains(target)) {
-        // Check placeholder is inside Semantic HTML
+        // Map is losing focus: locate its placeholder and animate it back into the Semantic HTML
         const placeholder = dumbymap.htmlHolder.querySelector(
           `[data-placeholder="${target.id}"]`,
         )
         if (!placeholder) { throw Error(`Cannot find placeholder for map "${target.id}"`) }
 
-        // Consider animation may fail, write callback
+        // Fallback: restore styles even if the animation promise is rejected
         const afterAnimation = () => {
           target.style = placeholder.style.cssText
           placeholder.remove()
@@ -713,10 +720,12 @@ export const generateMaps = (container, {
   setupLayoutObserver(container, dumbymap)
 
   if (urlParams) {
+    // Apply ?layout= query param on load
     const params = new URLSearchParams(window.location.search)
     const layoutParam = params.get('layout')
     if (layoutParam) container.dataset.layout = layoutParam
 
+    // Keep the URL in sync whenever the active layout changes
     new window.MutationObserver(mutations => {
       const newLayout = mutations.at(-1).target.dataset.layout
       const url = new URL(window.location)

@@ -16,9 +16,11 @@ const UNWRAP_TAGS = new Set(['div', 'article', 'section', 'main', 'aside', 'head
  * @returns {string}
  */
 export const htmlToMd = (rootNode) => {
-  const urlToLabel = new Map() // url → label
+  // Bidirectional map for reference-style link deduplication: url → label
+  const urlToLabel = new Map()
   const usedLabels = new Set()
 
+  // Return the existing label for a URL, or derive a unique one from the link text
   const getLabel = (href, text) => {
     if (urlToLabel.has(href)) return urlToLabel.get(href)
     let label = text
@@ -32,6 +34,7 @@ export const htmlToMd = (rootNode) => {
     return label
   }
 
+  // Recursively convert a single DOM node to its Markdown representation
   const convert = (node) => {
     if (node.nodeType === Node.TEXT_NODE) {
       const t = node.textContent
@@ -40,6 +43,7 @@ export const htmlToMd = (rootNode) => {
 
     if (node.nodeType !== Node.ELEMENT_NODE) return ''
 
+    // Helpers: serialize all children, or heading children minus anchor links
     const tag = node.tagName.toLowerCase()
     const inner = () => Array.from(node.childNodes).map(convert).join('')
     const headingInner = (n) =>
@@ -117,6 +121,7 @@ export const htmlToMd = (rootNode) => {
     }
   }
 
+  // Serialize root, then append reference link definitions if any were collected
   const body = convert(rootNode)
   if (!urlToLabel.size) return body
   const defs = [...urlToLabel.entries()].map(([url, label]) => `[${label}]: ${url}`).join('\n')
@@ -132,18 +137,24 @@ export const htmlToMd = (rootNode) => {
  * @returns {string[]}
  */
 export const splitMd = (md) => {
+  // State: output blocks, current line buffer, fence flag, and consecutive blank-line count
   const lines = md.split('\n')
   const blocks = []
   let buf = []
   let inFence = false
   let blanks = 0
+
   for (const line of lines) {
     const wasInFence = inFence
+    // Toggle fence state on opening/closing ``` markers
     if (/^```/.test(line)) inFence = !inFence
+
     if (!wasInFence && line.trim() === '') {
+      // Accumulate blank lines; they may trigger a block split
       blanks++
       buf.push(line)
     } else {
+      // Flush buffer as a new block when ≥2 consecutive blanks were seen outside a fence
       if (!wasInFence && blanks >= 2) {
         const content = buf.slice(0, buf.length - blanks).join('\n').trim()
         if (content) blocks.push(content)
@@ -153,6 +164,8 @@ export const splitMd = (md) => {
       buf.push(line)
     }
   }
+
+  // Flush the final buffer
   if (buf.length > 0) {
     const content = buf.join('\n').trim()
     if (content) blocks.push(content)
@@ -169,6 +182,7 @@ export const splitMd = (md) => {
  * @returns {string} HTML string with .dumby-block article elements
  */
 export const md2dumbyBlocks = (mdContent) => {
+  // Build markdown-it instance with HTML passthrough, anchors, footnotes, and attribute support
   const md = MarkdownIt({
     html: true,
     breaks: true,
@@ -184,8 +198,12 @@ export const md2dumbyBlocks = (mdContent) => {
     .use(MarkdownItInjectLinenumbers)
     .use(MarkdownItAttrs)
 
+  // Register HTML renderer for the synthetic open/close block tokens
   md.renderer.rules.dumby_block_open = () => '<article class="dumby-block">'
   md.renderer.rules.dumby_block_close = () => '</article>'
+
+  // Core rule: inject dumby_block_open / dumby_block_close tokens around groups of
+  // block-level tokens separated by ≥2 blank source lines
   md.core.ruler.after('block', 'dumby_block', state => {
     const tokens = state.tokens
     const out = []
@@ -196,9 +214,11 @@ export const md2dumbyBlocks = (mdContent) => {
       if (token.map) {
         const gap = token.map[0] - prevEndLine
         if (!blockOpen) {
+          // Open the first dumby-block
           out.push(new state.Token('dumby_block_open', '', 1))
           blockOpen = true
         } else if (gap >= 2) {
+          // Gap of ≥2 blank lines: close current block and open a new one
           out.push(new state.Token('dumby_block_close', '', -1))
           out.push(new state.Token('dumby_block_open', '', 1))
         }
@@ -207,6 +227,7 @@ export const md2dumbyBlocks = (mdContent) => {
       out.push(token)
     }
 
+    // Close the last open block
     if (blockOpen) out.push(new state.Token('dumby_block_close', '', -1))
     state.tokens = out
   })

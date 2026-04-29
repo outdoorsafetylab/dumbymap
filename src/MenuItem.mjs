@@ -659,6 +659,7 @@ export const addLinkbyGeocoding = (range) => {
  * @param {Function} options.splitMd
  */
 export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks }) => {
+  // Keep data-block-index in sync so menu items can address blocks by stable index
   const assignBlockIndices = () => {
     container.querySelectorAll('.dumby-block').forEach((block, i) => {
       block.dataset.blockIndex = i
@@ -666,10 +667,11 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
   }
   assignBlockIndices()
 
+  // Re-index whenever the htmlHolder's direct children change (block added/removed)
   new window.MutationObserver(assignBlockIndices)
     .observe(htmlHolder, { childList: true })
 
-  /** Build edit modal */
+  /** Build edit modal overlay and inject it into the document */
   const overlay = document.createElement('div')
   overlay.className = 'dumby-edit-overlay'
   overlay.innerHTML = `
@@ -687,6 +689,7 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
   `
   document.body.appendChild(overlay)
 
+  // Modal state: textarea element and the index of the block being edited
   const textarea = overlay.querySelector('.dumby-edit-textarea')
   let editingIndex = null
 
@@ -708,12 +711,15 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
 
   const openEditModal = (index) => {
     editingIndex = index
+    // Serialize the block back to Markdown for editing
     textarea.value = htmlToMd(dumbymap.blocks[index]).trim()
     overlay.classList.add('open')
     textarea.focus()
+    // Place cursor at the end of the text
     textarea.selectionStart = textarea.selectionEnd = textarea.value.length
   }
 
+  // Wire keyboard shortcuts and button click handlers for the modal
   const onEditKeydown = e => {
     if (e.key === 'Escape') closeEditModal()
   }
@@ -725,6 +731,7 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
   overlay.querySelector('.dumby-edit-save').onclick = saveEditModal
   overlay.addEventListener('click', e => { if (e.target === overlay) closeEditModal() })
 
+  // Clean up overlay and global listener when the container is removed from the DOM
   onRemove(container, () => {
     overlay.remove()
     document.removeEventListener('keydown', onEditKeydown)
@@ -743,6 +750,7 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
  * @param {Function} callback
  */
 export const geocodingResult = (bounds, callback) => (result) => {
+  // Click handler: mark item as selected and invoke caller callback with a geo-scheme anchor
   const item = Item({
     text: result.display_name,
     onclick: (e) => {
@@ -757,15 +765,18 @@ export const geocodingResult = (bounds, callback) => (result) => {
     },
   })
 
+  // Place a temporary circle marker on each map for this result
   const xy = [result.lon, result.lat]
-
   const markers = getMarkersFromMaps(xy, {
     type: 'circle',
     title: result.display_name,
   })
+
+  // Bounding box of this individual result (for the final zoom step)
   const bbox = result.boundingbox
   const resultBounds = [[bbox[2], bbox[0]], [bbox[3], bbox[1]]]
 
+  // Animate the map camera through: all-results overview → result centre → result bbox
   item.onmouseover = () => {
     markers.forEach(async marker => {
       const renderer = marker.closest('.mapclay')?.renderer
@@ -775,6 +786,7 @@ export const geocodingResult = (bounds, callback) => (result) => {
     })
   }
 
+  // Remove preview markers when the menu closes, unless the user clicked this item
   setTimeout(() => {
     onRemove(item.closest('.menu'), () => {
       if (item.classList.contains('clicked')) return
