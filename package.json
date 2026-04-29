@@ -33,7 +33,6 @@
     "test:e2e": "playwright test --config scripts/playwright.config.js"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^26.0.3",
     "@rollup/plugin-node-resolve": "^15.3.1",
@@ -49,7 +48,6 @@
   "dependencies": {
     "anim-event": "^1.0.17",
     "cssprefix": "^2.0.17",
-    "easymde": "^2.20.0",
     "m-class-list": "^1.1.10",
     "mapclay": "^0.10.1",
     "markdown-it": "^14.1.1",
@@ -58,7 +56,6 @@
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-front-matter": "^0.2.4",
     "markdown-it-inject-linenumbers": "^0.3.0",
-    "markdown-it-toc-done-right": "^4.2.0",
     "ol": "^10.8.0",
     "plain-draggable": "^2.5.15",
     "plain-modal": "^1.0.34",
