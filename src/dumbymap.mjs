@@ -496,7 +496,7 @@ export const generateMaps = (container, {
   mapDelay = 1000,
   render = defaultRender,
   renderCallback = () => null,
-  defaultApply = 'https://outdoorsafetylab.github.io/dumbymap/assets/default.yml',
+  defaultApply = '../assets/taiwan.yml',
   urlParams = true,
 } = {}) => {
   if (container.classList.contains('Dumby')) return
