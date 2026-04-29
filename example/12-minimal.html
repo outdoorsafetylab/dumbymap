@@ -1,0 +1,25 @@
+# Minimal Setup
+
+DumbyMap can be loaded with a single `&lt;script&gt;` tag pointing to the
+bundled `dist/dumbymap.mjs`.  No HTML boilerplate required — write
+plain Markdown directly in the file and the auto-init detects the
+empty script body, injects the stylesheets, and calls `generateMaps`.
+
+## How it works
+
+When `dumbymap.mjs` is loaded via `&lt;script type="module" src="..."&gt;` with
+no inline body, it:
+
+1. Collects all text nodes from `&lt;body&gt;` as the Markdown source.
+2. Injects `css/dumbymap.css` and `css/style.css` from the same directory.
+3. Calls `generateMaps(document.body)` automatically.
+
+## Map example
+
+```map
+use: Leaflet
+center: [121.5645, 25.0338]
+zoom: 12
+```
+
+<script type="module" src="../dist/dumbymap.mjs"></script>

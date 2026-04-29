@@ -750,3 +750,20 @@ export const generateMaps = (container, {
   /** Return Object for utils */
   return Object.seal(dumbymap)
 }
+
+// Auto-init: if loaded via <script type="module" src="dumbymap.mjs"> with no inline body
+const thisScript = [...document.querySelectorAll('script[src]')]
+  .find(s => new URL(s.src).href === import.meta.url)
+if (thisScript && !thisScript.textContent.trim()) {
+  const base = new URL('.', import.meta.url).href
+  for (const href of ['css/dumbymap.css', 'css/style.css']) {
+    document.head.appendChild(
+      Object.assign(document.createElement('link'), { rel: 'stylesheet', href: base + href })
+    )
+  }
+  const markdown = [...document.body.childNodes]
+    .filter(n => n.nodeType === Node.TEXT_NODE)
+    .map(n => n.textContent)
+    .join('')
+  window.dumbymap = generateMaps(document.body, { markdown })
+}
