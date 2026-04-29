@@ -1,0 +1,400 @@
+# DumbyMap
+
+> DumbyMap converts Markdown text or Semantic HTML into interactive web pages with embedded maps.
+> The single entry-point function is `generateMaps(container, options)` exported from `dumbymap.mjs`.
+> Maps are declared as YAML inside fenced code blocks tagged `map`.
+> Geographic links (`geo:` URIs) connect text to map positions with animated leader lines.
+
+Source: https://github.com/outdoorsafetylab/dumbymap
+Live site: https://dumby.org
+Examples: https://dumby.org/example/
+
+
+## Loading the library
+
+The built bundle is a single ES module: `dist/dumbymap.mjs`.
+Two CSS files are required: `src/css/style.css` and `src/css/dumbymap.css`.
+
+### From a CDN (jsDelivr)
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/outdoorsafetylab/dumbymap@master/src/css/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/outdoorsafetylab/dumbymap@master/src/css/dumbymap.css">
+<script type="module">
+  import { generateMaps } from 'https://cdn.jsdelivr.net/gh/outdoorsafetylab/dumbymap@master/dist/dumbymap.mjs'
+  // ... use generateMaps here
+</script>
+```
+
+### From npm
+
+```
+npm install dumbymap
+```
+
+```js
+import { generateMaps } from 'dumbymap'
+```
+
+
+## Quick start — Markdown input
+
+Put Markdown in a `<script type="text/markdown">` tag and pass it via the `markdown` option.
+The container must have `height` set (e.g. `100vh`) so maps have room to render.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/outdoorsafetylab/dumbymap@master/src/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/outdoorsafetylab/dumbymap@master/src/css/dumbymap.css">
+</head>
+<body style="height: 100vh;">
+  <div id="app"></div>
+  <script type="text/markdown" id="content">
+# My Map Page
+
+A map of Taipei.
+
+```map
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 12
+```
+  </script>
+  <script type="module">
+    import { generateMaps } from 'https://cdn.jsdelivr.net/gh/outdoorsafetylab/dumbymap@master/dist/dumbymap.mjs'
+    generateMaps(document.getElementById('app'), {
+      markdown: document.getElementById('content').textContent
+    })
+  </script>
+</body>
+</html>
+```
+
+
+## Quick start — Semantic HTML input
+
+If you already have HTML, just call `generateMaps(container)` with no `markdown` option.
+DumbyMap will discover the content holder automatically (searches for `<main>`, `<article>`,
+or the largest child by text length) and process any `<pre><code class="language-map">` blocks.
+
+```html
+<div id="app">
+  <main>
+    <article class="dumby-block">
+      <h2>Taipei</h2>
+      <p>City centre: <a href="geo:25.0338,121.5645">25.0338, 121.5645</a></p>
+      <pre><code class="language-map">
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 12
+      </code></pre>
+    </article>
+  </main>
+</div>
+<script type="module">
+  import { generateMaps } from 'https://cdn.jsdelivr.net/gh/outdoorsafetylab/dumbymap@master/dist/dumbymap.mjs'
+  generateMaps(document.getElementById('app'))
+</script>
+```
+
+
+## Map blocks
+
+Maps are declared as YAML inside a fenced code block tagged `map` (in Markdown)
+or inside `<pre><code class="language-map">` (in HTML).
+
+**Minimal example (Leaflet is the default renderer):**
+
+```
+```map
+center: [121.5645, 25.0338]
+zoom: 12
+```
+```
+
+**Choosing a renderer:**
+
+```yaml
+use: Maplibre      # MapLibre GL JS
+# use: Openlayers  # OpenLayers
+# use: Leaflet     # Leaflet (default when `use` is omitted)
+center: [121.5645, 25.0338]
+zoom: 12
+```
+
+**Common YAML keys:**
+
+| Key      | Type            | Description                                      |
+|----------|-----------------|--------------------------------------------------|
+| `use`    | string          | Renderer: `Maplibre`, `Openlayers`, `Leaflet`    |
+| `id`     | string          | Explicit map ID (spaces become underscores)      |
+| `center` | [lon, lat]      | Initial camera centre (WGS 84 by default)        |
+| `zoom`   | number          | Initial zoom level                               |
+| `bounds` | [[minLon,minLat],[maxLon,maxLat]] | Fit view to bounding box        |
+
+**Multiple maps in one fenced block** — separate configs with `---`:
+
+```
+```map
+id: north
+use: Maplibre
+center: [121.5645, 25.0338]
+zoom: 7
+---
+id: south
+use: Maplibre
+center: [121.5645, 23.0338]
+zoom: 7
+```
+```
+
+
+## Content blocks
+
+When the `markdown` option is used, Markdown is split into `.dumby-block` (`<article>`)
+elements at every sequence of three or more consecutive newlines (`\n\n\n`).
+Fenced code blocks are treated as atomic — blank lines inside a fence do not split.
+
+When using plain HTML, DumbyMap auto-wraps content into blocks:
+- `h1`/`h2`/`h3` headings start a new block.
+- If no headings, `<section>`/`<article>` children are promoted.
+- Otherwise everything is wrapped in one block.
+
+Pre-existing elements with class `dumby-block` are used as-is.
+
+
+## GeoLinks
+
+GeoLinks are `<a href="geo:lat,lon">` anchors that move the map camera and place markers.
+
+### Writing GeoLinks in Markdown/HTML
+
+```html
+<a href="geo:25.0338,121.5645">Taipei city centre</a>
+```
+
+Note: the `geo:` URI uses **lat,lon** order (standard RFC 5870).
+
+### URL parameters on geo: links
+
+| Parameter | Example              | Description                                 |
+|-----------|----------------------|---------------------------------------------|
+| `id`      | `?id=north,south`    | Target only the named map(s)                |
+| `type`    | `?type=star`         | Marker icon type (default: `pin`)           |
+| `text`    | `?text=My label`     | Custom leader-line midpoint label           |
+| `crs`     | `?crs=EPSG:3826`     | Source CRS (projected to WGS 84 via proj4)  |
+
+Example: `<a href="geo:25.0338,121.5645?id=north&type=campsite">Camp</a>`
+
+### Auto-detected coordinate text
+
+DumbyMap automatically converts plain text matching coordinate patterns into GeoLinks.
+Supported formats:
+
+- Decimal `lon,lat`: `121.5645,25.0338`
+- Decimal with slash: `121.5645/25.0338`
+- DMS: `E121d 30m 58s N25d 2m 50s`
+- Unicode DMS: `E121度 30分 58秒 N25度 2分 50秒`
+- Full-width Unicode digits: `１２１．５６４５，２５．０３３８`
+
+Strings that look like dates are skipped to avoid false positives.
+
+### Interaction
+
+- **Click** a GeoLink: pan map to coordinate, place a marker.
+- **Hover** a GeoLink: draw a leader line from link to marker.
+- **Middle-click** a GeoLink: remove all its markers.
+- **Right-click** a GeoLink: change marker type or delete the link.
+- **Hold & drag** selected text onto a map: interactively create a GeoLink with a placed marker.
+
+
+## DocLinks
+
+DocLinks draw leader lines from an anchor to any CSS-selector-targeted element.
+
+```markdown
+[link text](#fragment "=> .css-selector")
+```
+
+The `href` is a normal fragment for page navigation.
+The `title` attribute starting with `=>` provides the CSS selector for the leader line target.
+
+Example: `[See the map](#map-section "=> .map-section")`
+
+**Leader line path styles** (right-click to change):
+`magnet` (default) | `straight` | `grid` | `fluid`
+
+
+## Markers
+
+Predefined icon types for GeoLinks:
+
+| Category      | Icons                                                        |
+|---------------|--------------------------------------------------------------|
+| Basic         | `pin`, `circle`                                              |
+| Recreation    | `campsite`, `mountain`, `waterfall`, `hotSpring`, `animal`   |
+| Infrastructure| `parking`, `rail`, `heliport`, `racetrack`                   |
+| Warning       | `caution`, `danger`, `cross`, `construction`, `fence`, `communication` |
+| Shapes        | `star`, `triangle`, `triangleWhite`                          |
+| Other         | `water`, `roadblock`                                         |
+
+Set via `?type=<icon>` in the `geo:` URL, or at runtime via the context menu.
+Right-click on any rendered map and choose **Add Marker** to drop a named pin manually.
+
+
+## Layouts
+
+Four built-in layouts control how the content column and the map showcase are arranged.
+Switch with the **X** key (Shift+X to go back), or via the right-click context menu.
+
+| Name          | Description                                                         |
+|---------------|---------------------------------------------------------------------|
+| `normal`      | Default; content and showcase arranged by CSS only                  |
+| `side-by-side`| Draggable vertical splitter between content and maps (25%–75%)      |
+| `overlay`     | Content blocks float as draggable, resizable panels over the maps   |
+| `sticky`      | Maps float as a draggable panel fixed to the viewport               |
+
+Set a layout programmatically:
+
+```js
+const dumbymap = generateMaps(container, { initialLayout: 'side-by-side' })
+```
+
+Sync with URL query parameter (reads `?layout=` on load, writes it on change):
+
+```js
+generateMaps(container, { markdown, urlParams: true })
+```
+
+
+## Coordinate Reference Systems
+
+Default CRS is **WGS 84 (EPSG:4326)**. To accept coordinates in another projection,
+set `data-crs` on the container element or pass `crs` in options:
+
+```html
+<div id="app" data-crs="EPSG:3826"></div>
+```
+
+```js
+generateMaps(container, { crs: 'EPSG:3826' })
+```
+
+DumbyMap reprojects coordinates to WGS 84 via proj4 before panning the map.
+Right-click any map → **Get Coordinates** to copy the projected coordinates at the click point.
+
+
+## `generateMaps(container, options)` API
+
+**Parameters:**
+
+| Option           | Type             | Default      | Description                                              |
+|------------------|------------------|--------------|----------------------------------------------------------|
+| `markdown`       | string           | —            | Markdown source; if omitted, reads from existing DOM     |
+| `crs`            | string           | `EPSG:4326`  | Coordinate reference system for the container           |
+| `initialLayout`  | string           | `normal`     | Starting layout name                                     |
+| `layouts`        | array            | —            | Additional custom layout objects or name strings         |
+| `urlParams`      | boolean          | `false`      | Read/write `?layout=` from/to URL query string           |
+| `contentSelector`| string           | —            | CSS selector to resolve the content holder               |
+| `renderCallback` | function         | —            | Called after each individual map finishes rendering      |
+| `defaultApply`   | string (URL)     | remote YAML  | URL of YAML file providing default map option aliases    |
+
+**Returns** a sealed `dumbymap` object:
+
+```js
+const dumbymap = generateMaps(container, options)
+
+dumbymap.container       // root HTMLElement
+dumbymap.htmlHolder      // live getter: .SemanticHtml element
+dumbymap.showcase        // live getter: .Showcase element
+dumbymap.blocks          // live getter: all .dumby-block elements
+dumbymap.layouts         // array of Layout instances
+dumbymap.aliases         // map option aliases loaded from defaultApply URL
+dumbymap.modal           // PlainModal instance (used by block editor)
+dumbymap.utils           // bound utility functions (see below)
+```
+
+**`dumbymap.utils` methods:**
+
+```js
+dumbymap.utils.renderedMaps()              // fulfilled .mapclay elements sorted by order
+dumbymap.utils.focusNextMap(reverse?)      // cycle map focus (throttled)
+dumbymap.utils.focusNextBlock(reverse?)    // cycle block focus
+dumbymap.utils.removeBlockFocus()          // clear all block focus
+dumbymap.utils.switchToNextLayout(reverse?)// cycle layout (throttled)
+dumbymap.utils.scrollToBlock(block)        // smart-scroll a block into view
+dumbymap.utils.addMarkerByPoint({point, map, title})  // place marker at screen pixel
+dumbymap.utils.addGeoSchemeByText(node)    // scan text for coordinates, wrap as geo: links
+dumbymap.utils.setContextMenu(callback)    // append custom items to the context menu
+```
+
+
+## Keyboard shortcuts
+
+Shortcuts are disabled when a `<textarea>` or `<input>` has focus.
+
+| Key         | Action                          |
+|-------------|---------------------------------|
+| `Tab`       | Focus next map                  |
+| `Shift+Tab` | Focus previous map              |
+| `x`         | Switch to next layout           |
+| `Shift+X`   | Switch to previous layout       |
+| `n`         | Focus next block                |
+| `p`         | Focus previous block            |
+| `Escape`    | Remove focus from all blocks    |
+
+
+## DOM structure produced by generateMaps
+
+```
+<div id="app" class="Dumby" data-layout="normal" data-crs="EPSG:4326">
+  <div class="SemanticHtml">
+    <article class="dumby-block">
+      <!-- content with <pre><code class="language-map"> map blocks -->
+    </article>
+    <!-- more .dumby-block elements -->
+  </div>
+  <div class="Showcase">
+    <!-- focused .mapclay map elements are moved here -->
+  </div>
+</div>
+```
+
+Each `.mapclay` element gets:
+- `id` — derived from `use:` renderer name (e.g. `Maplibre`, `Leaflet-2`)
+- `data-render` — `"fulfilled"` when ready, `"pass/total"` steps during rendering
+- `style.order` — CSS order reflecting DOM position
+
+
+## Context menu
+
+Right-click anywhere inside the container to open the context menu.
+Disable it for a specific element with `data-menu="disabled"`.
+
+Key actions available:
+- **Edit Block** — opens a modal textarea pre-filled with the block's Markdown source; save with Ctrl+Enter.
+- **Edit Map** — replace map with a YAML textarea; blur to re-render immediately.
+- **Get Coordinates** — unprojects click position, copies `[lon, lat]` to clipboard.
+- **Add Marker** — prompts for a name, places a pin at the click position.
+- **Add Link by Geocoding** — select text, right-click, search Nominatim, insert a GeoLink.
+- **Restore Camera** — returns map to its original position.
+- **Marker Type** — change icon for a GeoLink.
+- **Line Type** — change leader-line path style.
+- **Layouts / Maps / Blocks** — navigation pickers (also reachable via keyboard).
+
+
+## Markdown features
+
+The Markdown pipeline (`md2dumbyBlocks`) uses markdown-it with these plugins active:
+
+- `markdown-it-anchor` — heading IDs and `.header-anchor` links
+- `markdown-it-footnote` — `[^1]` footnote syntax
+- `markdown-it-front-matter` — YAML front matter (stripped from output)
+- `markdown-it-inject-linenumbers` — `data-source-line` attributes on block elements
+- `markdown-it-attrs` — `{.class #id attr=val}` attribute shorthand
+- Raw HTML passthrough (`html: true`)
+
+Block splitting: three or more consecutive blank lines (`\n\n\n`) create a new `.dumby-block`.
+Fenced code blocks are atomic — blank lines inside a fence never trigger a split.
