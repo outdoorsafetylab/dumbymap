@@ -392,6 +392,8 @@ export const setupContextMenu = (container, dumbymap, editBlockItem, editAllItem
       menu.appendChild(menuItem.pickLayoutItem(dumbymap))
     }
 
+    menu.appendChild(menuItem.exportFolder(dumbymap))
+
     return showMenu()
   }
 }

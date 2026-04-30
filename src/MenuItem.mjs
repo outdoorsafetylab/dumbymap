@@ -781,6 +781,162 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
 }
 
 /**
+ * exportMarkdown. Save current session markdown to the filesystem.
+ *
+ * @param {Object} dumbymap
+ */
+export const exportMarkdown = (dumbymap) => Item({
+  text: 'Export Markdown',
+  onclick: async () => {
+    const content = dumbymap.blocks.map(b => htmlToMd(b).trim()).join('\n\n\n')
+    const blob = new Blob([content], { type: 'text/markdown' })
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: 'document.md',
+          types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md'] } }],
+        })
+        const writable = await handle.createWritable()
+        await writable.write(blob)
+        await writable.close()
+      } catch (e) {
+        if (e.name !== 'AbortError') throw e
+      }
+    } else {
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'document.md'
+      a.click()
+      URL.revokeObjectURL(a.href)
+    }
+  },
+})
+
+/**
+ * exportHtml. Export a self-contained HTML file with inlined CSS and ESM.
+ *
+ * @param {Object} dumbymap
+ */
+export const exportHtml = () => Item({
+  text: 'Export HTML',
+  onclick: async () => {
+    // Renderer and bundle live in dist/, computable from this module's URL
+    // Works whether this is src/MenuItem.mjs or the dist/dumbymap.mjs bundle
+    const distBase = new URL('../dist/', import.meta.url)
+
+    // Fetch the original page source so we start from clean markup
+    const sourceHtml = await fetch(location.href).then(r => r.text())
+    const doc = new DOMParser().parseFromString(sourceHtml, 'text/html')
+
+    // Inline all <link rel="stylesheet"> as <style>
+    for (const link of [...doc.querySelectorAll('link[rel="stylesheet"]')]) {
+      const url = new URL(link.getAttribute('href'), location.href)
+      try {
+        const css = await fetch(url).then(r => r.text())
+        const style = doc.createElement('style')
+        style.textContent = css
+        link.replaceWith(style)
+      } catch (e) {
+        console.warn('Export HTML: failed to inline CSS:', url.href, e)
+      }
+    }
+
+    // Remove importmap — not needed once bundle is inlined
+    doc.querySelectorAll('script[type="importmap"]').forEach(s => s.remove())
+
+    // Fetch the self-contained dumbymap bundle
+    let bundleText = await fetch(new URL('dumbymap.mjs', distBase)).then(r => r.text())
+
+    // Inline each renderer as a data: URI, then patch the bundle's renderer paths
+    const encodeModule = (text) => {
+      const bytes = new TextEncoder().encode(text)
+      const binary = Array.from(bytes, b => String.fromCharCode(b)).join('')
+      return 'data:application/javascript;base64,' + btoa(binary)
+    }
+
+    await Promise.all(
+      ['leaflet', 'maplibre', 'openlayers'].map(async (name) => {
+        try {
+          const text = await fetch(new URL(`renderers/${name}.mjs`, distBase)).then(r => r.text())
+          bundleText = bundleText.replaceAll(`./renderers/${name}.mjs`, encodeModule(text))
+        } catch (e) {
+          console.warn(`Export HTML: failed to inline renderer ${name}:`, e)
+        }
+      }),
+    )
+
+    // Helper: find all quoted .yml/.yaml strings in text, fetch each, replace with data: URIs.
+    // Resolves relative URLs against baseUrl (which matches how fetch() resolves them at runtime).
+    const inlineYamlRefs = async (text, baseUrl) => {
+      let result = text
+      for (const [fullMatch, quote, urlStr] of [...text.matchAll(/(['"])([^'"]*\.ya?ml)\1/g)]) {
+        if (urlStr.startsWith('data:')) continue
+        try {
+          const url = new URL(urlStr, baseUrl)
+          const content = await fetch(url).then(r => r.text())
+          const bytes = new TextEncoder().encode(content)
+          const binary = Array.from(bytes, b => String.fromCharCode(b)).join('')
+          result = result.replaceAll(fullMatch, quote + 'data:text/yaml;base64,' + btoa(binary) + quote)
+        } catch (e) {
+          console.warn('Export HTML: failed to inline YAML:', urlStr, e)
+        }
+      }
+      return result
+    }
+
+    // Inline YAML refs in the bundle itself — this covers the defaultApply default value
+    // ('../assets/taiwan.yml') which lives inside generateMaps(), not in the user's script
+    bundleText = await inlineYamlRefs(bundleText, location.href)
+
+    // Rewrite <script type="module">: strip the dumbymap import line, prepend bundle,
+    // and inline any YAML refs in the user's script too (custom defaultApply values)
+    for (const s of [...doc.querySelectorAll('script[type="module"]')]) {
+      let code = s.textContent
+        .replace(/^\s*import\s+\{[^}]*\}\s+from\s+['"][^'"]*dumbymap[^'"]*['"]\s*;?\n?/gm, '')
+      code = await inlineYamlRefs(code, location.href)
+      s.textContent = bundleText + '\n' + code
+    }
+
+    // Serialize and save
+    const html = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML
+    const blob = new Blob([html], { type: 'text/html' })
+
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: 'document.html',
+          types: [{ description: 'HTML', accept: { 'text/html': ['.html'] } }],
+        })
+        const writable = await handle.createWritable()
+        await writable.write(blob)
+        await writable.close()
+      } catch (e) {
+        if (e.name !== 'AbortError') throw e
+      }
+    } else {
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'document.html'
+      a.click()
+      URL.revokeObjectURL(a.href)
+    }
+  },
+})
+
+/**
+ * exportFolder. Folder containing export actions.
+ *
+ * @param {Object} dumbymap
+ */
+export const exportFolder = (dumbymap) => Folder({
+  text: 'Export',
+  items: [
+    exportMarkdown(dumbymap),
+    exportHtml(),
+  ],
+})
+
+/**
  * geocodingResult.
  *
  * @param {Array<Number[]>} bounds - boundingbox in format: [minLon, minLat, maxLon, maxLat]
