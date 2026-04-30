@@ -54,28 +54,80 @@ export class SideBySide extends Layout {
     const handle = bar.querySelector('.bar-handle')
     container.appendChild(bar)
 
-    // Resize views by value
     const resizeByLeft = left => {
       htmlHolder.style.width = left + 'px'
       showcase.style.width =
         parseFloat(window.getComputedStyle(container).width) - left + 'px'
     }
 
-    const draggable = new PlainDraggable(bar, {
-      handle,
-      containment: { left: '25%', top: 0, right: '75%', height: 0 },
+    const resizeByTop = top => {
+      htmlHolder.style.height = top + 'px'
+      showcase.style.top = top + 'px'
+      showcase.style.height =
+        parseFloat(window.getComputedStyle(container).height) - top + 'px'
+    }
+
+    const portrait = window.matchMedia('(orientation: portrait)')
+    let teardown = null
+
+    const setup = () => {
+      teardown?.()
+      teardown = null
+      htmlHolder.style.removeProperty('width')
+      htmlHolder.style.removeProperty('height')
+      showcase.style.removeProperty('width')
+      showcase.style.removeProperty('height')
+      showcase.style.removeProperty('top')
+      bar.style.removeProperty('top')
+      bar.style.removeProperty('left')
+
+      const isPortrait = portrait.matches
+
+      const onPointerDown = e => {
+        const startClient = isPortrait ? e.clientY : e.clientX
+        const startPos = isPortrait
+          ? bar.getBoundingClientRect().top - container.getBoundingClientRect().top
+          : bar.getBoundingClientRect().left - container.getBoundingClientRect().left
+        const containerSize = isPortrait
+          ? container.getBoundingClientRect().height
+          : container.getBoundingClientRect().width
+
+        const onMove = moveEvent => {
+          const delta = (isPortrait ? moveEvent.clientY : moveEvent.clientX) - startClient
+          const newPos = Math.min(
+            Math.max(startPos + delta, containerSize * 0.25),
+            containerSize * 0.75
+          )
+          if (isPortrait) {
+            bar.style.top = newPos + 'px'
+            resizeByTop(newPos)
+          } else {
+            bar.style.left = newPos + 'px'
+            resizeByLeft(newPos)
+          }
+        }
+
+        const onUp = () => {
+          document.removeEventListener('pointermove', onMove)
+          document.removeEventListener('pointerup', onUp)
+          document.removeEventListener('pointercancel', onUp)
+        }
+
+        document.addEventListener('pointermove', onMove)
+        document.addEventListener('pointerup', onUp)
+        document.addEventListener('pointercancel', onUp)
+      }
+
+      handle.addEventListener('pointerdown', onPointerDown)
+      teardown = () => handle.removeEventListener('pointerdown', onPointerDown)
+    }
+
+    setup()
+    portrait.addEventListener('change', setup)
+    onRemove(bar, () => {
+      teardown?.()
+      portrait.removeEventListener('change', setup)
     })
-    draggable.draggableCursor = 'grab'
-
-    draggable.onDrag = pos => {
-      handle.style.transform = 'unset'
-      resizeByLeft(pos.left)
-    }
-    draggable.onDragEnd = _ => {
-      handle.style.cssText = ''
-    }
-
-    onRemove(bar, () => draggable.remove())
   }
 
   /**
@@ -186,7 +238,7 @@ export class Overlay extends Layout {
    * @param {HTMLElement} options.hemlHolder - Parent element for block
    * @param {HTMLElement[]} options.blocks
    */
-  enterHandler = ({ htmlHolder, blocks }) => {
+  enterHandler = ({ blocks }) => {
     // FIXME It is weird rect from this method and this scope are different...
     blocks.forEach(this.saveLeftTopAsData)
 

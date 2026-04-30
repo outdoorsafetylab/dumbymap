@@ -40,6 +40,47 @@ test.describe('layout switching', () => {
     await expect(page.locator('.draggable-block .Showcase')).toBeVisible()
   })
 
+  test('side-by-side landscape: dragging bar resizes both panels', async ({ page }) => {
+    await page.evaluate(() => { document.querySelector('.Dumby').dataset.layout = 'side-by-side' })
+    await page.waitForSelector('.Dumby .bar')
+
+    const showcaseBefore = await page.locator('.Showcase').boundingBox()
+
+    const handleBox = await page.locator('.bar .bar-handle').boundingBox()
+    const cx = handleBox.x + handleBox.width / 2
+    const cy = handleBox.y + handleBox.height / 2
+
+    await page.mouse.move(cx, cy)
+    await page.mouse.down()
+    await page.mouse.move(cx - 100, cy, { steps: 10 })
+    await page.mouse.up()
+
+    const showcaseAfter = await page.locator('.Showcase').boundingBox()
+    expect(showcaseAfter.x).toBeLessThan(showcaseBefore.x)
+    expect(showcaseAfter.width).toBeGreaterThan(showcaseBefore.width)
+  })
+
+  test('side-by-side portrait: dragging bar resizes both panels', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.evaluate(() => { document.querySelector('.Dumby').dataset.layout = 'side-by-side' })
+    await page.waitForSelector('.Dumby .bar')
+
+    const showcaseBefore = await page.locator('.Showcase').boundingBox()
+
+    const handleBox = await page.locator('.bar .bar-handle').boundingBox()
+    const cx = handleBox.x + handleBox.width / 2
+    const cy = handleBox.y + handleBox.height / 2
+
+    await page.mouse.move(cx, cy)
+    await page.mouse.down()
+    await page.mouse.move(cx, cy + 100, { steps: 10 })
+    await page.mouse.up()
+
+    const showcaseAfter = await page.locator('.Showcase').boundingBox()
+    expect(showcaseAfter.y).toBeGreaterThan(showcaseBefore.y)
+    expect(showcaseAfter.height).toBeLessThan(showcaseBefore.height)
+  })
+
   test('X key cycles to a different layout', async ({ page }) => {
     const before = await page.evaluate(() => document.querySelector('.Dumby').dataset.layout)
     await page.keyboard.press('x')
