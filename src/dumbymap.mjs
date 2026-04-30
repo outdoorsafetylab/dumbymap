@@ -262,7 +262,7 @@ export const setupLayoutObserver = (container, dumbymap) => {
 }
 
 /** EVENTS: Set up context menu handler */
-export const setupContextMenu = (container, dumbymap, editBlockItem) => {
+export const setupContextMenu = (container, dumbymap, editBlockItem, editAllItem) => {
   container.oncontextmenu = e => {
     /** Check if OK to show custom menu over context menu */
     if (container.dataset.menu === 'disabled') return
@@ -288,6 +288,7 @@ export const setupContextMenu = (container, dumbymap, editBlockItem) => {
     /** Menu Item for editing block - always first */
     if (block?.dataset.blockIndex != null) {
       menu.appendChild(editBlockItem(block))
+      menu.appendChild(editAllItem())
     }
 
     const showMenu = () => {
@@ -740,9 +741,9 @@ export const generateMaps = (container, {
   container.dataset.initDumby = 'true'
 
   /** BLOCK EDITING: inline edit modal for each .dumby-block */
-  const editBlockItem = menuItem.setupBlockEdit(dumbymap, { container, htmlHolder, md2dumbyBlocks })
+  const { editBlockItem, editAllItem } = menuItem.setupBlockEdit(dumbymap, { container, htmlHolder, md2dumbyBlocks })
 
-  setupContextMenu(container, dumbymap, editBlockItem)
+  setupContextMenu(container, dumbymap, editBlockItem, editAllItem)
   setupMouseDrag(container)
   setupKeybindings(container, dumbymap)
   fetchDefaultAliases(defaultApply, dumbymap)

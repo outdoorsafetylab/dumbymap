@@ -1,5 +1,5 @@
 import { onRemove, shiftByWindow } from './utils.mjs'
-import { htmlToMd } from './markdown.mjs'
+import { htmlToMd, splitMd } from './markdown.mjs'
 import { addMarkerByPoint } from './dumbyUtils.mjs'
 /* eslint-disable-next-line no-unused-vars */
 import { GeoLink, getMarkersFromMaps, getMarkersByGeoLink, removeLeaderLines } from './Link.mjs'
@@ -709,8 +709,11 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
     closeEditModal()
   }
 
+  const titleSpan = overlay.querySelector('.dumby-edit-header span')
+
   const openEditModal = (index) => {
     editingIndex = index
+    titleSpan.textContent = 'Edit Block'
     // Serialize the block back to Markdown for editing
     textarea.value = htmlToMd(dumbymap.blocks[index]).trim()
     overlay.classList.add('open')
@@ -719,16 +722,43 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
     textarea.selectionStart = textarea.selectionEnd = textarea.value.length
   }
 
+  const openEditAllModal = () => {
+    editingIndex = null
+    titleSpan.textContent = 'Edit ALL'
+    // Concatenate all blocks' Markdown separated by 3 newlines (2 blank lines = block split)
+    textarea.value = dumbymap.blocks.map(b => htmlToMd(b).trim()).join('\n\n\n')
+    overlay.classList.add('open')
+    textarea.focus()
+    textarea.selectionStart = textarea.selectionEnd = 0
+  }
+
+  const saveEditAllModal = () => {
+    const mdBlocks = splitMd(textarea.value)
+    const tmp = document.createElement('div')
+    tmp.innerHTML = mdBlocks.map(md2dumbyBlocks).join('')
+    const newBlocks = [...tmp.querySelectorAll('.dumby-block')]
+    // Replace all existing blocks with the new set
+    const existing = [...dumbymap.blocks]
+    existing[0].replaceWith(...newBlocks)
+    existing.slice(1).forEach(b => b.remove())
+    closeEditModal()
+  }
+
+  const saveModal = () => {
+    if (editingIndex !== null) saveEditModal()
+    else saveEditAllModal()
+  }
+
   // Wire keyboard shortcuts and button click handlers for the modal
   const onEditKeydown = e => {
     if (e.key === 'Escape') closeEditModal()
   }
   document.addEventListener('keydown', onEditKeydown)
   textarea.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveEditModal()
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveModal()
   })
   overlay.querySelector('.dumby-edit-cancel').onclick = closeEditModal
-  overlay.querySelector('.dumby-edit-save').onclick = saveEditModal
+  overlay.querySelector('.dumby-edit-save').onclick = saveModal
   overlay.addEventListener('click', e => { if (e.target === overlay) closeEditModal() })
 
   // Clean up overlay and global listener when the container is removed from the DOM
@@ -737,10 +767,17 @@ export const setupBlockEdit = (dumbymap, { container, htmlHolder, md2dumbyBlocks
     document.removeEventListener('keydown', onEditKeydown)
   })
 
-  return (block) => Item({
+  const editBlockItem = (block) => Item({
     text: '✏ Edit Block',
     onclick: () => openEditModal(+block.dataset.blockIndex),
   })
+
+  const editAllItem = () => Item({
+    text: '✏ Edit ALL',
+    onclick: openEditAllModal,
+  })
+
+  return { editBlockItem, editAllItem }
 }
 
 /**

@@ -803,6 +803,7 @@ textarea .edit-map {
   flex-direction: column;
   width: 640px;
   max-width: 92vw;
+  height: 85vh;
   padding: 24px;
 
   border-radius: 10px;
@@ -833,6 +834,7 @@ textarea .edit-map {
 
 .dumby-edit-textarea {
   width: 100%;
+  flex: 1;
   min-height: 200px;
   padding: 10px 12px;
 
@@ -845,7 +847,6 @@ textarea .edit-map {
   line-height: 1.6;
 
   outline: none;
-  resize: vertical;
 
   transition: border-color 0.15s;
 
