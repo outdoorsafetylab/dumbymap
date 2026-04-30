@@ -76,6 +76,7 @@ export const GeoLink = (link) => {
 
   // Click to move camera
   link.onclick = (event) => {
+    if (event.button !== 0) return
     event.preventDefault()
     removeLeaderLines(link)
     getMarkersByGeoLink(link).forEach(marker => {
@@ -89,13 +90,16 @@ export const GeoLink = (link) => {
   }
 
   // Use middle click to remove markers
-  link.onauxclick = (e) => {
-    if (e.which !== 2) return
+  // mouseup fires before auxclick and before the browser opens the link in a new tab,
+  // making it more reliable for testing than onauxclick
+  link.addEventListener('mouseup', (e) => {
+    if (e.button !== 1) return
     e.preventDefault()
     removeLeaderLines(link)
-    getMarkersByGeoLink(link)
+    const lonLat = [Number(link.dataset.lon), Number(link.dataset.lat)]
+    document.querySelectorAll(`.mapclay .marker[data-xy="${lonLat}"]`)
       .forEach(marker => marker.remove())
-  }
+  })
 
   return link
 }
