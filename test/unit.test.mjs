@@ -588,6 +588,37 @@ describe('htmlToMd — table', () => {
   })
 })
 
+// ─── htmlToMd — skip tags ─────────────────────────────────────────────────────
+
+describe('htmlToMd — skip tags', () => {
+  const fromHtml = (html) => {
+    const div = document.createElement('div')
+    div.innerHTML = html
+    return div
+  }
+
+  it('drops <nav> entirely', () => {
+    const root = fromHtml('<nav><a href="/home">Home</a></nav><p>content</p>')
+    const out = htmlToMd(root)
+    expect(out).not.toContain('Home')
+    expect(out).toContain('content')
+  })
+
+  it('drops <aside> entirely', () => {
+    const root = fromHtml('<aside><p>sidebar</p></aside><p>main</p>')
+    const out = htmlToMd(root)
+    expect(out).not.toContain('sidebar')
+    expect(out).toContain('main')
+  })
+
+  it('drops nested <nav> inside other elements', () => {
+    const root = fromHtml('<article><nav>skip me</nav><p>keep me</p></article>')
+    const out = htmlToMd(root)
+    expect(out).not.toContain('skip me')
+    expect(out).toContain('keep me')
+  })
+})
+
 // ─── assignMapId ──────────────────────────────────────────────────────────────
 
 describe('assignMapId', () => {

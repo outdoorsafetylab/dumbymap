@@ -5,7 +5,8 @@ import MarkdownItFrontMatter from 'markdown-it-front-matter'
 import MarkdownItInjectLinenumbers from 'markdown-it-inject-linenumbers'
 import MarkdownItAttrs from 'markdown-it-attrs'
 
-const UNWRAP_TAGS = new Set(['div', 'article', 'section', 'main', 'aside', 'header', 'footer', 'nav'])
+const UNWRAP_TAGS = new Set(['div', 'article', 'section', 'main', 'header', 'footer'])
+const SKIP_TAGS = new Set(['nav', 'aside'])
 
 /**
  * Convert a DOM node (element or text) to a Markdown string.
@@ -45,6 +46,7 @@ export const htmlToMd = (rootNode) => {
 
     // Helpers: serialize all children, or heading children minus anchor links
     const tag = node.tagName.toLowerCase()
+    if (SKIP_TAGS.has(tag)) return ''
     const inner = (n = node) => Array.from(n.childNodes).map(convert).join('')
     const headingInner = (n) =>
       Array.from(n.childNodes)
