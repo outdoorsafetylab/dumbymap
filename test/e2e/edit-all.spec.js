@@ -74,6 +74,19 @@ test.describe('Edit ALL', () => {
     await expect(page.locator('.dumby-block')).toHaveCount(originalCount)
   })
 
+  test('"Edit Block" on 5th block (table block) shows markdown table, not <table> HTML', async ({ page }) => {
+    const block = page.locator('.dumby-block').nth(4)
+    await block.click({ button: 'right' })
+    await page.locator('.dumby-menu').getByText('Edit Block').click()
+
+    const overlay = page.locator('.dumby-edit-overlay.open')
+    await expect(overlay).toBeVisible({ timeout: 3000 })
+
+    const value = await page.locator('.dumby-edit-textarea').inputValue()
+    expect(value).not.toContain('<table>')
+    expect(value).toContain('| --- |')
+  })
+
   test('"Edit Block" still works after "Edit ALL" was opened', async ({ page }) => {
     // Open Edit ALL then close it
     await page.locator('.dumby-block').first().click({ button: 'right' })

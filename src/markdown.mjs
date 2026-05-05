@@ -45,7 +45,7 @@ export const htmlToMd = (rootNode) => {
 
     // Helpers: serialize all children, or heading children minus anchor links
     const tag = node.tagName.toLowerCase()
-    const inner = () => Array.from(node.childNodes).map(convert).join('')
+    const inner = (n = node) => Array.from(n.childNodes).map(convert).join('')
     const headingInner = (n) =>
       Array.from(n.childNodes)
         .filter(c => !(c.nodeType === Node.ELEMENT_NODE && c.classList?.contains('header-anchor')))
@@ -116,6 +116,18 @@ export const htmlToMd = (rootNode) => {
         return Array.from(node.children)
           .map((li, i) => `${i + 1}. ${convert(li).trim()}`)
           .join('\n') + '\n\n'
+      case 'table': {
+        const rows = Array.from(node.querySelectorAll('tr'))
+        if (!rows.length) return node.outerHTML
+        const toRow = tr =>
+          '| ' + Array.from(tr.querySelectorAll('th, td'))
+            .map(cell => inner(cell).trim().replace(/\|/g, '\\|'))
+            .join(' | ') + ' |'
+        const [head, ...body] = rows
+        const cols = head.querySelectorAll('th, td').length
+        const sep = '| ' + Array(cols).fill('---').join(' | ') + ' |'
+        return [toRow(head), sep, ...body.map(toRow)].join('\n') + '\n\n'
+      }
       default:
         return UNWRAP_TAGS.has(tag) ? inner() : node.outerHTML
     }

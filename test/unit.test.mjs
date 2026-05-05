@@ -514,6 +514,80 @@ describe('htmlToMd — footnotes', () => {
   })
 })
 
+// ─── htmlToMd — table ─────────────────────────────────────────────────────────
+
+describe('htmlToMd — table', () => {
+  const fromHtml = (html) => {
+    const div = document.createElement('div')
+    div.innerHTML = html
+    return div
+  }
+
+  it('converts a basic table with <th> headers to markdown table', () => {
+    const div = fromHtml(`
+      <table>
+        <tr><th>Name</th><th>Value</th></tr>
+        <tr><td>foo</td><td>bar</td></tr>
+      </table>`)
+    const out = htmlToMd(div)
+    expect(out).toContain('| Name | Value |')
+    expect(out).toContain('| --- | --- |')
+    expect(out).toContain('| foo | bar |')
+  })
+
+  it('converts a table with <thead>/<tbody> structure', () => {
+    const div = fromHtml(`
+      <table>
+        <thead><tr><th>A</th><th>B</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>2</td></tr>
+          <tr><td>3</td><td>4</td></tr>
+        </tbody>
+      </table>`)
+    const out = htmlToMd(div)
+    expect(out).toContain('| A | B |')
+    expect(out).toContain('| --- | --- |')
+    expect(out).toContain('| 1 | 2 |')
+    expect(out).toContain('| 3 | 4 |')
+  })
+
+  it('escapes pipe characters inside cell content', () => {
+    const div = fromHtml(`
+      <table>
+        <tr><th>Expr</th></tr>
+        <tr><td>a | b</td></tr>
+      </table>`)
+    const out = htmlToMd(div)
+    expect(out).toContain('a \\| b')
+  })
+
+  it('falls back to outerHTML for an empty table', () => {
+    const div = fromHtml('<table></table>')
+    const out = htmlToMd(div)
+    expect(out).toContain('<table>')
+  })
+
+  it('separator has correct column count', () => {
+    const div = fromHtml(`
+      <table>
+        <tr><th>X</th><th>Y</th><th>Z</th></tr>
+        <tr><td>1</td><td>2</td><td>3</td></tr>
+      </table>`)
+    const out = htmlToMd(div)
+    expect(out).toContain('| --- | --- | --- |')
+  })
+
+  it('renders inline markup inside cells', () => {
+    const div = fromHtml(`
+      <table>
+        <tr><th>Col</th></tr>
+        <tr><td><strong>bold</strong></td></tr>
+      </table>`)
+    const out = htmlToMd(div)
+    expect(out).toContain('**bold**')
+  })
+})
+
 // ─── assignMapId ──────────────────────────────────────────────────────────────
 
 describe('assignMapId', () => {
