@@ -121,7 +121,6 @@ body {
   &[data-layout="normal"] {
     max-width: 800px;
     margin: 0 auto;
-    padding: 2rem 1rem;
 
     &::after {
       animation: 1.5s forwards fade-out cubic-bezier(0.44, 0.18, 0.86, -0.21);
