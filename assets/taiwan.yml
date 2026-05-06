@@ -48,6 +48,7 @@ aliases:
     地圖產生器-魯地圖: https://tile.happyman.idv.tw/map/moi_osm/{z}/{x}/{y}.png
     TAIWAN TERRAIN RGB: https://osmhacktw.github.io/terrain-rgb/tiles/{z}/{x}/{y}.png
   WMTS:
+    HAPPYMAN: https://tile.happyman.idv.tw/mp/service?REQUEST=GetCapabilities&SERVICE=WMTS
     NLSC: https://wmts.nlsc.gov.tw/wmts
     TERRAIN-RGB: https://osmhacktw.github.io/terrain-rgb/wmts.xml
     TAIPEI-GOV: https://www.historygis.udd.gov.taipei/wmts
