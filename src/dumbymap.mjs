@@ -373,6 +373,7 @@ export const setupContextMenu = (container, dumbymap, editBlockItem, editAllItem
               point: [e.clientX, e.clientY],
               map,
             }),
+            menuItem.loadFileItem(map),
           ],
         }))
       }

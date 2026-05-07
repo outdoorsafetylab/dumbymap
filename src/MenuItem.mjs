@@ -400,6 +400,33 @@ export const restoreCamera = map =>
     onclick: () => map.renderer.restoreCamera(),
   })
 
+export const loadFileItem = (map) => Item({
+  text: 'Load File...',
+  onclick: () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.gpx,.geojson,.json'
+    input.onchange = () => {
+      const file = input.files[0]
+      if (!file) return
+      const ext = file.name.split('.').pop().toLowerCase()
+      const url = URL.createObjectURL(file) + '#file.' + ext
+      const container = map.closest('.map-container')
+      const configText = Array.from(container.querySelectorAll('.mapclay'))
+        .map(m => m.dataset.mapclay ?? '')
+        .join('\n---\n')
+      const configList = parseConfigsFromYaml(configText)
+      configList.find(c => c.id === map.id).file = url
+      const code = document.createElement('code')
+      code.className = 'map'
+      code.textContent = configList.map(JSON.stringify).join('\n---\n')
+      container.dataset.render = 'no-delay'
+      container.replaceChildren(code)
+    }
+    input.click()
+  },
+})
+
 /**
  * addRefLink. replace selected text into markdown link by reference style links
  *
