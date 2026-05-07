@@ -40,48 +40,26 @@
   <div id="app" class="DumbyMap"></div>
 
   <script type="text/markdown" id="md-content">
-# Coordinate Reference Systems (CRS)
+# CRS: TWD97 / TM2 (EPSG:3826)
 
-By default DumbyMap expects coordinates in **WGS 84 (EPSG:4326)** – decimal longitude/latitude.
-Set `data-crs` on the container to accept coordinates in another projection.
+This page uses **EPSG:3826** (Taiwan Datum 97, 2° TM projection).
+All coordinates are in **metres** (easting, northing).
 
-
-## WGS 84 (default)
-
-No special configuration needed.  Coordinates are longitude/latitude in decimal degrees.
-
-Taipei 101: 121.564500,25.033800
+Click any of the geo-links below to pan the map to that location.
 
 
-## TWD97 / TM2 (EPSG:3826)
+## Landmarks
 
-Taiwan Datum 97, 2° TM projection – coordinates are in metres.
-
-Add `data-crs="EPSG:3826"` to the `.DumbyMap` container element.
-
-DumbyMap will automatically transform metre-based coordinates to WGS 84 before
-panning the map, and display the original CRS values in the UI.
+- Taipei 101: 302762,2768268
+- National Palace Museum: 299617,2775337
+- Sun Moon Lake: 240464,2660651
+- Taroko Gorge: 319418,2693007
 
 
-## How to use
+## Get coordinates
 
-Set the attribute on the root container before calling `generateMaps()`:
-
-```html
-<div id="app" class="DumbyMap" data-crs="EPSG:3826"></div>
-```
-
-Or pass it via `generateMaps` options:
-
-```js
-generateMaps(container, { crs: 'EPSG:3826' })
-```
-
-
-## Getting coordinates from the map
-
-Right-click on any map → **Get coordinates** to copy the clicked point's
-coordinates to the clipboard (7 decimal places, in the active CRS).
+Right-click on the map → **Get coordinates** to copy the clicked point's
+TWD97 coordinates to clipboard.
 
 
 ## Map
@@ -89,7 +67,7 @@ coordinates to the clipboard (7 decimal places, in the active CRS).
 ```map
 use: Maplibre
 center: [121.5645, 25.0338]
-zoom: 12
+zoom: 8
 ```
   </script>
 
@@ -97,7 +75,10 @@ zoom: 12
     import { generateMaps } from '../src/dumbymap.mjs'
 
     const container = document.getElementById('app')
-    generateMaps(container, { markdown: document.getElementById('md-content').textContent })
+    generateMaps(container, {
+      markdown: document.getElementById('md-content').textContent,
+      crs: 'EPSG:3826'
+    })
   </script>
 </body>
 </html>
