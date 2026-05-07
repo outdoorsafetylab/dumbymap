@@ -74,6 +74,28 @@ test.describe('Edit ALL', () => {
     await expect(page.locator('.dumby-block')).toHaveCount(originalCount)
   })
 
+  test('"Edit Block" on map block shows ```map YAML from data-mapclay, not raw JSON/HTML', async ({ page }) => {
+    // Wait for at least one map to finish rendering (data-mapclay attribute is set post-render)
+    await page.waitForSelector('.mapclay[data-mapclay]', { timeout: 15000 })
+
+    // Target the first dumby-block that contains a rendered map
+    const mapBlock = page.locator('.dumby-block', { has: page.locator('.mapclay[data-mapclay]') }).first()
+    await mapBlock.click({ button: 'right' })
+    await page.locator('.dumby-menu').getByText('Edit Block').click()
+
+    const overlay = page.locator('.dumby-edit-overlay.open')
+    await expect(overlay).toBeVisible({ timeout: 3000 })
+
+    const value = await page.locator('.dumby-edit-textarea').inputValue()
+    // Must contain a ```map fenced code block
+    expect(value).toContain('```map')
+    // Config must be YAML (key: value), not raw JSON ({...})
+    expect(value).toMatch(/use:\s*\w+/)
+    // Must not contain raw JSON attribute or HTML
+    expect(value).not.toContain('data-mapclay')
+    expect(value).not.toContain('{\"use\"')
+  })
+
   test('"Edit Block" on 5th block (table block) shows markdown table, not <table> HTML', async ({ page }) => {
     const block = page.locator('.dumby-block').nth(4)
     await block.click({ button: 'right' })
