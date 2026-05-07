@@ -8,6 +8,40 @@ import MarkdownItAttrs from 'markdown-it-attrs'
 const UNWRAP_TAGS = new Set(['div', 'article', 'section', 'main', 'header', 'footer'])
 const SKIP_TAGS = new Set(['nav', 'aside'])
 
+const needsYamlQuote = s => {
+  if (s === '') return true
+  if (/^(true|false|null|yes|no|on|off)$/i.test(s)) return true
+  if (/^[\d\-{[?:,#&*!|>'"%@`]/.test(s)) return true
+  if (/:\s|#/.test(s) || /\n/.test(s)) return true
+  return false
+}
+
+const jsonToYaml = (val, indent = 0) => {
+  const pad = '  '.repeat(indent)
+  if (val === null) return 'null'
+  if (typeof val === 'boolean' || typeof val === 'number') return String(val)
+  if (typeof val === 'string') return needsYamlQuote(val) ? JSON.stringify(val) : val
+  if (Array.isArray(val)) {
+    if (val.length === 0) return '[]'
+    return val.map(v => {
+      const s = jsonToYaml(v, indent + 1)
+      return typeof v === 'object' && v !== null
+        ? `${pad}-\n${s}`
+        : `${pad}- ${s}`
+    }).join('\n')
+  }
+  // object
+  const keys = Object.keys(val)
+  if (keys.length === 0) return '{}'
+  return keys.map(k => {
+    const v = val[k]
+    const s = jsonToYaml(v, indent + 1)
+    return (typeof v === 'object' && v !== null && (Array.isArray(v) ? v.length : Object.keys(v).length) > 0)
+      ? `${pad}${k}:\n${s}`
+      : `${pad}${k}: ${s}`
+  }).join('\n')
+}
+
 /**
  * Convert a DOM node (element or text) to a Markdown string.
  * Handles the most common HTML elements so that raw-HTML containers
@@ -47,6 +81,15 @@ export const htmlToMd = (rootNode) => {
     // Helpers: serialize all children, or heading children minus anchor links
     const tag = node.tagName.toLowerCase()
     if (SKIP_TAGS.has(tag)) return ''
+
+    // .mapclay elements carry their config in data-mapclay (JSON); emit as ```map block
+    if (node.hasAttribute('data-mapclay')) {
+      try {
+        const config = JSON.parse(node.getAttribute('data-mapclay'))
+        return `\`\`\`map\n${jsonToYaml(config)}\n\`\`\`\n\n`
+      } catch {}
+    }
+
     const inner = (n = node) => Array.from(n.childNodes).map(convert).join('')
     const headingInner = (n) =>
       Array.from(n.childNodes)
@@ -103,6 +146,16 @@ export const htmlToMd = (rootNode) => {
           ? node.textContent
           : `\`${node.textContent}\``
       case 'pre': {
+        // After map rendering, <pre class="map-container"> children are .mapclay[data-mapclay]
+        const mapNodes = Array.from(node.querySelectorAll(':scope > .mapclay[data-mapclay]'))
+        if (mapNodes.length) {
+          return mapNodes.map(m => {
+            try {
+              const config = JSON.parse(m.getAttribute('data-mapclay'))
+              return `\`\`\`map\n${jsonToYaml(config)}\n\`\`\`\n\n`
+            } catch { return '' }
+          }).join('')
+        }
         const code = node.querySelector('code')
         const lang = (code?.className ?? '').match(/language-(\w+)/)?.[1] ?? ''
         return `\`\`\`${lang}\n${(code ?? node).textContent.trim()}\n\`\`\`\n\n`
