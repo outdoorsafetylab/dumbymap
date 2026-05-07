@@ -52,6 +52,7 @@
   "dependencies": {
     "anim-event": "^1.0.17",
     "cssprefix": "^2.0.17",
+    "entities": "8.0.0",
     "m-class-list": "^1.1.10",
     "mapclay": "^0.11.0",
     "markdown-it": "^14.1.1",
