@@ -438,6 +438,47 @@ export const setupMouseDrag = (container) => {
   }
 }
 
+/** EVENTS: Set up file drag-and-drop onto maps */
+export const setupFileDrop = (container) => {
+  container.addEventListener('dragover', (e) => {
+    const map = e.target.closest('.mapclay')
+    if (!map || !e.dataTransfer.types.includes('Files')) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+    map.classList.add('file-dragover')
+  })
+
+  container.addEventListener('dragleave', (e) => {
+    const map = e.target.closest('.mapclay')
+    if (!map || map.contains(e.relatedTarget)) return
+    map.classList.remove('file-dragover')
+  })
+
+  container.addEventListener('drop', (e) => {
+    const map = e.target.closest('.mapclay')
+    if (!map) return
+    map.classList.remove('file-dragover')
+    const file = Array.from(e.dataTransfer.files).find(f =>
+      /\.(gpx|geojson|json)$/i.test(f.name)
+    )
+    if (!file) return
+    e.preventDefault()
+    const ext = file.name.split('.').pop().toLowerCase()
+    const url = URL.createObjectURL(file) + '#file.' + ext
+    const mapContainer = map.closest('.map-container')
+    const configText = Array.from(mapContainer.querySelectorAll('.mapclay'))
+      .map(m => m.dataset.mapclay ?? '')
+      .join('\n---\n')
+    const configList = mapclay.parseConfigsFromYaml(configText)
+    configList.find(c => c.id === map.id).file = url
+    const code = document.createElement('code')
+    code.className = 'map'
+    code.textContent = configList.map(JSON.stringify).join('\n---\n')
+    mapContainer.dataset.render = 'no-delay'
+    mapContainer.replaceChildren(code)
+  })
+}
+
 /** EVENTS: Set up keyboard navigation handler */
 export const setupKeybindings = (container, dumbymap) => {
   const onKeydown = e => {
@@ -748,6 +789,7 @@ export const generateMaps = (container, {
 
   setupContextMenu(container, dumbymap, editBlockItem, editAllItem)
   setupMouseDrag(container)
+  setupFileDrop(container)
   setupKeybindings(container, dumbymap)
   fetchDefaultAliases(defaultApply, dumbymap)
 

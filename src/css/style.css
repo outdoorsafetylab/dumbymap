@@ -208,6 +208,11 @@ body {
         border: 3px solid var(--link);
       }
 
+      &.file-dragover {
+        border: 3px dashed var(--link);
+        opacity: 0.7;
+      }
+
       &[data-render='unfulfilled'] {
         border: 3px solid crimson;
 
