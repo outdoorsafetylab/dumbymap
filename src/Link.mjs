@@ -53,24 +53,28 @@ export const GeoLink = (link) => {
   link.lines = []
 
   // Hover link for LeaderLine
-  link.onmouseover = () => getMarkersByGeoLink(link)
-    .filter(isAnchorVisible)
-    .forEach(anchor => {
-      const labelText = new URL(link).searchParams.get('text') ?? link.textContent
-      const line = new LeaderLine({
-        start: link,
-        end: anchor,
-        hide: true,
-        middleLabel: LeaderLine.pathLabel({
-          text: labelText,
-          fontWeight: 'bold',
-        }),
-        path: link.dataset.linePath ?? 'magnet',
-      })
-      line.show('draw', { duration: 300 })
+  // Prefer inline markers over Showcase markers to avoid cross-panel arrows in Firefox
+  link.onmouseover = () => {
+    const anchors = getMarkersByGeoLink(link).filter(isAnchorVisible)
+    const inlineAnchors = anchors.filter(a => !a.closest('.Showcase'))
+    ;(inlineAnchors.length > 0 ? inlineAnchors : anchors)
+      .forEach(anchor => {
+        const labelText = new URL(link).searchParams.get('text') ?? link.textContent
+        const line = new LeaderLine({
+          start: link,
+          end: anchor,
+          hide: true,
+          middleLabel: LeaderLine.pathLabel({
+            text: labelText,
+            fontWeight: 'bold',
+          }),
+          path: link.dataset.linePath ?? 'magnet',
+        })
+        line.show('draw', { duration: 300 })
 
-      link.lines.push(line)
-    })
+        link.lines.push(line)
+      })
+  }
 
   link.onmouseout = () => removeLeaderLines(link)
 

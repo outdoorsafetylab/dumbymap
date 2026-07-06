@@ -746,6 +746,8 @@ pre:has(.mapclay) {
 
   .draggable-block {
     position: fixed;
+    visibility: visible;
+    opacity: 1;
 
     &::before {
       display: none;
